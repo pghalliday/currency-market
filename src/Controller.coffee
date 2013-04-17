@@ -1,5 +1,6 @@
 Account = require('../src/Account')
 Amount = require('../src/Amount')
+Currency = require('../src/Currency')
 Market = require('../src/Market')
 Bid = require('../src/Bid')
 uuid = require('node-uuid')
@@ -17,44 +18,47 @@ module.exports = class Controller
     account = @state.accounts[params.account]
     if account
       amount = new Amount(params.amount)
-      currency = account.currencies[params.currency]
-      if typeof currency == 'undefined'
-        account.currencies[params.currency] = amount
-      else
-        account.currencies[params.currency] = currency.add(amount)
+      currency = account.getCurrency(params.currency)
+      currency.funds = currency.funds.add(amount)
     else
       throw new Error('Account does not exist')
 
   insertBid: (params) ->
     account = @state.accounts[params.account]
     if account
-      currency = account.currencies[params.offerCurrency]
-      reservedFunds = new Amount()
-      bids = account.bids[params.offerCurrency]
-      if typeof bids == 'undefined'
-        account.bids[params.offerCurrency] = bids = []
-      bids.forEach (bid) ->
-        reservedFunds = reservedFunds.add(bid.price.multiply(bid.amount))      
-      if typeof currency == 'undefined'
-        account.currencies[params.currency] = currency = new Amount()
+      currency = account.getCurrency(params.offerCurrency)
       amount = new Amount(params.amount)
       price = new Amount(params.price)
-      requiredFunds = amount.multiply(price).add(reservedFunds)
-      if currency.compareTo(requiredFunds) < 0
+      additionalRequiredFunds = amount.multiply(price)
+      requiredFunds = additionalRequiredFunds.add(currency.reservedFunds)
+      if currency.funds.compareTo(requiredFunds) < 0
         throw new Error('Not enough currency to fund the bid')
       else
-        bidMarket = @state.markets[params.bidCurrency]
-        if typeof bidMarket == 'undefined'
-          @state.markets[params.bidCurrency] = bidMarket = Object.create null
-        offerMarket = bidMarket[params.offerCurrency]
-        if typeof offerMarket == 'undefined'
-          bidMarket[params.offerCurrency] = offerMarket = new Market()
-        id = uuid.v1()
+        bids = currency.getBids(params.bidCurrency)
+        market = @state.getMarket(params)
         bid = new Bid
           price: price,
           amount: amount
-        offerMarket.bids[id] = bid
-        bids.push(bid)
-        return id
+        market.bids[params.id] = bid
+        bids[params.id] = bid
+        currency.reservedFunds = currency.reservedFunds.add(additionalRequiredFunds)
     else
       throw new Error('Account does not exist')
+
+  deleteBid: (params) ->
+    account = @state.accounts[params.account]
+    if account
+      currency = account.getCurrency(params.offerCurrency)
+      bids = currency.getBids(params.bidCurrency)
+      market = @state.getMarket(params)
+      bid = bids[params.id]
+      if typeof bid == 'undefined'
+        throw new Error('bid could not be located')
+      else
+        freedFunds = bid.amount.multiply(bid.price)
+        delete bids[params.id]
+        delete market.bids[params.id]
+        currency.reservedFunds = currency.reservedFunds.subtract(freedFunds)
+    else
+      throw new Error('Account does not exist')
+

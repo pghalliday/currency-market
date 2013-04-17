@@ -12,7 +12,7 @@ catch err
     console.log 'WARNING: the which module is required for windows\ntry: npm install which'
   which = null
 
-REPORTER = "nyan"
+REPORTER = "spec"
 
 task "test", "run tests", -> mocha()
 #
