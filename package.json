@@ -1,0 +1,41 @@
+{
+  "name": "SimpleOrderBook",
+  "description": "A simple node implementation of a Limit Order Book and Balnaces",
+  "version": "1.0.0",
+  "homepage": "https://github.com/pghalliday/SimpleOrderBook",
+  "author": {
+    "name": "Peter Halliday",
+    "email": "pghalliday@gmail.com",
+    "url": "http://stuffpetedoes.blogspot.nl/"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/pghalliday/SimpleOrderBook.git"
+  },
+  "bugs": {
+    "url": "https://github.com/pghalliday/SimpleOrderBook/issues"
+  },
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "https://github.com/pghalliday/SimpleOrderBook/blob/master/LICENSE-MIT"
+    }
+  ],
+  "main": "src/",
+  "engines": {
+    "node": ">= 0.10.4"
+  },
+  "scripts": {
+    "test": "cake test"
+  },
+  "dependencies": {
+    "bigdecimal": "~0.6.1",
+    "node-uuid": "~1.4.0",
+    "coffee-script": "~1.6.2"
+  },
+  "devDependencies": {
+    "chai": "~1.5.0",
+    "mocha": "~1.9.0"
+  },
+  "keywords": []
+}
