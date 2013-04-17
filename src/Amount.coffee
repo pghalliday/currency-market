@@ -35,5 +35,13 @@ module.exports = class Amount
     else
       throw new Error('Can only subtract Amount objects')
 
+  multiply: (amount) =>
+    if amount instanceof Amount
+      product = new Amount()
+      product.value = @value.multiply(amount.value)
+      return product
+    else
+      throw new Error('Can only multiply Amount objects')    
+
   toString: =>
     return @value.toString()

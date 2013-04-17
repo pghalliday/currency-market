@@ -50,8 +50,53 @@ describe 'Controller', ->
         amount: '150'
       state.accounts['name'].currencies['EUR'].compareTo(new Amount('350')).should.equal(0)
 
+  describe '#insertBid', ->
+    it 'should throw an error if the account does not exist', ->
+      state = new State()
+      controller = new Controller(state)
+      expect ->
+        controller.insertBid({
+          account: 'name'
+        })
+      .to.throw('Account does not exist')
+
+    it 'should throw an error if the account does not contain enough currency to fund the bid', ->
+      state = new State()
+      controller = new Controller(state)
+      controller.createAccount('name')
+      expect ->
+        controller.insertBid({
+          account: 'name',
+          offerCurrency: 'EUR',
+          bidCurrency: 'BTC',
+          price: '50',
+          amount: '10'
+        })
+      .to.throw('Not enough currency to fund the bid')
+
+    it 'should add a bid to the correct market', ->
+      state = new State()
+      controller = new Controller(state)
+      controller.createAccount('name')
+      controller.deposit
+        account: 'name',
+        currency: 'EUR',
+        amount: '500'
+      id = controller.insertBid({
+        account: 'name',
+        offerCurrency: 'EUR',
+        bidCurrency: 'BTC',
+        price: '50',
+        amount: '10'
+      })
+      bid = state.markets['BTC']['EUR'].bids[id]
+      bid.price.compareTo(new Amount('50')).should.equal(0)
+      bid.amount.compareTo(new Amount('10')).should.equal(0)
+
+  describe '#deleteBid', ->
+
+  describe '#insertOffer', ->
+
+  describe '#deleteOffer', ->
+
   describe '#withdraw', ->
-
-  describe '#insertLimitOrder', ->
-
-  describe '#deleteLimitOrder', ->

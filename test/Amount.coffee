@@ -67,8 +67,8 @@ describe 'Amount', ->
     it 'cannot be called with Javascript Numbers as they are inherently innacurate', ->
       amount = new Amount()
       expect ->
-        amount.add(5)
-      .to.throw('Can only add Amount objects')
+        amount.subtract(5)
+      .to.throw('Can only subtract Amount objects')
 
     it 'should return a new Amount which is the difference of 2 amounts', ->
       amount3 = new Amount('3')
@@ -78,6 +78,24 @@ describe 'Amount', ->
       amountMinus1 = new Amount('-1')
       amountDifference = amount3.subtract(amount4)
       amountDifference.compareTo(amountMinus1).should.equal(0, 'Difference should be correct')
+      amount3.compareTo(anotherAmount3).should.equal(0, 'First amount should not change')
+      amount4.compareTo(anotherAmount4).should.equal(0, 'Second amount should not change')
+
+  describe '#multiply', ->
+    it 'cannot be called with Javascript Numbers as they are inherently innacurate', ->
+      amount = new Amount()
+      expect ->
+        amount.multiply(5)
+      .to.throw('Can only multiply Amount objects')
+
+    it 'should return a new Amount which is the product of 2 amounts', ->
+      amount3 = new Amount('3')
+      amount4 = new Amount('4')
+      anotherAmount3 = new Amount('3')
+      anotherAmount4 = new Amount('4')
+      amount12 = new Amount('12')
+      amountProduct = amount3.multiply(amount4)
+      amountProduct.compareTo(amount12).should.equal(0, 'Product should be correct')
       amount3.compareTo(anotherAmount3).should.equal(0, 'First amount should not change')
       amount4.compareTo(anotherAmount4).should.equal(0, 'Second amount should not change')
 
