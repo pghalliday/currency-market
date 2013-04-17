@@ -29,11 +29,17 @@ module.exports = class Controller
     account = @state.accounts[params.account]
     if account
       currency = account.currencies[params.offerCurrency]
+      reservedFunds = new Amount()
+      bids = account.bids[params.offerCurrency]
+      if typeof bids == 'undefined'
+        account.bids[params.offerCurrency] = bids = []
+      bids.forEach (bid) ->
+        reservedFunds = reservedFunds.add(bid.price.multiply(bid.amount))      
       if typeof currency == 'undefined'
         account.currencies[params.currency] = currency = new Amount()
       amount = new Amount(params.amount)
       price = new Amount(params.price)
-      requiredFunds = amount.multiply(price)
+      requiredFunds = amount.multiply(price).add(reservedFunds)
       if currency.compareTo(requiredFunds) < 0
         throw new Error('Not enough currency to fund the bid')
       else
@@ -44,9 +50,11 @@ module.exports = class Controller
         if typeof offerMarket == 'undefined'
           bidMarket[params.offerCurrency] = offerMarket = new Market()
         id = uuid.v1()
-        offerMarket.bids[id] = new Bid
+        bid = new Bid
           price: price,
           amount: amount
+        offerMarket.bids[id] = bid
+        bids.push(bid)
         return id
     else
       throw new Error('Account does not exist')

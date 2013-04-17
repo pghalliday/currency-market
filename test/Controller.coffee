@@ -93,6 +93,31 @@ describe 'Controller', ->
       bid.price.compareTo(new Amount('50')).should.equal(0)
       bid.amount.compareTo(new Amount('10')).should.equal(0)
 
+    it 'should throw an error if the account does not contain enough currency to fund the bid taking into account other existing bids', ->
+      state = new State()
+      controller = new Controller(state)
+      controller.createAccount('name')
+      controller.deposit
+        account: 'name',
+        currency: 'EUR',
+        amount: '500'
+      id = controller.insertBid({
+        account: 'name',
+        offerCurrency: 'EUR',
+        bidCurrency: 'BTC',
+        price: '50',
+        amount: '10'
+      })
+      expect ->
+        controller.insertBid({
+          account: 'name',
+          offerCurrency: 'EUR',
+          bidCurrency: 'BTC',
+          price: '50',
+          amount: '1'
+        })
+      .to.throw('Not enough currency to fund the bid')
+
   describe '#deleteBid', ->
 
   describe '#insertOffer', ->
