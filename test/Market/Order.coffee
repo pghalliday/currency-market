@@ -1,5 +1,5 @@
-Order = require('../src/Order')
-Amount = require('../src/Amount')
+Order = require('../../src/Market/Order')
+Amount = require('../../src/Market/Amount')
 
 describe 'Order', ->
   it 'should throw an error if the ID is missing', ->
@@ -139,6 +139,54 @@ describe 'Order', ->
         offerAmount: '60',
         bidAmount: '50'
     .to.throw('Cannot specify a price if the offer and bid amounts are also specified')
+
+  it 'should throw an error if the bid amount is negative', ->
+    expect ->
+      order = new Order
+        id: '123456789'
+        timestamp: '987654321'
+        account: 'name',
+        bidCurrency: 'BTC',
+        offerCurrency: 'EUR',
+        bidPrice: '100',
+        bidAmount: '-50'
+    .to.throw('bid amount cannot be negative')
+
+  it 'should throw an error if the bid price is negative', ->
+    expect ->
+      order = new Order
+        id: '123456789'
+        timestamp: '987654321'
+        account: 'name',
+        bidCurrency: 'BTC',
+        offerCurrency: 'EUR',
+        bidPrice: '-100',
+        bidAmount: '50'
+    .to.throw('bid price cannot be negative')
+
+  it 'should throw an error if the offer amount is negative', ->
+    expect ->
+      order = new Order
+        id: '123456789'
+        timestamp: '987654321'
+        account: 'name',
+        bidCurrency: 'BTC',
+        offerCurrency: 'EUR',
+        offerPrice: '100',
+        offerAmount: '-50'
+    .to.throw('offer amount cannot be negative')
+
+  it 'should throw an error if the offer price is negative', ->
+    expect ->
+      order = new Order
+        id: '123456789'
+        timestamp: '987654321'
+        account: 'name',
+        bidCurrency: 'BTC',
+        offerCurrency: 'EUR',
+        offerPrice: '-100',
+        offerAmount: '50'
+    .to.throw('offer price cannot be negative')
 
   it 'should record the id, timestamp, account name, bid currency and offer currency', ->
     order = new Order

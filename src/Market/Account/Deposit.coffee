@@ -1,4 +1,4 @@
-Amount = require('../src/Amount')
+Amount = require('../Amount')
 
 module.exports = class Deposit
   constructor: (params) ->
@@ -22,3 +22,5 @@ module.exports = class Deposit
       throw new Error('Deposit must have an amount')
     else
       @amount = new Amount(params.amount)
+      if @amount.compareTo(Amount.ZERO) < 0
+        throw new Error('Deposit amount cannot be negative')

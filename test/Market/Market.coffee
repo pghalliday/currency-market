@@ -1,7 +1,7 @@
-Market = require('../src/Market')
-Book = require('../src/Book')
-Account = require('../src/Account')
-Currency = require('../src/Currency')
+Market = require('../../src/Market/Market')
+Book = require('../../src/Market/Book')
+Account = require('../../src/Market/Account/Account')
+Currency = require('../../src/Market/Account/Currency')
 
 describe 'Market', ->
   it 'should instantiate with a collection of accounts and books matching the supported currencies', ->

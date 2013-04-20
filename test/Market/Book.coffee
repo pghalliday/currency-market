@@ -1,4 +1,4 @@
-Book = require('../src/Book')
+Book = require('../../src/Market/Book')
 
 describe 'Book', ->
   it 'should instantiate with a collection of orders', ->

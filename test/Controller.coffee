@@ -1,7 +1,7 @@
 Controller = require('../src/Controller')
-Market = require('../src/Market')
-Account = require('../src/Account')
-Amount = require('../src/Amount')
+Market = require('../src/Market/Market')
+Account = require('../src/Market/Account/Account')
+Amount = require('../src/Market/Amount')
 uuid = require('node-uuid')
 
 describe 'Controller', ->

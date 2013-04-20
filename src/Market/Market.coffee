@@ -1,5 +1,5 @@
-Book = require('../src/Book')
-Account = require('../src/Account')
+Book = require('./Book')
+Account = require('./Account/Account')
 
 module.exports = class Market
   constructor: (@currencies) ->

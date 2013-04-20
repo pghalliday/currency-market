@@ -1,4 +1,4 @@
-Amount = require('../src/Amount')
+Amount = require('../../src/Market/Amount')
 
 describe 'Amount', ->
   describe '#compareTo', ->
@@ -116,6 +116,10 @@ describe 'Amount', ->
       amountRatio.compareTo(amountPoint75).should.equal(0, 'Ratio should be correct')
       amount3.compareTo(anotherAmount3).should.equal(0, 'First amount should not change')
       amount4.compareTo(anotherAmount4).should.equal(0, 'Second amount should not change')
+
+  describe 'ZERO', ->
+    it 'should equal zero', ->
+      Amount.ZERO.compareTo(new Amount('0')).should.equal(0)
 
   describe '#toString', ->
     it 'should return a string representation of the amount', ->

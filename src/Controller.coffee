@@ -1,8 +1,8 @@
-Account = require('../src/Account')
-Amount = require('../src/Amount')
-Currency = require('../src/Currency')
-Book = require('../src/Book')
-Order = require('../src/Order')
+Account = require('./Market/Account/Account')
+Amount = require('./Market/Amount')
+Currency = require('./Market/Account/Currency')
+Book = require('./Market/Book')
+Order = require('./Market/Order')
 uuid = require('node-uuid')
 
 module.exports = class Controller
