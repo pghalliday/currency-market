@@ -99,6 +99,24 @@ describe 'Amount', ->
       amount3.compareTo(anotherAmount3).should.equal(0, 'First amount should not change')
       amount4.compareTo(anotherAmount4).should.equal(0, 'Second amount should not change')
 
+  describe '#divide', ->
+    it 'cannot be called with Javascript Numbers as they are inherently innacurate', ->
+      amount = new Amount()
+      expect ->
+        amount.divide(5)
+      .to.throw('Can only divide Amount objects')
+
+    it 'should return a new Amount which is the ratio of 2 amounts', ->
+      amount3 = new Amount('3')
+      amount4 = new Amount('4')
+      anotherAmount3 = new Amount('3')
+      anotherAmount4 = new Amount('4')
+      amountPoint75 = new Amount('0.75')
+      amountRatio = amount3.divide(amount4)
+      amountRatio.compareTo(amountPoint75).should.equal(0, 'Ratio should be correct')
+      amount3.compareTo(anotherAmount3).should.equal(0, 'First amount should not change')
+      amount4.compareTo(anotherAmount4).should.equal(0, 'Second amount should not change')
+
   describe '#toString', ->
     it 'should return a string representation of the amount', ->
       amount = new Amount('3.14')

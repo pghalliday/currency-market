@@ -43,5 +43,13 @@ module.exports = class Amount
     else
       throw new Error('Can only multiply Amount objects')    
 
+  divide: (amount) =>
+    if amount instanceof Amount
+      ratio = new Amount()
+      ratio.value = @value.divide(amount.value)
+      return ratio
+    else
+      throw new Error('Can only divide Amount objects')    
+
   toString: =>
     return @value.toString()

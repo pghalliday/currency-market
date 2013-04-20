@@ -1,13 +1,11 @@
 Amount = require('../src/Amount')
 
 module.exports = class Currency
-  constructor: ->
+  constructor: (currencies) ->
     @funds = new Amount()
     @reservedFunds = new Amount()
-    @bids = Object.create null
-
-  getBids: (name) ->
-    bids = @bids[name]
-    if typeof bids == 'undefined'
-      @bids[name] = bids = []
-    return bids
+    @deposits = Object.create null
+    @withdrawals = Object.create null
+    @orders = Object.create null
+    currencies.forEach (currency) =>
+      @orders[currency] = Object.create null

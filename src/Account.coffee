@@ -1,11 +1,9 @@
 Currency = require('./Currency')
 
 module.exports = class Account
-  constructor: ->
+  constructor: (currencies) ->
     @currencies = Object.create null
+    currencies.forEach (currency) =>
+      @currencies[currency] = new Currency currencies.filter (match) ->
+        return currency != match
 
-  getCurrency: (name) ->
-    currency = @currencies[name]
-    if typeof currency == 'undefined'
-      @currencies[name] = currency = new Currency()
-    return currency
