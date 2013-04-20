@@ -10,30 +10,6 @@ describe 'Controller', ->
     controller = new Controller(state)
     controller.should.be.ok
 
-  describe '#deposit', ->
-    it.skip 'should throw an error if the account does not exist', ->
-      state = new State()
-      controller = new Controller(state)
-      expect ->
-        controller.deposit
-          account: 'name'
-      .to.throw('Account does not exist')
-
-    it.skip 'should add the deposited amount to the specified currency balance', ->
-      state = new State()
-      controller = new Controller(state)
-      controller.createAccount('name')
-      controller.deposit
-        account: 'name',
-        currency: 'EUR',
-        amount: '200'
-      state.accounts['name'].currencies['EUR'].funds.compareTo(new Amount('200')).should.equal(0)
-      controller.deposit
-        account: 'name',
-        currency: 'EUR',
-        amount: '150'
-      state.accounts['name'].currencies['EUR'].funds.compareTo(new Amount('350')).should.equal(0)
-
   describe '#insertBid', ->
     it.skip 'should throw an error if the account does not exist', ->
       state = new State()
@@ -283,5 +259,3 @@ describe 'Controller', ->
   describe '#insertOffer', ->
 
   describe '#deleteOffer', ->
-
-  describe '#withdraw', ->
