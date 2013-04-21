@@ -259,6 +259,121 @@ describe 'Market', ->
       market.accounts['Paul'].balances['BTC'].funds.compareTo(new Amount('185')).should.equal(0)
       market.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(new Amount('5')).should.equal(0)
 
+    it 'should execute better partial offer matches in favour of the new order (ie. at the price set by the older order)', ->
+      market = new Market(['EUR', 'USD', 'BTC'])
+      market.addAccount('Peter')
+      market.addAccount('Paul')
+      market.deposit
+        account: 'Peter'
+        currency: 'EUR'
+        amount: '2000'
+      market.deposit
+        account: 'Paul'
+        currency: 'BTC'
+        amount: '200'
+      market.add
+        id: '1'
+        timestamp: '1'
+        account: 'Peter'
+        bidCurrency: 'BTC'
+        offerCurrency: 'EUR'
+        bidPrice: '5'
+        bidAmount: '15'
+      market.books['BTC']['EUR'].orders['1'].should.be.ok
+      market.add
+        id: '2'
+        timestamp: '2'
+        account: 'Paul'
+        bidCurrency: 'EUR'
+        offerCurrency: 'BTC'
+        offerPrice: '4'
+        offerAmount: '20'
+      expect(market.books['BTC']['EUR'].orders['1']).to.not.be.ok
+      market.books['EUR']['BTC'].orders['2'].offerAmount.compareTo(new Amount('5')).should.equal(0)
+      market.accounts['Peter'].balances['EUR'].funds.compareTo(new Amount('1925')).should.equal(0)
+      market.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(Amount.ZERO).should.equal(0)
+      market.accounts['Peter'].balances['BTC'].funds.compareTo(new Amount('15')).should.equal(0)
+      market.accounts['Paul'].balances['EUR'].funds.compareTo(new Amount('75')).should.equal(0)
+      market.accounts['Paul'].balances['BTC'].funds.compareTo(new Amount('185')).should.equal(0)
+      market.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(new Amount('5')).should.equal(0)
+
+    it 'should execute better partial bid matches in favour of the new order (ie. at the price set by the older order)', ->
+      market = new Market(['EUR', 'USD', 'BTC'])
+      market.addAccount('Peter')
+      market.addAccount('Paul')
+      market.deposit
+        account: 'Peter'
+        currency: 'EUR'
+        amount: '2000'
+      market.deposit
+        account: 'Paul'
+        currency: 'BTC'
+        amount: '200'
+      market.add
+        id: '1'
+        timestamp: '1'
+        account: 'Peter'
+        bidCurrency: 'BTC'
+        offerCurrency: 'EUR'
+        bidPrice: '5'
+        bidAmount: '20'
+      market.books['BTC']['EUR'].orders['1'].should.be.ok
+      market.add
+        id: '2'
+        timestamp: '2'
+        account: 'Paul'
+        bidCurrency: 'EUR'
+        offerCurrency: 'BTC'
+        offerPrice: '4'
+        offerAmount: '15'
+      market.books['BTC']['EUR'].orders['1'].bidAmount.compareTo(new Amount('5')).should.equal(0)
+      expect(market.books['EUR']['BTC'].orders['2']).to.not.be.ok
+      market.accounts['Peter'].balances['EUR'].funds.compareTo(new Amount('1925')).should.equal(0)
+      market.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(new Amount('25')).should.equal(0)
+      market.accounts['Peter'].balances['BTC'].funds.compareTo(new Amount('15')).should.equal(0)
+      market.accounts['Paul'].balances['EUR'].funds.compareTo(new Amount('75')).should.equal(0)
+      market.accounts['Paul'].balances['BTC'].funds.compareTo(new Amount('185')).should.equal(0)
+      market.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(Amount.ZERO).should.equal(0)
+
+    it 'should execute better exact matches in favour of the new order (ie. at the price set by the older order)', ->
+      market = new Market(['EUR', 'USD', 'BTC'])
+      market.addAccount('Peter')
+      market.addAccount('Paul')
+      market.deposit
+        account: 'Peter'
+        currency: 'EUR'
+        amount: '2000'
+      market.deposit
+        account: 'Paul'
+        currency: 'BTC'
+        amount: '200'
+      market.add
+        id: '1'
+        timestamp: '1'
+        account: 'Peter'
+        bidCurrency: 'BTC'
+        offerCurrency: 'EUR'
+        offerPrice: '0.2'
+        offerAmount: '100'
+      market.books['BTC']['EUR'].orders['1'].should.be.ok
+      market.add
+        id: '2'
+        timestamp: '2'
+        account: 'Paul'
+        bidCurrency: 'EUR'
+        offerCurrency: 'BTC'
+        bidPrice: '0.25'
+        bidAmount: '100'
+      expect(market.books['BTC']['EUR'].orders['1']).to.not.be.ok
+      expect(market.books['EUR']['BTC'].orders['2']).to.not.be.ok
+      market.accounts['Peter'].balances['EUR'].funds.compareTo(new Amount('1900')).should.equal(0)
+      market.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(Amount.ZERO).should.equal(0)
+      market.accounts['Peter'].balances['BTC'].funds.compareTo(new Amount('20')).should.equal(0)
+      market.accounts['Paul'].balances['EUR'].funds.compareTo(new Amount('100')).should.equal(0)
+      market.accounts['Paul'].balances['BTC'].funds.compareTo(new Amount('180')).should.equal(0)
+      market.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(Amount.ZERO).should.equal(0)
+
+
     it 'should throw an error if the account does not exist', ->
       market = new Market(['EUR', 'USD', 'BTC'])
       expect ->
