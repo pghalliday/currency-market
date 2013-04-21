@@ -2,166 +2,259 @@ Book = require('../../src/Market/Book')
 Order = require('../../src/Market/Order')
 BigDecimal = require('BigDecimal').BigDecimal
 
-newOrder = (id, amount, price) ->
+newOrder = (id, price) ->
   new Order
     id: id
     timestamp: '987654321'
     account: 'name',
     bidCurrency: 'BTC',
     offerCurrency: 'EUR',
-    bidAmount: amount,
+    bidAmount: '100',
     bidPrice: price
 
 describe 'Book', ->
-  it 'should instantiate with a collection of orders', ->
-    book = new Book()
-    Object.keys(book.orders).should.be.empty
-
-  describe '#addOrder', ->
+  describe '#add', ->
     it 'should add the order to the collection of orders', ->
       book = new Book()
-      order = new Order
-        id: '123456789'
-        timestamp: '987654321'
-        account: 'name',
-        bidCurrency: 'BTC',
-        offerCurrency: 'EUR',
-        bidAmount: '100',
-        offerAmount: '50'
-      book.addOrder(order)
-      book.orders[order.id].should.equal(order)
+      order = newOrder('15', '53')
+      book.add(order)
+      book.highest.should.equal(order)
 
-    it 'should build a binary tree of orders sorted by price and keep track of the order with the highest bid price', ->
+    it 'should keep track of the order with the highest bid price', ->
+      #
+      #                       1
+      #                      / \
+      #                     /   \
+      #                    /     \
+      #                   /       \
+      #                  /         \
+      #                 3           2
+      #                / \         / \
+      #               /   \       /   \
+      #              7     6     5     4
+      #             / \   / \   / \   / \
+      #            8   9 10 11 12 13 14 15
+      #
       book = new Book()
-      order1 = newOrder('1', '100', '50')
-      book.addOrder(order1)
-      order2 = newOrder('2', '100', '51')
-      book.addOrder(order2)
-      order3 = newOrder('3', '100', '49')
-      book.addOrder(order3)
-      order4 = newOrder('4', '100', '50')
-      book.addOrder(order4)
-      order5 = newOrder('5', '100', '51')
-      book.addOrder(order5)
-      order6 = newOrder('6', '100', '52')
-      book.addOrder(order6)
-      order7 = newOrder('7', '100', '51')
-      book.addOrder(order7)
-      order8 = newOrder('8', '100', '52')
-      book.addOrder(order8)
-      book.head.should.equal(order1)
-      book.head.higher.should.equal(order2)
-      book.head.lower.should.equal(order3)
-      book.head.lower.higher.should.equal(order4)
-      book.head.higher.lower.should.equal(order5)
-      book.head.higher.higher.should.equal(order6)
-      book.head.higher.lower.lower.should.equal(order7)
-      book.head.higher.higher.lower.should.equal(order8)
-      book.highest.should.equal(order6)
+      order1 = newOrder('1', '50')
+      book.add(order1)
+      book.highest.should.equal(order1)
 
-  describe '#deleteOrder', ->
+      order2 = newOrder('2', '51')
+      book.add(order2)
+      book.highest.should.equal(order2)
+
+      order3 = newOrder('3', '49')
+      book.add(order3)
+      book.highest.should.equal(order2)
+
+      order4 = newOrder('4', '52')
+      book.add(order4)
+      book.highest.should.equal(order4)
+
+      order5 = newOrder('5', '50.5')
+      book.add(order5)
+      book.highest.should.equal(order4)
+
+      order6 = newOrder('6', '49.5')
+      book.add(order6)
+      book.highest.should.equal(order4)
+
+      order7 = newOrder('7', '48.5')
+      book.add(order7)
+      book.highest.should.equal(order4)
+
+      order8 = newOrder('8', '48.5') # is equal to but should be placed lower than order 7
+      book.add(order8)
+      book.highest.should.equal(order4)
+
+      order9 = newOrder('9', '48.75')
+      book.add(order9)
+      book.highest.should.equal(order4)
+
+      order10 = newOrder('10', '49.5') # is equal to but should be placed lower than order 6
+      book.add(order10)
+      book.highest.should.equal(order4)
+
+      order11 = newOrder('11', '49.75')
+      book.add(order11)
+      book.highest.should.equal(order4)
+
+      order12 = newOrder('12', '50.5') # is equal to but should be placed lower than order 5
+      book.add(order12)
+      book.highest.should.equal(order4)
+
+      order13 = newOrder('13', '50.75')
+      book.add(order13)
+      book.highest.should.equal(order4)
+
+      order14 = newOrder('14', '52') # is equal to but should be placed lower than order 4
+      book.add(order14)
+      book.highest.should.equal(order4)
+
+      order15 = newOrder('15', '53')
+      book.add(order15)
+      book.highest.should.equal(order15)
+
+  describe '#delete', ->
+    beforeEach ->
+      @book = new Book()
+      #
+      #                       1
+      #                      / \
+      #                     /   \
+      #                    /     \
+      #                   /       \
+      #                  /         \
+      #                 3           2
+      #                / \         / \
+      #               /   \       /   \
+      #              7     6     5     4
+      #             / \   / \   / \   / \
+      #            8   9 10 11 12 13 14 15
+      #
+      @order1 = newOrder('1', '50')
+      @book.add(@order1)
+      @order2 = newOrder('2', '51')
+      @book.add(@order2)
+      @order3 = newOrder('3', '49')
+      @book.add(@order3)
+      @order4 = newOrder('4', '52')
+      @book.add(@order4)
+      @order5 = newOrder('5', '50.5')
+      @book.add(@order5)
+      @order6 = newOrder('6', '49.5')
+      @book.add(@order6)
+      @order7 = newOrder('7', '48.5')
+      @book.add(@order7)
+      @order8 = newOrder('8', '48.5') # is equal to but should be placed lower than order 7
+      @book.add(@order8)
+      @order9 = newOrder('9', '48.75')
+      @book.add(@order9)
+      @order10 = newOrder('10', '49.5') # is equal to but should be placed lower than order 6
+      @book.add(@order10)
+      @order11 = newOrder('11', '49.75')
+      @book.add(@order11)
+      @order12 = newOrder('12', '50.5') # is equal to but should be placed lower than order 5
+      @book.add(@order12)
+      @order13 = newOrder('13', '50.75')
+      @book.add(@order13)
+      @order14 = newOrder('14', '52') # is equal to but should be placed lower than order 4
+      @book.add(@order14)
+      @order15 = newOrder('15', '53')
+      @book.add(@order15)
+
     it 'should throw an error if the order ID cannot be found', ->
-      book = new Book()
-      order = new Order
-        id: '123456789'
-        timestamp: '987654321'
-        account: 'name',
-        bidCurrency: 'BTC',
-        offerCurrency: 'EUR',
-        bidAmount: '100',
-        offerAmount: '50'
-      expect ->
-        book.deleteOrder(order)
+      order = newOrder('16', '53')
+      expect =>
+        @book.delete(order)
       .to.throw('Order cannot be found')
 
     it 'should throw an error if the order does not match', ->
-      book = new Book()
-      order = new Order
-        id: '123456789'
-        timestamp: '987654321'
-        account: 'name',
-        bidCurrency: 'BTC',
-        offerCurrency: 'EUR',
-        bidAmount: '100',
-        offerAmount: '50'
-      book.addOrder(order)
-      order = new Order
-        id: '123456789'
-        timestamp: '987654321'
-        account: 'another name',
-        bidCurrency: 'BTC',
-        offerCurrency: 'EUR',
-        bidAmount: '100',
-        offerAmount: '50'
-      expect ->
-        book.deleteOrder(order)
+      order = newOrder('15', '54')
+      expect =>
+        @book.delete(order)
       .to.throw('Orders do not match')
 
     it 'should remove the order from the collection of orders', ->
-      book = new Book()
-      order = new Order
-        id: '123456789'
-        timestamp: '987654321'
-        account: 'name',
-        bidCurrency: 'BTC',
-        offerCurrency: 'EUR',
-        bidAmount: '100',
-        offerAmount: '50'
-      book.addOrder(order)
-      order = new Order
-        id: '123456789'
-        timestamp: '987654321'
-        account: 'name',
-        bidCurrency: 'BTC',
-        offerCurrency: 'EUR',
-        bidAmount: '100',
-        offerAmount: '50'
-      book.deleteOrder(order)
-      expect(book.orders[order.id]).to.not.be.ok
+      order = newOrder('15', '53')
+      @book.delete(order)
+      expect(@book.orders[order.id]).to.not.be.ok
 
-    it 'should maintain the binary tree of orders and keep track of the order with the highest bid price', ->
-      book = new Book()
-      order1 = newOrder('1', '100', '50')
-      book.addOrder(order1)
-      order2 = newOrder('2', '100', '51')
-      book.addOrder(order2)
-      order3 = newOrder('3', '100', '49')
-      book.addOrder(order3)
-      order4 = newOrder('4', '100', '50')
-      book.addOrder(order4)
-      order5 = newOrder('5', '100', '51')
-      book.addOrder(order5)
-      order6 = newOrder('6', '100', '52')
-      book.addOrder(order6)
-      order7 = newOrder('7', '100', '51')
-      book.addOrder(order7)
-      order8 = newOrder('8', '100', '52')
-      book.addOrder(order8)
-      book.head.should.equal(order1)
-      book.head.higher.should.equal(order2)
-      book.head.lower.should.equal(order3)
-      book.head.lower.higher.should.equal(order4)
-      book.head.higher.lower.should.equal(order5)
-      book.head.higher.higher.should.equal(order6)
-      book.head.higher.lower.lower.should.equal(order7)
-      book.head.higher.higher.lower.should.equal(order8)
-      book.highest.should.equal(order6)
-      book.deleteOrder(order8)
-      expect(book.head.higher.higher.lower).to.not.be.ok
-      book.highest.should.equal(order6)
-      book.deleteOrder(order1)
-      book.head.should.equal(order2)
-      book.head.lower.should.equal(order5)
-      book.head.lower.lower.should.equal(order7)
-      book.head.lower.lower.lower.should.equal(order3)
-      book.head.lower.lower.lower.higher.should.equal(order4)
-      book.head.higher.should.equal(order6)
-      book.highest.should.equal(order6)
-      book.deleteOrder(order6)
-      book.head.should.equal(order2)
-      book.head.lower.should.equal(order5)
-      book.head.lower.lower.should.equal(order7)
-      book.head.lower.lower.lower.should.equal(order3)
-      book.head.lower.lower.lower.higher.should.equal(order4)
-      book.highest.should.equal(order2)
-      # TODO: need more delete tests (probably time to get the coverage tool out)
+    it 'should keep track of the order with the highest bid price', ->
+      order = newOrder('1', '50')
+      @book.delete(order) # delete head order with both lower and higher orders
+      @book.highest.should.equal(@order15)
+      #                         2
+      #                        / \
+      #                       /   \
+      #                      5     4
+      #                     / \   / \
+      #                    12 13 14 15
+      #                   /  
+      #                  3   
+      #                 / \  
+      #                /   \ 
+      #               7     6 
+      #              / \   / \ 
+      #             8   9 10 11
+      order = newOrder('12', '50.5')
+      @book.delete(order) # delete order without higher order
+      @book.highest.should.equal(@order15)
+      #                         2
+      #                        / \
+      #                       /   \
+      #                      5     4
+      #                     / \   / \
+      #                    3  13 14 15
+      #                   / \  
+      #                  /   \ 
+      #                 7     6 
+      #                / \   / \ 
+      #               8   9 10 11
+      order = newOrder('10', '49.5')
+      @book.delete(order) # delete order on a lower branch with no lower order
+      @book.highest.should.equal(@order15)
+      #                         2
+      #                        / \
+      #                       /   \
+      #                      5     4
+      #                     / \   / \
+      #                    3  13 14 15
+      #                   / \  
+      #                  /   \ 
+      #                 7     6 
+      #                / \     \ 
+      #               8   9    11
+      order = newOrder('6', '49.5')
+      @book.delete(order) # delete order with no lower order
+      @book.highest.should.equal(@order15)
+      #                         2
+      #                        / \
+      #                       /   \
+      #                      5     4
+      #                     / \   / \
+      #                    3  13 14 15
+      #                   / \  
+      #                  /   \ 
+      #                 7    11
+      #                / \    
+      #               8   9   
+      order = newOrder('11', '49.75')
+      @book.delete(order)
+      @book.highest.should.equal(@order15)
+      order = newOrder('8', '48.5')
+      @book.delete(order)
+      @book.highest.should.equal(@order15)
+      #                         2
+      #                        / \
+      #                       /   \
+      #                      5     4
+      #                     / \   / \
+      #                    3  13 14 15
+      #                   /   
+      #                  /   
+      #                 7   
+      #                  \    
+      #                   9   
+      #
+      # Now remove highest until all elements have been removed and verify the new highest each time
+      # this time we'll use the actual references added as this should also be safe
+      @book.delete(@order15)
+      @book.highest.should.equal(@order4)
+      @book.delete(@order4)
+      @book.highest.should.equal(@order14)
+      @book.delete(@order14)
+      @book.highest.should.equal(@order2)
+      @book.delete(@order2)
+      @book.highest.should.equal(@order13)
+      @book.delete(@order13)
+      @book.highest.should.equal(@order5)
+      @book.delete(@order5)
+      @book.highest.should.equal(@order3)
+      @book.delete(@order3)
+      @book.highest.should.equal(@order9)
+      @book.delete(@order9)
+      @book.highest.should.equal(@order7)
+      @book.delete(@order7)
+      expect(@book.highest).to.not.be.ok

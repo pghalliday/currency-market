@@ -54,4 +54,4 @@ module.exports = class Market
         else
           book = books[order.offerCurrency]
           currency.lock(order)
-          book.addOrder(order)
+          book.add(order)
