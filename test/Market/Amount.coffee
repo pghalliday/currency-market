@@ -117,6 +117,20 @@ describe 'Amount', ->
       amount3.compareTo(anotherAmount3).should.equal(0, 'First amount should not change')
       amount4.compareTo(anotherAmount4).should.equal(0, 'Second amount should not change')
 
+    it 'should round to 25 places', ->
+      amount2 = new Amount('2')
+      amount3 = new Amount('3')
+      amount2Thirds = new Amount('0.6666666666666666666666667')
+      amountRatio = amount2.divide(amount3)
+      amountRatio.compareTo(amount2Thirds).should.equal(0, 'Ratio should be correct')
+
+    it 'should divide 1 by 100 and successfully compare to 0.01', ->
+      amount1 = new Amount('1')
+      amount100 = new Amount('100')
+      amountPointZero1 = new Amount('0.01')
+      amountRatio = amount1.divide(amount100)
+      amountRatio.compareTo(amountPointZero1).should.equal(0)
+
   describe 'ZERO', ->
     it 'should equal zero', ->
       Amount.ZERO.compareTo(new Amount('0')).should.equal(0)

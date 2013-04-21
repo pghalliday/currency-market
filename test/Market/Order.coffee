@@ -226,10 +226,10 @@ describe 'Order', ->
       offerCurrency: 'EUR',
       offerPrice: '100',
       offerAmount: '50'
-    order.offerPrice.compareTo(new Amount('100')).should.equal(0)
     order.bidPrice.compareTo(new Amount('0.01')).should.equal(0)
-    order.offerAmount.compareTo(new Amount('50')).should.equal(0)
+    order.offerPrice.compareTo(new Amount('100')).should.equal(0)
     order.bidAmount.compareTo(new Amount('5000')).should.equal(0)
+    order.offerAmount.compareTo(new Amount('50')).should.equal(0)
 
   it 'should instantiate with an offer price and bid amount calculating the offer amount and the bid price', ->
     order = new Order
@@ -240,10 +240,10 @@ describe 'Order', ->
       offerCurrency: 'EUR',
       offerPrice: '100',
       bidAmount: '50'
-    order.offerPrice.compareTo(new Amount('100')).should.equal(0)
     order.bidPrice.compareTo(new Amount('0.01')).should.equal(0)
-    order.offerAmount.compareTo(new Amount('0.5')).should.equal(0)
+    order.offerPrice.compareTo(new Amount('100')).should.equal(0)
     order.bidAmount.compareTo(new Amount('50')).should.equal(0)
+    order.offerAmount.compareTo(new Amount('0.5')).should.equal(0)
 
   it 'should instantiate with a bid price and offer amount calculating the bid amount and the offer price', ->
     order = new Order
@@ -256,8 +256,8 @@ describe 'Order', ->
       offerAmount: '50'
     order.bidPrice.compareTo(new Amount('100')).should.equal(0)
     order.offerPrice.compareTo(new Amount('0.01')).should.equal(0)
-    order.offerAmount.compareTo(new Amount('50')).should.equal(0)
     order.bidAmount.compareTo(new Amount('0.5')).should.equal(0)
+    order.offerAmount.compareTo(new Amount('50')).should.equal(0)
 
   it 'should instantiate with a bid amount and offer amount calculating the bid price and the offer price', ->
     order = new Order
@@ -270,5 +270,158 @@ describe 'Order', ->
       offerAmount: '50'
     order.bidPrice.compareTo(new Amount('0.5')).should.equal(0)
     order.offerPrice.compareTo(new Amount('2')).should.equal(0)
-    order.offerAmount.compareTo(new Amount('50')).should.equal(0)
     order.bidAmount.compareTo(new Amount('100')).should.equal(0)
+    order.offerAmount.compareTo(new Amount('50')).should.equal(0)
+
+  describe '#equals', ->
+    it 'should return true if the orders are identical', ->
+      order1 = new Order
+        id: '123456789'
+        timestamp: '987654321'
+        account: 'name',
+        bidCurrency: 'BTC',
+        offerCurrency: 'EUR',
+        bidPrice: '100',
+        bidAmount: '50'
+      order2 = new Order
+        id: '123456789'
+        timestamp: '987654321'
+        account: 'name',
+        bidCurrency: 'BTC',
+        offerCurrency: 'EUR',
+        bidPrice: '100',
+        bidAmount: '50'
+      order1.equals(order2).should.be.true
+
+    it 'should return false if the orders have different IDs', ->
+      order1 = new Order
+        id: '123456789'
+        timestamp: '987654321'
+        account: 'name',
+        bidCurrency: 'BTC',
+        offerCurrency: 'EUR',
+        bidPrice: '100',
+        bidAmount: '50'
+      order2 = new Order
+        id: '123456790'
+        timestamp: '987654321'
+        account: 'name',
+        bidCurrency: 'BTC',
+        offerCurrency: 'EUR',
+        bidPrice: '100',
+        bidAmount: '50'
+      order1.equals(order2).should.be.false
+
+    it 'should return false if the orders have different timestamps', ->
+      order1 = new Order
+        id: '123456789'
+        timestamp: '987654321'
+        account: 'name',
+        bidCurrency: 'BTC',
+        offerCurrency: 'EUR',
+        bidPrice: '100',
+        bidAmount: '50'
+      order2 = new Order
+        id: '123456789'
+        timestamp: '987654322'
+        account: 'name',
+        bidCurrency: 'BTC',
+        offerCurrency: 'EUR',
+        bidPrice: '100',
+        bidAmount: '50'
+      order1.equals(order2).should.be.false
+
+    it 'should return false if the orders have different accounts', ->
+      order1 = new Order
+        id: '123456789'
+        timestamp: '987654321'
+        account: 'name',
+        bidCurrency: 'BTC',
+        offerCurrency: 'EUR',
+        bidPrice: '100',
+        bidAmount: '50'
+      order2 = new Order
+        id: '123456789'
+        timestamp: '987654321'
+        account: 'another name',
+        bidCurrency: 'BTC',
+        offerCurrency: 'EUR',
+        bidPrice: '100',
+        bidAmount: '50'
+      order1.equals(order2).should.be.false
+
+    it 'should return false if the orders have different bid currencies', ->
+      order1 = new Order
+        id: '123456789'
+        timestamp: '987654321'
+        account: 'name',
+        bidCurrency: 'BTC',
+        offerCurrency: 'EUR',
+        bidPrice: '100',
+        bidAmount: '50'
+      order2 = new Order
+        id: '123456789'
+        timestamp: '987654321'
+        account: 'name',
+        bidCurrency: 'USD',
+        offerCurrency: 'EUR',
+        bidPrice: '100',
+        bidAmount: '50'
+      order1.equals(order2).should.be.false
+
+    it 'should return false if the orders have different offer currencies', ->
+      order1 = new Order
+        id: '123456789'
+        timestamp: '987654321'
+        account: 'name',
+        bidCurrency: 'BTC',
+        offerCurrency: 'EUR',
+        bidPrice: '100',
+        bidAmount: '50'
+      order2 = new Order
+        id: '123456789'
+        timestamp: '987654321'
+        account: 'name',
+        bidCurrency: 'BTC',
+        offerCurrency: 'USD',
+        bidPrice: '100',
+        bidAmount: '50'
+      order1.equals(order2).should.be.false
+
+    it 'should return false if the orders have different prices', ->
+      order1 = new Order
+        id: '123456789'
+        timestamp: '987654321'
+        account: 'name',
+        bidCurrency: 'BTC',
+        offerCurrency: 'EUR',
+        bidPrice: '100',
+        bidAmount: '50'
+      order2 = new Order
+        id: '123456789'
+        timestamp: '987654321'
+        account: 'name',
+        bidCurrency: 'BTC',
+        offerCurrency: 'EUR',
+        bidPrice: '150',
+        bidAmount: '50'
+      order1.equals(order2).should.be.false
+
+    it 'should return false if the orders have different amounts', ->
+      order1 = new Order
+        id: '123456789'
+        timestamp: '987654321'
+        account: 'name',
+        bidCurrency: 'BTC',
+        offerCurrency: 'EUR',
+        bidPrice: '100',
+        bidAmount: '50'
+      order2 = new Order
+        id: '123456789'
+        timestamp: '987654321'
+        account: 'name',
+        bidCurrency: 'BTC',
+        offerCurrency: 'EUR',
+        bidPrice: '100',
+        bidAmount: '100'
+      order1.equals(order2).should.be.false

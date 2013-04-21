@@ -1,4 +1,6 @@
 BigDecimal = require('bigdecimal').BigDecimal
+ROUND_HALF_UP = require('bigdecimal').RoundingMode.HALF_UP()
+SCALE = 25
 
 module.exports = class Amount
   constructor: (string_value) ->
@@ -46,7 +48,7 @@ module.exports = class Amount
   divide: (amount) =>
     if amount instanceof Amount
       ratio = new Amount()
-      ratio.value = @value.divide(amount.value)
+      ratio.value = @value.divide(amount.value, SCALE, ROUND_HALF_UP).stripTrailingZeros()
       return ratio
     else
       throw new Error('Can only divide Amount objects')    

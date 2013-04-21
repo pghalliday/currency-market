@@ -115,6 +115,15 @@ module.exports = class Order
             else
               throw new Error('Cannot specify a price if the offer and bid amounts are also specified')
 
+  equals: (order) ->
+    @id == order.id &&
+    @timestamp == order.timestamp && 
+    @account == order.account &&
+    @bidCurrency == order.bidCurrency &&
+    @offerCurrency == order.offerCurrency &&
+    @bidPrice.compareTo(order.bidPrice) == 0 &&
+    @bidAmount.compareTo(order.bidAmount) == 0
+
 
 
 
