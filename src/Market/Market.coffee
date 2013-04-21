@@ -1,5 +1,8 @@
-Book = require('./Book')
 Account = require('./Account/Account')
+Deposit = require('./Account/Deposit')
+Withdrawal = require('./Account/Withdrawal')
+Book = require('./Book')
+Order = require('./Order')
 
 module.exports = class Market
   constructor: (@currencies) ->
@@ -18,6 +21,7 @@ module.exports = class Market
       @accounts[name] = new Account(@currencies)
 
   deposit: (deposit) ->
+    deposit = new Deposit(deposit)
     account = @accounts[deposit.account]
     if typeof account == 'undefined'
       throw new Error('Account does not exist')
@@ -29,6 +33,7 @@ module.exports = class Market
         currency.deposit(deposit)
 
   withdraw: (withdrawal) ->
+    withdrawal = new Withdrawal(withdrawal)
     account = @accounts[withdrawal.account]
     if typeof account == 'undefined'
       throw new Error('Account does not exist')
@@ -40,6 +45,7 @@ module.exports = class Market
         currency.withdraw(withdrawal)
 
   add: (order) ->
+    order = new Order(order)
     account = @accounts[order.account]
     if typeof account == 'undefined'
       throw new Error('Account does not exist')
@@ -57,6 +63,7 @@ module.exports = class Market
           book.add(order)
 
   delete: (order) ->
+    order = new Order(order)
     account = @accounts[order.account]
     if typeof account == 'undefined'
       throw new Error('Account does not exist')

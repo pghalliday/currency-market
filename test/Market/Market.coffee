@@ -2,9 +2,6 @@ Market = require('../../src/Market/Market')
 Book = require('../../src/Market/Book')
 Account = require('../../src/Market/Account/Account')
 Currency = require('../../src/Market/Account/Currency')
-Deposit = require('../../src/Market/Account/Deposit')
-Withdrawal = require('../../src/Market/Account/Withdrawal')
-Order = require('../../src/Market/Order')
 Amount = require('../../src/Market/Amount')
 
 describe 'Market', ->
@@ -43,7 +40,7 @@ describe 'Market', ->
       account.currencies['EUR'].funds.compareTo(Amount.ZERO).should.equal(0)
       account.currencies['USD'].funds.compareTo(Amount.ZERO).should.equal(0)
       account.currencies['BTC'].funds.compareTo(Amount.ZERO).should.equal(0)
-      deposit = new Deposit
+      deposit = 
         id: '123456789'
         timestamp: '987654321'
         account: 'name',
@@ -56,7 +53,7 @@ describe 'Market', ->
 
     it 'should throw an error if the account does not exist', ->
       market = new Market(['EUR', 'USD', 'BTC'])
-      deposit = new Deposit
+      deposit = 
         id: '123456789'
         timestamp: '987654321'
         account: 'name',
@@ -69,7 +66,7 @@ describe 'Market', ->
     it 'should throw an error if the currency is not supported', ->
       market = new Market(['EUR', 'USD', 'BTC'])
       market.addAccount('name')
-      deposit = new Deposit
+      deposit = 
         id: '123456789'
         timestamp: '987654321'
         account: 'name',
@@ -84,14 +81,14 @@ describe 'Market', ->
       market = new Market(['EUR', 'USD', 'BTC'])
       market.addAccount('name')
       account = market.accounts['name']
-      deposit = new Deposit
+      deposit = 
         id: '123456789'
         timestamp: '987654321'
         account: 'name',
         currency: 'BTC',
         amount: '200'
       market.deposit(deposit)
-      withdrawal = new Withdrawal
+      withdrawal = 
         id: '123456789'
         timestamp: '987654321'
         account: 'name',
@@ -102,7 +99,7 @@ describe 'Market', ->
 
     it 'should throw an error if the account does not exist', ->
       market = new Market(['EUR', 'USD', 'BTC'])
-      withdrawal = new Withdrawal
+      withdrawal = 
         id: '123456789'
         timestamp: '987654321'
         account: 'name',
@@ -115,7 +112,7 @@ describe 'Market', ->
     it 'should throw an error if the currency is not supported', ->
       market = new Market(['EUR', 'USD', 'BTC'])
       market.addAccount('name')
-      withdrawal = new Withdrawal
+      withdrawal = 
         id: '123456789'
         timestamp: '987654321'
         account: 'name',
@@ -130,14 +127,14 @@ describe 'Market', ->
       market = new Market(['EUR', 'USD', 'BTC'])
       market.addAccount('name')
       account = market.accounts['name']
-      deposit = new Deposit
+      deposit = 
         id: '123456789'
         timestamp: '987654321'
         account: 'name',
         currency: 'EUR',
         amount: '200'
       market.deposit(deposit)
-      order1 = new Order
+      order1 = 
         id: '123456789'
         timestamp: '987654321'
         account: 'name',
@@ -146,7 +143,7 @@ describe 'Market', ->
         offerPrice: '100',
         offerAmount: '50'        
       market.add(order1)
-      order2 = new Order
+      order2 = 
         id: '123456790'
         timestamp: '987654322'
         account: 'name',
@@ -160,14 +157,14 @@ describe 'Market', ->
     it 'should add an order to the correct book', ->
       market = new Market(['EUR', 'USD', 'BTC'])
       market.addAccount('name')
-      deposit = new Deposit
+      deposit = 
         id: '123456789'
         timestamp: '987654321'
         account: 'name',
         currency: 'EUR',
         amount: '200'
       market.deposit(deposit)
-      order = new Order
+      order = 
         id: '123456789'
         timestamp: '987654321'
         account: 'name',
@@ -176,11 +173,14 @@ describe 'Market', ->
         offerPrice: '100',
         offerAmount: '50'        
       market.add(order)
-      market.books['BTC']['EUR'].orders[order.id].should.equal(order)
+      market.books['BTC']['EUR'].orders[order.id].should.be.ok
+
+    it 'should execute the order immediately if it can', ->
+      #false.should.be.true
 
     it 'should throw an error if the account does not exist', ->
       market = new Market(['EUR', 'USD', 'BTC'])
-      order = new Order
+      order = 
         id: '123456789'
         timestamp: '987654321'
         account: 'name',
@@ -195,7 +195,7 @@ describe 'Market', ->
     it 'should throw an error if the offer currency is not supported', ->
       market = new Market(['EUR', 'USD', 'BTC'])
       market.addAccount('name')
-      order = new Order
+      order = 
         id: '123456789'
         timestamp: '987654321'
         account: 'name',
@@ -210,7 +210,7 @@ describe 'Market', ->
     it 'should throw an error if the bid currency is not supported', ->
       market = new Market(['EUR', 'USD', 'BTC'])
       market.addAccount('name')
-      order = new Order
+      order = 
         id: '123456789'
         timestamp: '987654321'
         account: 'name',
@@ -227,14 +227,14 @@ describe 'Market', ->
       market = new Market(['EUR', 'USD', 'BTC'])
       market.addAccount('name')
       account = market.accounts['name']
-      deposit = new Deposit
+      deposit = 
         id: '123456789'
         timestamp: '987654321'
         account: 'name',
         currency: 'EUR',
         amount: '200'
       market.deposit(deposit)
-      order1 = new Order
+      order1 = 
         id: '123456789'
         timestamp: '987654321'
         account: 'name',
@@ -243,7 +243,7 @@ describe 'Market', ->
         offerPrice: '100',
         offerAmount: '50'        
       market.add(order1)
-      order2 = new Order
+      order2 = 
         id: '123456790'
         timestamp: '987654322'
         account: 'name',
@@ -259,14 +259,14 @@ describe 'Market', ->
     it 'should remove the order from the correct book', ->
       market = new Market(['EUR', 'USD', 'BTC'])
       market.addAccount('name')
-      deposit = new Deposit
+      deposit = 
         id: '123456789'
         timestamp: '987654321'
         account: 'name',
         currency: 'EUR',
         amount: '200'
       market.deposit(deposit)
-      order = new Order
+      order = 
         id: '123456789'
         timestamp: '987654321'
         account: 'name',
@@ -275,13 +275,12 @@ describe 'Market', ->
         offerPrice: '100',
         offerAmount: '50'        
       market.add(order)
-      market.books['BTC']['EUR'].orders[order.id].should.equal(order)
       market.delete(order)
       expect(market.books['BTC']['EUR'].orders[order.id]).to.not.be.ok
 
     it 'should throw an error if the account does not exist', ->
       market = new Market(['EUR', 'USD', 'BTC'])
-      order = new Order
+      order = 
         id: '123456789'
         timestamp: '987654321'
         account: 'name',
@@ -296,7 +295,7 @@ describe 'Market', ->
     it 'should throw an error if the offer currency is not supported', ->
       market = new Market(['EUR', 'USD', 'BTC'])
       market.addAccount('name')
-      order = new Order
+      order = 
         id: '123456789'
         timestamp: '987654321'
         account: 'name',
@@ -311,7 +310,7 @@ describe 'Market', ->
     it 'should throw an error if the bid currency is not supported', ->
       market = new Market(['EUR', 'USD', 'BTC'])
       market.addAccount('name')
-      order = new Order
+      order = 
         id: '123456789'
         timestamp: '987654321'
         account: 'name',
@@ -327,14 +326,14 @@ describe 'Market', ->
       market = new Market(['EUR', 'USD', 'BTC'])
       market.addAccount('name')
       account = market.accounts['name']
-      deposit = new Deposit
+      deposit = 
         id: '123456789'
         timestamp: '987654321'
         account: 'name',
         currency: 'EUR',
         amount: '200'
       market.deposit(deposit)
-      order1 = new Order
+      order1 = 
         id: '123456789'
         timestamp: '987654321'
         account: 'name',
@@ -343,7 +342,7 @@ describe 'Market', ->
         offerPrice: '100',
         offerAmount: '50'        
       market.add(order1)
-      order2 = new Order
+      order2 = 
         id: '123456790'
         timestamp: '987654322'
         account: 'name',
@@ -353,7 +352,7 @@ describe 'Market', ->
         offerAmount: '100'        
       market.add(order2)
       account.currencies['EUR'].lockedFunds.compareTo(new Amount('150')).should.equal(0)
-      order3 = new Order
+      order3 = 
         id: '123456791'
         timestamp: '987654321'
         account: 'name',
