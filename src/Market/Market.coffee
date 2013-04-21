@@ -1,8 +1,7 @@
 Account = require('./Account/Account')
-Deposit = require('./Account/Deposit')
-Withdrawal = require('./Account/Withdrawal')
 Book = require('./Book')
 Order = require('./Order')
+Amount = require('./Amount')
 
 module.exports = class Market
   constructor: (@currencies) ->
@@ -21,28 +20,26 @@ module.exports = class Market
       @accounts[name] = new Account(@currencies)
 
   deposit: (deposit) ->
-    deposit = new Deposit(deposit)
     account = @accounts[deposit.account]
     if typeof account == 'undefined'
       throw new Error('Account does not exist')
     else
-      currency = account.currencies[deposit.currency]
-      if typeof currency == 'undefined'
+      balance = account.balances[deposit.currency]
+      if typeof balance == 'undefined'
         throw new Error('Currency is not supported')
       else
-        currency.deposit(deposit)
+        balance.deposit(new Amount(deposit.amount))
 
   withdraw: (withdrawal) ->
-    withdrawal = new Withdrawal(withdrawal)
     account = @accounts[withdrawal.account]
     if typeof account == 'undefined'
       throw new Error('Account does not exist')
     else
-      currency = account.currencies[withdrawal.currency]
-      if typeof currency == 'undefined'
+      balance = account.balances[withdrawal.currency]
+      if typeof balance == 'undefined'
         throw new Error('Currency is not supported')
       else
-        currency.withdraw(withdrawal)
+        balance.withdraw(new Amount(withdrawal.amount))
 
   add: (order) ->
     order = new Order(order)
@@ -50,8 +47,8 @@ module.exports = class Market
     if typeof account == 'undefined'
       throw new Error('Account does not exist')
     else
-      currency = account.currencies[order.offerCurrency]
-      if typeof currency == 'undefined'
+      balance = account.balances[order.offerCurrency]
+      if typeof balance == 'undefined'
         throw new Error('Offer currency is not supported')
       else
         books = @books[order.bidCurrency]
@@ -59,8 +56,10 @@ module.exports = class Market
           throw new Error('Bid currency is not supported')
         else
           book = books[order.offerCurrency]
-          currency.lock(order)
+          balance.lock(order.offerAmount)
           book.add(order)
+          # check the books to see if any orders can be executed
+          @execute(book, @books[order.offerCurrency][order.bidCurrency])
 
   delete: (order) ->
     order = new Order(order)
@@ -68,8 +67,8 @@ module.exports = class Market
     if typeof account == 'undefined'
       throw new Error('Account does not exist')
     else
-      currency = account.currencies[order.offerCurrency]
-      if typeof currency == 'undefined'
+      balance = account.balances[order.offerCurrency]
+      if typeof balance == 'undefined'
         throw new Error('Offer currency is not supported')
       else
         books = @books[order.bidCurrency]
@@ -78,4 +77,27 @@ module.exports = class Market
         else
           book = books[order.offerCurrency]
           book.delete(order)
-          currency.unlock(order)
+          balance.unlock(order.offerAmount)
+
+  execute: (bidBook, offerBook) ->
+    highestBid = bidBook.highest
+    lowestOffer = offerBook.highest
+    if typeof highestBid != 'undefined' && typeof lowestOffer != 'undefined'
+      if highestBid.bidPrice.compareTo(lowestOffer.offerPrice) == 0
+        bidAccount = @accounts[highestBid.account]
+        offerAccount = @accounts[lowestOffer.account]
+
+        bidAccount.balances[highestBid.offerCurrency].unlock(highestBid.offerAmount)
+        bidAccount.balances[highestBid.offerCurrency].withdraw(highestBid.offerAmount)
+        offerAccount.balances[lowestOffer.bidCurrency].deposit(highestBid.offerAmount)
+
+        offerAccount.balances[lowestOffer.offerCurrency].unlock(lowestOffer.offerAmount)
+        offerAccount.balances[lowestOffer.offerCurrency].withdraw(lowestOffer.offerAmount)
+        bidAccount.balances[highestBid.bidCurrency].deposit(lowestOffer.offerAmount)
+
+        bidBook.delete(highestBid)
+        offerBook.delete(lowestOffer)
+
+
+
+

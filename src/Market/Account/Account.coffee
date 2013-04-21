@@ -1,9 +1,8 @@
-Currency = require('./Currency')
+Balance = require('./Balance')
 
 module.exports = class Account
   constructor: (currencies) ->
-    @currencies = Object.create null
+    @balances = Object.create null
     currencies.forEach (currency) =>
-      @currencies[currency] = new Currency currencies.filter (match) ->
-        return currency != match
+      @balances[currency] = new Balance()
 

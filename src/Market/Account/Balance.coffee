@@ -1,29 +1,29 @@
 Amount = require('../Amount')
 
-module.exports = class Currency
-  constructor: (currencies) ->
+module.exports = class Balance
+  constructor: () ->
     @funds = Amount.ZERO
     @lockedFunds = Amount.ZERO
 
-  deposit: (deposit) =>
-    @funds = @funds.add(deposit.amount)
+  deposit: (amount) =>
+    @funds = @funds.add(amount)
 
-  lock: (order) =>
-    newLockedFunds = @lockedFunds.add(order.offerAmount)
+  lock: (amount) =>
+    newLockedFunds = @lockedFunds.add(amount)
     if newLockedFunds.compareTo(@funds) > 0
       throw new Error('Cannot lock funds that are not available')
     else
       @lockedFunds = newLockedFunds
 
-  unlock: (order) =>
-    newLockedFunds = @lockedFunds.subtract(order.offerAmount)
+  unlock: (amount) =>
+    newLockedFunds = @lockedFunds.subtract(amount)
     if newLockedFunds.compareTo(Amount.ZERO) < 0
       throw new Error('Cannot unlock funds that are not locked')
     else
       @lockedFunds = newLockedFunds
 
-  withdraw: (withdrawal) =>
-    newFunds = @funds.subtract(withdrawal.amount)
+  withdraw: (amount) =>
+    newFunds = @funds.subtract(amount)
     if newFunds.compareTo(@lockedFunds) < 0
       throw new Error('Cannot withdraw funds that are not available')
     else
