@@ -3,7 +3,7 @@ Amount = require('../../src/Market/Amount')
 describe 'Amount', ->
   describe '#compareTo', ->
     it 'cannot be called with Javascript Numbers as they are inherently innacurate', ->
-      amount = new Amount('0')
+      amount = Amount.ZERO
       expect ->
         amount.compareTo(0)
       .to.throw('Can only compare to Amount objects')
@@ -14,19 +14,14 @@ describe 'Amount', ->
       amount1.compareTo(amount2).should.equal(0)
 
     it 'should return -1 if the first amount is less than the second amount', ->
-      amount1 = new Amount('0')
+      amount1 = Amount.ZERO
       amount2 = new Amount('5')
       amount1.compareTo(amount2).should.equal(-1)
 
     it 'should return 1 if the first amount is greater than the second amount', ->
       amount1 = new Amount('5')
-      amount2 = new Amount('0')
+      amount2 = Amount.ZERO
       amount1.compareTo(amount2).should.equal(1)
-
-  it 'should default to zero if no initializer is specified', ->
-    amountUnspecified = new Amount()
-    amountZero = new Amount('0')
-    amountUnspecified.compareTo(amountZero).should.equal(0)
 
   it 'cannot be initialized from Javascript Numbers as they are inherently innacurate', ->
     expect ->
@@ -40,7 +35,7 @@ describe 'Amount', ->
 
   describe '#add', ->
     it 'cannot be called with Javascript Numbers as they are inherently innacurate', ->
-      amount = new Amount()
+      amount = Amount.ZERO
       expect ->
         amount.add(5)
       .to.throw('Can only add Amount objects')
@@ -65,7 +60,7 @@ describe 'Amount', ->
 
   describe '#subtract', ->
     it 'cannot be called with Javascript Numbers as they are inherently innacurate', ->
-      amount = new Amount()
+      amount = Amount.ZERO
       expect ->
         amount.subtract(5)
       .to.throw('Can only subtract Amount objects')
@@ -83,7 +78,7 @@ describe 'Amount', ->
 
   describe '#multiply', ->
     it 'cannot be called with Javascript Numbers as they are inherently innacurate', ->
-      amount = new Amount()
+      amount = Amount.ZERO
       expect ->
         amount.multiply(5)
       .to.throw('Can only multiply Amount objects')
@@ -101,7 +96,7 @@ describe 'Amount', ->
 
   describe '#divide', ->
     it 'cannot be called with Javascript Numbers as they are inherently innacurate', ->
-      amount = new Amount()
+      amount = Amount.ZERO
       expect ->
         amount.divide(5)
       .to.throw('Can only divide Amount objects')

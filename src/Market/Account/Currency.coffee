@@ -2,8 +2,8 @@ Amount = require('../Amount')
 
 module.exports = class Currency
   constructor: (currencies) ->
-    @funds = new Amount()
-    @lockedFunds = new Amount()
+    @funds = Amount.ZERO
+    @lockedFunds = Amount.ZERO
 
   deposit: (deposit) =>
     @funds = @funds.add(deposit.amount)

@@ -5,7 +5,7 @@ Withdrawal = require('../../../src/Market/Account/Withdrawal')
 Order = require('../../../src/Market/Order')
 
 describe 'Currency', ->
-  it 'should instantiate with a balance of zero, a reserved balance of zero, collections of deposits and withdrawals and collections of orders matching the supported currencies', ->
+  it 'should instantiate with funds of zero and locked funds of zero', ->
     currency = new Currency(['USD', 'EUR'])
     currency.funds.compareTo(Amount.ZERO).should.equal(0)
     currency.lockedFunds.compareTo(Amount.ZERO).should.equal(0)
@@ -217,7 +217,7 @@ describe 'Currency', ->
       currency.withdraw(withdrawal)
       currency.funds.compareTo(new Amount('150')).should.equal(0)
 
-    it 'should throw an error if the withdrawal amount is greater than the funds available taking into accoutn the locked funds', ->
+    it 'should throw an error if the withdrawal amount is greater than the funds available taking into account the locked funds', ->
       currency = new Currency(['USD', 'EUR'])
       deposit = new Deposit
         id: '123456789',

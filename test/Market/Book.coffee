@@ -14,12 +14,6 @@ newOrder = (id, price) ->
 
 describe 'Book', ->
   describe '#add', ->
-    it 'should add the order to the collection of orders', ->
-      book = new Book()
-      order = newOrder('15', '53')
-      book.add(order)
-      book.highest.should.equal(order)
-
     it 'should keep track of the order with the highest bid price', ->
       #
       #                       1
@@ -155,11 +149,6 @@ describe 'Book', ->
       expect =>
         @book.delete(order)
       .to.throw('Orders do not match')
-
-    it 'should remove the order from the collection of orders', ->
-      order = newOrder('15', '53')
-      @book.delete(order)
-      expect(@book.orders[order.id]).to.not.be.ok
 
     it 'should keep track of the order with the highest bid price', ->
       order = newOrder('1', '50')
