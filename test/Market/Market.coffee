@@ -125,7 +125,7 @@ describe 'Market', ->
         market.withdraw(withdrawal)
       .to.throw('Currency is not supported')
 
-  describe '#addOrder', ->
+  describe '#add', ->
     it 'should lock the correct funds in the correct account', ->
       market = new Market(['EUR', 'USD', 'BTC'])
       market.addAccount('name')
@@ -137,7 +137,7 @@ describe 'Market', ->
         currency: 'EUR',
         amount: '200'
       market.deposit(deposit)
-      order = new Order
+      order1 = new Order
         id: '123456789'
         timestamp: '987654321'
         account: 'name',
@@ -145,52 +145,17 @@ describe 'Market', ->
         offerCurrency: 'EUR',
         offerPrice: '100',
         offerAmount: '50'        
-      market.addOrder(order)
-      account.currencies['EUR'].lockedFunds.compareTo(new Amount('50')).should.equal(0)
-
-    it 'should throw an error if the account does not exist', ->
-      market = new Market(['EUR', 'USD', 'BTC'])
-      order = new Order
-        id: '123456789'
-        timestamp: '987654321'
+      market.add(order1)
+      order2 = new Order
+        id: '123456790'
+        timestamp: '987654322'
         account: 'name',
-        bidCurrency: 'BTC',
+        bidCurrency: 'USD',
         offerCurrency: 'EUR',
         offerPrice: '100',
-        offerAmount: '50'        
-      expect ->
-        market.addOrder(order)
-      .to.throw('Account does not exist')
-
-    it 'should throw an error if the offer currency is not supported', ->
-      market = new Market(['EUR', 'USD', 'BTC'])
-      market.addAccount('name')
-      order = new Order
-        id: '123456789'
-        timestamp: '987654321'
-        account: 'name',
-        bidCurrency: 'BTC',
-        offerCurrency: 'CAD',
-        offerPrice: '100',
-        offerAmount: '50'        
-      expect ->
-        market.addOrder(order)
-      .to.throw('Offer currency is not supported')
-
-    it 'should throw an error if the bid currency is not supported', ->
-      market = new Market(['EUR', 'USD', 'BTC'])
-      market.addAccount('name')
-      order = new Order
-        id: '123456789'
-        timestamp: '987654321'
-        account: 'name',
-        bidCurrency: 'CAD',
-        offerCurrency: 'EUR',
-        offerPrice: '100',
-        offerAmount: '50'        
-      expect ->
-        market.addOrder(order)
-      .to.throw('Bid currency is not supported')
+        offerAmount: '100'        
+      market.add(order2)
+      account.currencies['EUR'].lockedFunds.compareTo(new Amount('150')).should.equal(0)
 
     it 'should add an order to the correct book', ->
       market = new Market(['EUR', 'USD', 'BTC'])
@@ -210,5 +175,193 @@ describe 'Market', ->
         offerCurrency: 'EUR',
         offerPrice: '100',
         offerAmount: '50'        
-      market.addOrder(order)
+      market.add(order)
       market.books['BTC']['EUR'].orders[order.id].should.equal(order)
+
+    it 'should throw an error if the account does not exist', ->
+      market = new Market(['EUR', 'USD', 'BTC'])
+      order = new Order
+        id: '123456789'
+        timestamp: '987654321'
+        account: 'name',
+        bidCurrency: 'BTC',
+        offerCurrency: 'EUR',
+        offerPrice: '100',
+        offerAmount: '50'        
+      expect ->
+        market.add(order)
+      .to.throw('Account does not exist')
+
+    it 'should throw an error if the offer currency is not supported', ->
+      market = new Market(['EUR', 'USD', 'BTC'])
+      market.addAccount('name')
+      order = new Order
+        id: '123456789'
+        timestamp: '987654321'
+        account: 'name',
+        bidCurrency: 'BTC',
+        offerCurrency: 'CAD',
+        offerPrice: '100',
+        offerAmount: '50'        
+      expect ->
+        market.add(order)
+      .to.throw('Offer currency is not supported')
+
+    it 'should throw an error if the bid currency is not supported', ->
+      market = new Market(['EUR', 'USD', 'BTC'])
+      market.addAccount('name')
+      order = new Order
+        id: '123456789'
+        timestamp: '987654321'
+        account: 'name',
+        bidCurrency: 'CAD',
+        offerCurrency: 'EUR',
+        offerPrice: '100',
+        offerAmount: '50'        
+      expect ->
+        market.add(order)
+      .to.throw('Bid currency is not supported')
+
+  describe '#delete', ->
+    it 'should unlock the correct funds in the correct account', ->
+      market = new Market(['EUR', 'USD', 'BTC'])
+      market.addAccount('name')
+      account = market.accounts['name']
+      deposit = new Deposit
+        id: '123456789'
+        timestamp: '987654321'
+        account: 'name',
+        currency: 'EUR',
+        amount: '200'
+      market.deposit(deposit)
+      order1 = new Order
+        id: '123456789'
+        timestamp: '987654321'
+        account: 'name',
+        bidCurrency: 'BTC',
+        offerCurrency: 'EUR',
+        offerPrice: '100',
+        offerAmount: '50'        
+      market.add(order1)
+      order2 = new Order
+        id: '123456790'
+        timestamp: '987654322'
+        account: 'name',
+        bidCurrency: 'USD',
+        offerCurrency: 'EUR',
+        offerPrice: '100',
+        offerAmount: '100'        
+      market.add(order2)
+      account.currencies['EUR'].lockedFunds.compareTo(new Amount('150')).should.equal(0)
+      market.delete(order1)
+      account.currencies['EUR'].lockedFunds.compareTo(new Amount('100')).should.equal(0)
+
+    it 'should remove the order from the correct book', ->
+      market = new Market(['EUR', 'USD', 'BTC'])
+      market.addAccount('name')
+      deposit = new Deposit
+        id: '123456789'
+        timestamp: '987654321'
+        account: 'name',
+        currency: 'EUR',
+        amount: '200'
+      market.deposit(deposit)
+      order = new Order
+        id: '123456789'
+        timestamp: '987654321'
+        account: 'name',
+        bidCurrency: 'BTC',
+        offerCurrency: 'EUR',
+        offerPrice: '100',
+        offerAmount: '50'        
+      market.add(order)
+      market.books['BTC']['EUR'].orders[order.id].should.equal(order)
+      market.delete(order)
+      expect(market.books['BTC']['EUR'].orders[order.id]).to.not.be.ok
+
+    it 'should throw an error if the account does not exist', ->
+      market = new Market(['EUR', 'USD', 'BTC'])
+      order = new Order
+        id: '123456789'
+        timestamp: '987654321'
+        account: 'name',
+        bidCurrency: 'BTC',
+        offerCurrency: 'EUR',
+        offerPrice: '100',
+        offerAmount: '50'        
+      expect ->
+        market.delete(order)
+      .to.throw('Account does not exist')
+
+    it 'should throw an error if the offer currency is not supported', ->
+      market = new Market(['EUR', 'USD', 'BTC'])
+      market.addAccount('name')
+      order = new Order
+        id: '123456789'
+        timestamp: '987654321'
+        account: 'name',
+        bidCurrency: 'BTC',
+        offerCurrency: 'CAD',
+        offerPrice: '100',
+        offerAmount: '50'        
+      expect ->
+        market.delete(order)
+      .to.throw('Offer currency is not supported')
+
+    it 'should throw an error if the bid currency is not supported', ->
+      market = new Market(['EUR', 'USD', 'BTC'])
+      market.addAccount('name')
+      order = new Order
+        id: '123456789'
+        timestamp: '987654321'
+        account: 'name',
+        bidCurrency: 'CAD',
+        offerCurrency: 'EUR',
+        offerPrice: '100',
+        offerAmount: '50'        
+      expect ->
+        market.delete(order)
+      .to.throw('Bid currency is not supported')
+
+    it 'should throw an error and leave the locked funds untouched if the offer cannot be found in the book', ->
+      market = new Market(['EUR', 'USD', 'BTC'])
+      market.addAccount('name')
+      account = market.accounts['name']
+      deposit = new Deposit
+        id: '123456789'
+        timestamp: '987654321'
+        account: 'name',
+        currency: 'EUR',
+        amount: '200'
+      market.deposit(deposit)
+      order1 = new Order
+        id: '123456789'
+        timestamp: '987654321'
+        account: 'name',
+        bidCurrency: 'BTC',
+        offerCurrency: 'EUR',
+        offerPrice: '100',
+        offerAmount: '50'        
+      market.add(order1)
+      order2 = new Order
+        id: '123456790'
+        timestamp: '987654322'
+        account: 'name',
+        bidCurrency: 'USD',
+        offerCurrency: 'EUR',
+        offerPrice: '100',
+        offerAmount: '100'        
+      market.add(order2)
+      account.currencies['EUR'].lockedFunds.compareTo(new Amount('150')).should.equal(0)
+      order3 = new Order
+        id: '123456791'
+        timestamp: '987654321'
+        account: 'name',
+        bidCurrency: 'BTC',
+        offerCurrency: 'EUR',
+        offerPrice: '100',
+        offerAmount: '50'        
+      expect ->
+        market.delete(order3)
+      .to.throw('Order cannot be found')
+      account.currencies['EUR'].lockedFunds.compareTo(new Amount('150')).should.equal(0)

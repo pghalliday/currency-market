@@ -39,7 +39,7 @@ module.exports = class Market
       else
         currency.withdraw(withdrawal)
 
-  addOrder: (order) ->
+  add: (order) ->
     account = @accounts[order.account]
     if typeof account == 'undefined'
       throw new Error('Account does not exist')
@@ -55,3 +55,20 @@ module.exports = class Market
           book = books[order.offerCurrency]
           currency.lock(order)
           book.add(order)
+
+  delete: (order) ->
+    account = @accounts[order.account]
+    if typeof account == 'undefined'
+      throw new Error('Account does not exist')
+    else
+      currency = account.currencies[order.offerCurrency]
+      if typeof currency == 'undefined'
+        throw new Error('Offer currency is not supported')
+      else
+        books = @books[order.bidCurrency]
+        if typeof books == 'undefined'
+          throw new Error('Bid currency is not supported')
+        else
+          book = books[order.offerCurrency]
+          book.delete(order)
+          currency.unlock(order)
