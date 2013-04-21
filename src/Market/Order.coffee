@@ -124,6 +124,20 @@ module.exports = class Order
     @bidPrice.compareTo(order.bidPrice) == 0 &&
     @bidAmount.compareTo(order.bidAmount) == 0
 
+  reduceOffer: (amount) ->
+    if amount.compareTo(@offerAmount) < 0
+      @offerAmount = @offerAmount.subtract(amount)
+      @bidAmount = @offerAmount.multiply(@offerPrice)
+    else
+      throw new Error('Order should be deleted and not reduced to zero')
+
+  reduceBid: (amount) ->
+    if amount.compareTo(@bidAmount) < 0
+      @bidAmount = @bidAmount.subtract(amount)
+      @offerAmount = @bidAmount.multiply(@bidPrice)
+    else
+      throw new Error('Order should be deleted and not reduced to zero')
+
 
 
 

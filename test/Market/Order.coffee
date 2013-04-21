@@ -6,10 +6,10 @@ describe 'Order', ->
     expect ->
       order = new Order
         timestamp: '987654321'
-        account: 'name',
-        bidCurrency: 'BTC',
-        offerCurrency: 'EUR',
-        bidPrice: '100',
+        account: 'name'
+        bidCurrency: 'BTC'
+        offerCurrency: 'EUR'
+        bidPrice: '100'
         bidAmount: '50'
     .to.throw('Order must have an ID')
 
@@ -17,10 +17,10 @@ describe 'Order', ->
     expect ->
       order = new Order
         id: '123456789'
-        account: 'name',
-        bidCurrency: 'BTC',
-        offerCurrency: 'EUR',
-        bidPrice: '100',
+        account: 'name'
+        bidCurrency: 'BTC'
+        offerCurrency: 'EUR'
+        bidPrice: '100'
         bidAmount: '50'
     .to.throw('Order must have a time stamp')
 
@@ -29,9 +29,9 @@ describe 'Order', ->
       order = new Order
         id: '123456789'
         timestamp: '987654321'
-        bidCurrency: 'BTC',
-        offerCurrency: 'EUR',
-        bidPrice: '100',
+        bidCurrency: 'BTC'
+        offerCurrency: 'EUR'
+        bidPrice: '100'
         bidAmount: '50'
     .to.throw('Order must be associated with an account')
 
@@ -40,9 +40,9 @@ describe 'Order', ->
       order = new Order
         id: '123456789'
         timestamp: '987654321'
-        account: 'name',
-        offerCurrency: 'EUR',
-        bidPrice: '100',
+        account: 'name'
+        offerCurrency: 'EUR'
+        bidPrice: '100'
         bidAmount: '50'
     .to.throw('Order must be associated with a bid currency')
 
@@ -51,9 +51,9 @@ describe 'Order', ->
       order = new Order
         id: '123456789'
         timestamp: '987654321'
-        account: 'name',
-        bidCurrency: 'BTC',
-        bidPrice: '100',
+        account: 'name'
+        bidCurrency: 'BTC'
+        bidPrice: '100'
         bidAmount: '50'
     .to.throw('Order must be associated with an offer currency')
 
@@ -62,10 +62,10 @@ describe 'Order', ->
       order = new Order
         id: '123456789'
         timestamp: '987654321'
-        account: 'name',
-        bidCurrency: 'BTC',
-        offerCurrency: 'EUR',
-        bidPrice: '100',
+        account: 'name'
+        bidCurrency: 'BTC'
+        offerCurrency: 'EUR'
+        bidPrice: '100'
     .to.throw('Insufficient information to calculate the order')
 
   it 'should throw an error if only an offer price is given as it is not enough information to calculate the other fields a bid', ->
@@ -73,10 +73,10 @@ describe 'Order', ->
       order = new Order
         id: '123456789'
         timestamp: '987654321'
-        account: 'name',
-        bidCurrency: 'BTC',
-        offerCurrency: 'EUR',
-        offerPrice: '100',
+        account: 'name'
+        bidCurrency: 'BTC'
+        offerCurrency: 'EUR'
+        offerPrice: '100'
     .to.throw('Insufficient information to calculate the order')
 
   it 'should throw an error if only a bid amount is given as it is not enough information to calculate the other fields a bid', ->
@@ -84,10 +84,10 @@ describe 'Order', ->
       order = new Order
         id: '123456789'
         timestamp: '987654321'
-        account: 'name',
-        bidCurrency: 'BTC',
-        offerCurrency: 'EUR',
-        bidAmount: '100',
+        account: 'name'
+        bidCurrency: 'BTC'
+        offerCurrency: 'EUR'
+        bidAmount: '100'
     .to.throw('Insufficient information to calculate the order')
 
   it 'should throw an error if only a offer amount is given as it is not enough information to calculate the other fields a bid', ->
@@ -95,10 +95,10 @@ describe 'Order', ->
       order = new Order
         id: '123456789'
         timestamp: '987654321'
-        account: 'name',
-        bidCurrency: 'BTC',
-        offerCurrency: 'EUR',
-        offerAmount: '100',
+        account: 'name'
+        bidCurrency: 'BTC'
+        offerCurrency: 'EUR'
+        offerAmount: '100'
     .to.throw('Insufficient information to calculate the order')
 
   it 'should throw an error if both the bid price and offer price are given as we do not want to trust the calculations of others', ->
@@ -106,11 +106,11 @@ describe 'Order', ->
       order = new Order
         id: '123456789'
         timestamp: '987654321'
-        account: 'name',
-        bidCurrency: 'BTC',
-        offerCurrency: 'EUR',
-        bidPrice: '100',
-        offerPrice: '50',
+        account: 'name'
+        bidCurrency: 'BTC'
+        offerCurrency: 'EUR'
+        bidPrice: '100'
+        offerPrice: '50'
         bidAmount: '50'
     .to.throw('Can only specify one of offer price and bid price')
 
@@ -119,11 +119,11 @@ describe 'Order', ->
       order = new Order
         id: '123456789'
         timestamp: '987654321'
-        account: 'name',
-        bidCurrency: 'BTC',
-        offerCurrency: 'EUR',
-        bidPrice: '100',
-        offerAmount: '60',
+        account: 'name'
+        bidCurrency: 'BTC'
+        offerCurrency: 'EUR'
+        bidPrice: '100'
+        offerAmount: '60'
         bidAmount: '50'
     .to.throw('Cannot specify a price if the offer and bid amounts are also specified')
 
@@ -132,11 +132,11 @@ describe 'Order', ->
       order = new Order
         id: '123456789'
         timestamp: '987654321'
-        account: 'name',
-        bidCurrency: 'BTC',
-        offerCurrency: 'EUR',
-        offerPrice: '100',
-        offerAmount: '60',
+        account: 'name'
+        bidCurrency: 'BTC'
+        offerCurrency: 'EUR'
+        offerPrice: '100'
+        offerAmount: '60'
         bidAmount: '50'
     .to.throw('Cannot specify a price if the offer and bid amounts are also specified')
 
@@ -145,10 +145,10 @@ describe 'Order', ->
       order = new Order
         id: '123456789'
         timestamp: '987654321'
-        account: 'name',
-        bidCurrency: 'BTC',
-        offerCurrency: 'EUR',
-        bidPrice: '100',
+        account: 'name'
+        bidCurrency: 'BTC'
+        offerCurrency: 'EUR'
+        bidPrice: '100'
         bidAmount: '-50'
     .to.throw('bid amount cannot be negative')
 
@@ -157,10 +157,10 @@ describe 'Order', ->
       order = new Order
         id: '123456789'
         timestamp: '987654321'
-        account: 'name',
-        bidCurrency: 'BTC',
-        offerCurrency: 'EUR',
-        bidPrice: '-100',
+        account: 'name'
+        bidCurrency: 'BTC'
+        offerCurrency: 'EUR'
+        bidPrice: '-100'
         bidAmount: '50'
     .to.throw('bid price cannot be negative')
 
@@ -169,10 +169,10 @@ describe 'Order', ->
       order = new Order
         id: '123456789'
         timestamp: '987654321'
-        account: 'name',
-        bidCurrency: 'BTC',
-        offerCurrency: 'EUR',
-        offerPrice: '100',
+        account: 'name'
+        bidCurrency: 'BTC'
+        offerCurrency: 'EUR'
+        offerPrice: '100'
         offerAmount: '-50'
     .to.throw('offer amount cannot be negative')
 
@@ -181,10 +181,10 @@ describe 'Order', ->
       order = new Order
         id: '123456789'
         timestamp: '987654321'
-        account: 'name',
-        bidCurrency: 'BTC',
-        offerCurrency: 'EUR',
-        offerPrice: '-100',
+        account: 'name'
+        bidCurrency: 'BTC'
+        offerCurrency: 'EUR'
+        offerPrice: '-100'
         offerAmount: '50'
     .to.throw('offer price cannot be negative')
 
@@ -192,10 +192,10 @@ describe 'Order', ->
     order = new Order
       id: '123456789'
       timestamp: '987654321'
-      account: 'name',
-      bidCurrency: 'BTC',
-      offerCurrency: 'EUR',
-      bidPrice: '100',
+      account: 'name'
+      bidCurrency: 'BTC'
+      offerCurrency: 'EUR'
+      bidPrice: '100'
       bidAmount: '50'
     order.id.should.equal('123456789')
     order.timestamp.should.equal('987654321')
@@ -207,10 +207,10 @@ describe 'Order', ->
     order = new Order
       id: '123456789'
       timestamp: '987654321'
-      account: 'name',
-      bidCurrency: 'BTC',
-      offerCurrency: 'EUR',
-      bidPrice: '100',
+      account: 'name'
+      bidCurrency: 'BTC'
+      offerCurrency: 'EUR'
+      bidPrice: '100'
       bidAmount: '50'
     order.bidPrice.compareTo(new Amount('100')).should.equal(0)
     order.offerPrice.compareTo(new Amount('0.01')).should.equal(0)
@@ -221,10 +221,10 @@ describe 'Order', ->
     order = new Order
       id: '123456789'
       timestamp: '987654321'
-      account: 'name',
-      bidCurrency: 'BTC',
-      offerCurrency: 'EUR',
-      offerPrice: '100',
+      account: 'name'
+      bidCurrency: 'BTC'
+      offerCurrency: 'EUR'
+      offerPrice: '100'
       offerAmount: '50'
     order.bidPrice.compareTo(new Amount('0.01')).should.equal(0)
     order.offerPrice.compareTo(new Amount('100')).should.equal(0)
@@ -235,10 +235,10 @@ describe 'Order', ->
     order = new Order
       id: '123456789'
       timestamp: '987654321'
-      account: 'name',
-      bidCurrency: 'BTC',
-      offerCurrency: 'EUR',
-      offerPrice: '100',
+      account: 'name'
+      bidCurrency: 'BTC'
+      offerCurrency: 'EUR'
+      offerPrice: '100'
       bidAmount: '50'
     order.bidPrice.compareTo(new Amount('0.01')).should.equal(0)
     order.offerPrice.compareTo(new Amount('100')).should.equal(0)
@@ -249,10 +249,10 @@ describe 'Order', ->
     order = new Order
       id: '123456789'
       timestamp: '987654321'
-      account: 'name',
-      bidCurrency: 'BTC',
-      offerCurrency: 'EUR',
-      bidPrice: '100',
+      account: 'name'
+      bidCurrency: 'BTC'
+      offerCurrency: 'EUR'
+      bidPrice: '100'
       offerAmount: '50'
     order.bidPrice.compareTo(new Amount('100')).should.equal(0)
     order.offerPrice.compareTo(new Amount('0.01')).should.equal(0)
@@ -263,10 +263,10 @@ describe 'Order', ->
     order = new Order
       id: '123456789'
       timestamp: '987654321'
-      account: 'name',
-      bidCurrency: 'BTC',
-      offerCurrency: 'EUR',
-      bidAmount: '100',
+      account: 'name'
+      bidCurrency: 'BTC'
+      offerCurrency: 'EUR'
+      bidAmount: '100'
       offerAmount: '50'
     order.bidPrice.compareTo(new Amount('0.5')).should.equal(0)
     order.offerPrice.compareTo(new Amount('2')).should.equal(0)
@@ -278,18 +278,18 @@ describe 'Order', ->
       order1 = new Order
         id: '123456789'
         timestamp: '987654321'
-        account: 'name',
-        bidCurrency: 'BTC',
-        offerCurrency: 'EUR',
-        bidPrice: '100',
+        account: 'name'
+        bidCurrency: 'BTC'
+        offerCurrency: 'EUR'
+        bidPrice: '100'
         bidAmount: '50'
       order2 = new Order
         id: '123456789'
         timestamp: '987654321'
-        account: 'name',
-        bidCurrency: 'BTC',
-        offerCurrency: 'EUR',
-        bidPrice: '100',
+        account: 'name'
+        bidCurrency: 'BTC'
+        offerCurrency: 'EUR'
+        bidPrice: '100'
         bidAmount: '50'
       order1.equals(order2).should.be.true
 
@@ -297,18 +297,18 @@ describe 'Order', ->
       order1 = new Order
         id: '123456789'
         timestamp: '987654321'
-        account: 'name',
-        bidCurrency: 'BTC',
-        offerCurrency: 'EUR',
-        bidPrice: '100',
+        account: 'name'
+        bidCurrency: 'BTC'
+        offerCurrency: 'EUR'
+        bidPrice: '100'
         bidAmount: '50'
       order2 = new Order
         id: '123456790'
         timestamp: '987654321'
-        account: 'name',
-        bidCurrency: 'BTC',
-        offerCurrency: 'EUR',
-        bidPrice: '100',
+        account: 'name'
+        bidCurrency: 'BTC'
+        offerCurrency: 'EUR'
+        bidPrice: '100'
         bidAmount: '50'
       order1.equals(order2).should.be.false
 
@@ -316,18 +316,18 @@ describe 'Order', ->
       order1 = new Order
         id: '123456789'
         timestamp: '987654321'
-        account: 'name',
-        bidCurrency: 'BTC',
-        offerCurrency: 'EUR',
-        bidPrice: '100',
+        account: 'name'
+        bidCurrency: 'BTC'
+        offerCurrency: 'EUR'
+        bidPrice: '100'
         bidAmount: '50'
       order2 = new Order
         id: '123456789'
         timestamp: '987654322'
-        account: 'name',
-        bidCurrency: 'BTC',
-        offerCurrency: 'EUR',
-        bidPrice: '100',
+        account: 'name'
+        bidCurrency: 'BTC'
+        offerCurrency: 'EUR'
+        bidPrice: '100'
         bidAmount: '50'
       order1.equals(order2).should.be.false
 
@@ -335,18 +335,18 @@ describe 'Order', ->
       order1 = new Order
         id: '123456789'
         timestamp: '987654321'
-        account: 'name',
-        bidCurrency: 'BTC',
-        offerCurrency: 'EUR',
-        bidPrice: '100',
+        account: 'name'
+        bidCurrency: 'BTC'
+        offerCurrency: 'EUR'
+        bidPrice: '100'
         bidAmount: '50'
       order2 = new Order
         id: '123456789'
         timestamp: '987654321'
-        account: 'another name',
-        bidCurrency: 'BTC',
-        offerCurrency: 'EUR',
-        bidPrice: '100',
+        account: 'another name'
+        bidCurrency: 'BTC'
+        offerCurrency: 'EUR'
+        bidPrice: '100'
         bidAmount: '50'
       order1.equals(order2).should.be.false
 
@@ -354,18 +354,18 @@ describe 'Order', ->
       order1 = new Order
         id: '123456789'
         timestamp: '987654321'
-        account: 'name',
-        bidCurrency: 'BTC',
-        offerCurrency: 'EUR',
-        bidPrice: '100',
+        account: 'name'
+        bidCurrency: 'BTC'
+        offerCurrency: 'EUR'
+        bidPrice: '100'
         bidAmount: '50'
       order2 = new Order
         id: '123456789'
         timestamp: '987654321'
-        account: 'name',
-        bidCurrency: 'USD',
-        offerCurrency: 'EUR',
-        bidPrice: '100',
+        account: 'name'
+        bidCurrency: 'USD'
+        offerCurrency: 'EUR'
+        bidPrice: '100'
         bidAmount: '50'
       order1.equals(order2).should.be.false
 
@@ -373,18 +373,18 @@ describe 'Order', ->
       order1 = new Order
         id: '123456789'
         timestamp: '987654321'
-        account: 'name',
-        bidCurrency: 'BTC',
-        offerCurrency: 'EUR',
-        bidPrice: '100',
+        account: 'name'
+        bidCurrency: 'BTC'
+        offerCurrency: 'EUR'
+        bidPrice: '100'
         bidAmount: '50'
       order2 = new Order
         id: '123456789'
         timestamp: '987654321'
-        account: 'name',
-        bidCurrency: 'BTC',
-        offerCurrency: 'USD',
-        bidPrice: '100',
+        account: 'name'
+        bidCurrency: 'BTC'
+        offerCurrency: 'USD'
+        bidPrice: '100'
         bidAmount: '50'
       order1.equals(order2).should.be.false
 
@@ -392,18 +392,18 @@ describe 'Order', ->
       order1 = new Order
         id: '123456789'
         timestamp: '987654321'
-        account: 'name',
-        bidCurrency: 'BTC',
-        offerCurrency: 'EUR',
-        bidPrice: '100',
+        account: 'name'
+        bidCurrency: 'BTC'
+        offerCurrency: 'EUR'
+        bidPrice: '100'
         bidAmount: '50'
       order2 = new Order
         id: '123456789'
         timestamp: '987654321'
-        account: 'name',
-        bidCurrency: 'BTC',
-        offerCurrency: 'EUR',
-        bidPrice: '150',
+        account: 'name'
+        bidCurrency: 'BTC'
+        offerCurrency: 'EUR'
+        bidPrice: '150'
         bidAmount: '50'
       order1.equals(order2).should.be.false
 
@@ -411,17 +411,73 @@ describe 'Order', ->
       order1 = new Order
         id: '123456789'
         timestamp: '987654321'
-        account: 'name',
-        bidCurrency: 'BTC',
-        offerCurrency: 'EUR',
-        bidPrice: '100',
+        account: 'name'
+        bidCurrency: 'BTC'
+        offerCurrency: 'EUR'
+        bidPrice: '100'
         bidAmount: '50'
       order2 = new Order
         id: '123456789'
         timestamp: '987654321'
-        account: 'name',
-        bidCurrency: 'BTC',
-        offerCurrency: 'EUR',
-        bidPrice: '100',
+        account: 'name'
+        bidCurrency: 'BTC'
+        offerCurrency: 'EUR'
+        bidPrice: '100'
         bidAmount: '100'
       order1.equals(order2).should.be.false
+
+  describe '#reduceOffer', ->
+    it 'should reduce the order by the supplied offer amount', ->
+      order = new Order
+        id: '123456789'
+        timestamp: '987654321'
+        account: 'name'
+        bidCurrency: 'BTC'
+        offerCurrency: 'EUR'
+        offerPrice: '100'
+        offerAmount: '100'
+      order.reduceOffer(new Amount('25'))
+      order.offerAmount.compareTo(new Amount('75')).should.equal 0
+      order.bidAmount.compareTo(new Amount('7500')).should.equal 0
+
+    it 'should throw an error if the order is reduced to zero or below', ->
+      order = new Order
+        id: '123456789'
+        timestamp: '987654321'
+        account: 'name'
+        bidCurrency: 'BTC'
+        offerCurrency: 'EUR'
+        offerPrice: '100'
+        offerAmount: '100'
+      expect ->
+        order.reduceOffer(new Amount('100'))
+      .to.throw('Order should be deleted and not reduced to zero')
+
+  describe '#reduceBid', ->
+    it 'should reduce the order by the supplied bid amount', ->
+      order = new Order
+        id: '123456789'
+        timestamp: '987654321'
+        account: 'name'
+        bidCurrency: 'BTC'
+        offerCurrency: 'EUR'
+        bidPrice: '100'
+        bidAmount: '100'
+      order.reduceBid(new Amount('25'))
+      order.bidAmount.compareTo(new Amount('75')).should.equal 0
+      order.offerAmount.compareTo(new Amount('7500')).should.equal 0
+      
+    it 'should throw an error if the order is reduced to zero or below', ->
+      order = new Order
+        id: '123456789'
+        timestamp: '987654321'
+        account: 'name'
+        bidCurrency: 'BTC'
+        offerCurrency: 'EUR'
+        bidPrice: '100'
+        bidAmount: '100'
+      expect ->
+        order.reduceBid(new Amount('100'))
+      .to.throw('Order should be deleted and not reduced to zero')
+
+

@@ -87,16 +87,46 @@ module.exports = class Market
         bidAccount = @accounts[highestBid.account]
         offerAccount = @accounts[lowestOffer.account]
 
-        bidAccount.balances[highestBid.offerCurrency].unlock(highestBid.offerAmount)
-        bidAccount.balances[highestBid.offerCurrency].withdraw(highestBid.offerAmount)
-        offerAccount.balances[lowestOffer.bidCurrency].deposit(highestBid.offerAmount)
+        if highestBid.offerAmount.compareTo(lowestOffer.bidAmount) == 0
+          # debit the bid account and credit the offer account
+          bidAccount.balances[highestBid.offerCurrency].unlock(highestBid.offerAmount)
+          bidAccount.balances[highestBid.offerCurrency].withdraw(highestBid.offerAmount)
+          offerAccount.balances[highestBid.offerCurrency].deposit(highestBid.offerAmount)
+          # debit the offer account and credit the bid account
+          offerAccount.balances[lowestOffer.offerCurrency].unlock(lowestOffer.offerAmount)
+          offerAccount.balances[lowestOffer.offerCurrency].withdraw(lowestOffer.offerAmount)
+          bidAccount.balances[lowestOffer.offerCurrency].deposit(lowestOffer.offerAmount)
+          # remove the orders
+          bidBook.delete(highestBid)
+          offerBook.delete(lowestOffer)
+        else if highestBid.offerAmount.compareTo(lowestOffer.bidAmount) > 0
+          # more is being offered than is bid for so use the bid amount
+          # debit the bid account and credit the offer account
+          bidAccount.balances[lowestOffer.bidCurrency].unlock(lowestOffer.bidAmount)
+          bidAccount.balances[lowestOffer.bidCurrency].withdraw(lowestOffer.bidAmount)
+          offerAccount.balances[lowestOffer.bidCurrency].deposit(lowestOffer.bidAmount)
+          # debit the offer account and credit the bid account
+          offerAccount.balances[lowestOffer.offerCurrency].unlock(lowestOffer.offerAmount)
+          offerAccount.balances[lowestOffer.offerCurrency].withdraw(lowestOffer.offerAmount)
+          bidAccount.balances[lowestOffer.offerCurrency].deposit(lowestOffer.offerAmount)
+          # remove the orders
+          highestBid.reduceBid(lowestOffer.offerAmount)
+          offerBook.delete(lowestOffer)
+        else
+          # use the offer amount
+          # debit the bid account and credit the offer account
+          bidAccount.balances[highestBid.offerCurrency].unlock(highestBid.offerAmount)
+          bidAccount.balances[highestBid.offerCurrency].withdraw(highestBid.offerAmount)
+          offerAccount.balances[highestBid.offerCurrency].deposit(highestBid.offerAmount)
+          # debit the offer account and credit the bid account
+          offerAccount.balances[highestBid.bidCurrency].unlock(highestBid.bidAmount)
+          offerAccount.balances[highestBid.bidCurrency].withdraw(highestBid.bidAmount)
+          bidAccount.balances[highestBid.bidCurrency].deposit(highestBid.bidAmount)
+          # remove the orders
+          bidBook.delete(highestBid)
+          lowestOffer.reduceOffer(highestBid.bidAmount)
 
-        offerAccount.balances[lowestOffer.offerCurrency].unlock(lowestOffer.offerAmount)
-        offerAccount.balances[lowestOffer.offerCurrency].withdraw(lowestOffer.offerAmount)
-        bidAccount.balances[highestBid.bidCurrency].deposit(lowestOffer.offerAmount)
 
-        bidBook.delete(highestBid)
-        offerBook.delete(lowestOffer)
 
 
 
