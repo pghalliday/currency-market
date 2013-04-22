@@ -343,7 +343,7 @@ describe 'Market', ->
                 @market.accounts['Peter'].balances['BTC'].funds.compareTo(new Amount('200')).should.equal 0
                 @market.accounts['Paul'].balances['EUR'].funds.compareTo(new Amount('1000')).should.equal 0
                 @market.accounts['Paul'].balances['BTC'].funds.compareTo(new Amount('200')).should.equal 0
-                @market.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(new Amount('100')).should.equal 0
+                @market.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(new Amount('125')).should.equal 0
               
       describe 'where the existing (right) order is a bid', ->
         beforeEach ->
@@ -471,7 +471,7 @@ describe 'Market', ->
                 @market.accounts['Peter'].balances['BTC'].funds.compareTo(new Amount('200')).should.equal 0
                 @market.accounts['Paul'].balances['EUR'].funds.compareTo(new Amount('1000')).should.equal 0
                 @market.accounts['Paul'].balances['BTC'].funds.compareTo(new Amount('200')).should.equal 0
-                @market.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(new Amount('100')).should.equal 0
+                @market.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(new Amount('125')).should.equal 0
               
             
     it 'should throw an error if the account does not exist', ->

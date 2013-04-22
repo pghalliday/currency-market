@@ -104,8 +104,7 @@ module.exports = class Market
 
         if leftOfferAmount.compareTo(rightBidAmount) > 0
           # trade the rightBidAmount
-          leftOfferReduction = rightOfferAmount.multiply(rightOrder.bidPrice)
-          leftBalances[leftOfferCurrency].unlock(leftOfferReduction)
+          leftBalances[leftOfferCurrency].unlock(rightOfferAmount.multiply(leftOrder.bidPrice))
           leftBalances[leftOfferCurrency].withdraw(rightBidAmount)
           rightBalances[leftOfferCurrency].deposit(rightBidAmount)
           rightBalances[leftBidCurrency].unlock(rightOfferAmount)
@@ -114,7 +113,7 @@ module.exports = class Market
           # delete the right order
           rightBook.delete(rightOrder)
           # reduce the left order
-          leftOrder.reduceOffer(leftOfferReduction)
+          leftOrder.reduceBid(rightOfferAmount)
         else
           # trade the leftOfferAmount
           leftBalances[leftOfferCurrency].unlock(leftOrder.offerAmount)
