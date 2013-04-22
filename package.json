@@ -29,10 +29,10 @@
     "test": "cake test"
   },
   "dependencies": {
-    "bigdecimal": "~0.6.1",
-    "coffee-script": "~1.6.2"
+    "bigdecimal": "~0.6.1"
   },
   "devDependencies": {
+    "coffee-script": "~1.6.2",
     "chai": "~1.5.0",
     "node-uuid": "~1.4.0",
     "mocha": "~1.9.0"
