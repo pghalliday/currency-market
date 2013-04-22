@@ -137,21 +137,8 @@ describe 'Book', ->
       @order15 = newOrder('15', '53')
       @book.add(@order15)
 
-    it 'should throw an error if the order ID cannot be found', ->
-      order = newOrder('16', '53')
-      expect =>
-        @book.delete(order)
-      .to.throw('Order cannot be found')
-
-    it 'should throw an error if the order does not match', ->
-      order = newOrder('15', '54')
-      expect =>
-        @book.delete(order)
-      .to.throw('Orders do not match')
-
     it 'should keep track of the order with the highest bid price', ->
-      order = newOrder('1', '50')
-      @book.delete(order) # delete head order with both lower and higher orders
+      @book.delete(@order1) # delete head order with both lower and higher orders
       @book.highest.should.equal(@order15)
       #                         2
       #                        / \
@@ -166,8 +153,7 @@ describe 'Book', ->
       #               7     6 
       #              / \   / \ 
       #             8   9 10 11
-      order = newOrder('12', '50.5')
-      @book.delete(order) # delete order without higher order
+      @book.delete(@order12) # delete order without higher order
       @book.highest.should.equal(@order15)
       #                         2
       #                        / \
@@ -180,8 +166,7 @@ describe 'Book', ->
       #                 7     6 
       #                / \   / \ 
       #               8   9 10 11
-      order = newOrder('10', '49.5')
-      @book.delete(order) # delete order on a lower branch with no lower order
+      @book.delete(@order10) # delete order on a lower branch with no lower order
       @book.highest.should.equal(@order15)
       #                         2
       #                        / \
@@ -194,8 +179,7 @@ describe 'Book', ->
       #                 7     6 
       #                / \     \ 
       #               8   9    11
-      order = newOrder('6', '49.5')
-      @book.delete(order) # delete order with no lower order
+      @book.delete(@order6) # delete order with no lower order
       @book.highest.should.equal(@order15)
       #                         2
       #                        / \
@@ -208,11 +192,9 @@ describe 'Book', ->
       #                 7    11
       #                / \    
       #               8   9   
-      order = newOrder('11', '49.75')
-      @book.delete(order)
+      @book.delete(@order11)
       @book.highest.should.equal(@order15)
-      order = newOrder('8', '48.5')
-      @book.delete(order)
+      @book.delete(@order8)
       @book.highest.should.equal(@order15)
       #                         2
       #                        / \

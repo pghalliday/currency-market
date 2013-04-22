@@ -6,6 +6,7 @@ Amount = require('./Amount')
 module.exports = class Market
   constructor: (@currencies) ->
     @accounts = Object.create null
+    @orders = Object.create null
     @books = Object.create null
     @currencies.forEach (bidCurrency) =>
       @books[bidCurrency] = Object.create null
@@ -58,26 +59,9 @@ module.exports = class Market
           book = books[order.offerCurrency]
           balance.lock(order.offerAmount)
           book.add(order)
+          @orders[order.id] = order
           # check the books to see if any orders can be executed
           @execute(book, @books[order.offerCurrency][order.bidCurrency])
-
-  delete: (order) =>
-    order = new Order(order)
-    account = @accounts[order.account]
-    if typeof account == 'undefined'
-      throw new Error('Account does not exist')
-    else
-      balance = account.balances[order.offerCurrency]
-      if typeof balance == 'undefined'
-        throw new Error('Offer currency is not supported')
-      else
-        books = @books[order.bidCurrency]
-        if typeof books == 'undefined'
-          throw new Error('Bid currency is not supported')
-        else
-          book = books[order.offerCurrency]
-          book.delete(order)
-          balance.unlock(order.offerAmount)
 
   execute: (leftBook, rightBook) =>
     leftOrder = leftBook.highest
@@ -114,6 +98,7 @@ module.exports = class Market
           leftBalances[leftBidCurrency].deposit(rightOfferAmount)
           # delete the right order
           rightBook.delete(rightOrder)
+          delete @orders[rightOrder.id]
           # reduce the left order
           leftOrder.reduceOffer(leftOfferReduction)
         else
@@ -126,8 +111,23 @@ module.exports = class Market
           leftBalances[leftBidCurrency].deposit(leftBidAmount)
           # delete the left order
           leftBook.delete(leftOrder)
+          delete @orders[leftOrder.id]
           # reduce the right order
           rightOrder.reduceBid(leftOfferAmount)
           # delete the right order if now has a zero amount
           if rightOrder.bidAmount.compareTo(Amount.ZERO) == 0
             rightBook.delete(rightOrder)
+            delete @orders[rightOrder.id]
+
+  delete: (order) =>
+    match = new Order(order)
+    order = @orders[match.id]
+    if typeof order == 'undefined'
+      throw new Error('Order cannot be found')
+    else
+      if order.equals(match)
+        delete @orders[order.id]
+        @books[order.bidCurrency][order.offerCurrency].delete(order)
+        @accounts[order.account].balances[order.offerCurrency].unlock(order.offerAmount)
+      else
+        throw new Error('Order does not match')

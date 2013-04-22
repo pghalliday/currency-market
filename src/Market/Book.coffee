@@ -26,10 +26,8 @@ insertLowest = (head, order) ->
 
 module.exports = class Book
   constructor: ->
-    @orders = Object.create null
 
   add: (order) =>
-    @orders[order.id] = order
     if typeof @head == 'undefined'
       @head = order
       @highest = order
@@ -42,59 +40,50 @@ module.exports = class Book
         insert(@head, order)
   
   delete: (order) =>
-    if typeof @orders[order.id] == 'undefined'
-      throw new Error('Order cannot be found')
-    else
-      if order.equals(@orders[order.id])
-        order = @orders[order.id]
-        delete @orders[order.id]
-        parent = order.parent
-
-        # reset the tree
-        if typeof parent == 'undefined'
-          if typeof order.higher == 'undefined'
-            if typeof order.lower == 'undefined'
-              delete @head
-              delete @highest
-            else
-              @head = order.lower
-              delete @head.parent
-              @highest = findHighest(@head)
-          else
-            @head = order.higher
-            delete @head.parent
-            if typeof order.lower != 'undefined'
-              insertLowest(@head, order.lower)            
+    parent = order.parent
+    # reset the tree
+    if typeof parent == 'undefined'
+      if typeof order.higher == 'undefined'
+        if typeof order.lower == 'undefined'
+          delete @head
+          delete @highest
         else
-          if parent.lower == order
-            if typeof order.higher == 'undefined'
-              if typeof order.lower == 'undefined'
-                delete parent.lower
-              else
-                parent.lower = order.lower
-                parent.lower.parent = parent
-            else
-              parent.lower = order.higher
-              parent.lower.parent = parent
-              if typeof order.lower != 'undefined'
-                insertLowest(parent.lower, order.lower)
-          else if parent.higher == order
-            if typeof order.higher == 'undefined'
-              if typeof order.lower == 'undefined'
-                delete parent.higher
-                if @highest == order
-                  @highest = parent
-              else
-                parent.higher = order.lower
-                parent.higher.parent = parent
-                if @highest == order
-                  @highest = findHighest(order.lower)
-            else
-              parent.higher = order.higher
-              parent.higher.parent = parent
-              if typeof order.lower != 'undefined'
-                insertLowest(parent.higher, order.lower)
-          else
-            throw new Error('Binary tree seems to be broken!')
+          @head = order.lower
+          delete @head.parent
+          @highest = findHighest(@head)
       else
-        throw new Error('Orders do not match')
+        @head = order.higher
+        delete @head.parent
+        if typeof order.lower != 'undefined'
+          insertLowest(@head, order.lower)            
+    else
+      if parent.lower == order
+        if typeof order.higher == 'undefined'
+          if typeof order.lower == 'undefined'
+            delete parent.lower
+          else
+            parent.lower = order.lower
+            parent.lower.parent = parent
+        else
+          parent.lower = order.higher
+          parent.lower.parent = parent
+          if typeof order.lower != 'undefined'
+            insertLowest(parent.lower, order.lower)
+      else if parent.higher == order
+        if typeof order.higher == 'undefined'
+          if typeof order.lower == 'undefined'
+            delete parent.higher
+            if @highest == order
+              @highest = parent
+          else
+            parent.higher = order.lower
+            parent.higher.parent = parent
+            if @highest == order
+              @highest = findHighest(order.lower)
+        else
+          parent.higher = order.higher
+          parent.higher.parent = parent
+          if typeof order.lower != 'undefined'
+            insertLowest(parent.higher, order.lower)
+      else
+        throw new Error('Binary tree seems to be broken!')
