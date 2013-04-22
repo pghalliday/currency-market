@@ -1,3 +1,8 @@
+global.chai = require 'chai'
+chai.should()
+global.expect = chai.expect
+global.assert = chai.assert
+
 Market = require('../../src/Market/Market')
 Book = require('../../src/Market/Book')
 Account = require('../../src/Market/Account/Account')

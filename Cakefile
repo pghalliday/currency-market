@@ -35,7 +35,6 @@ mocha = ->
   args = [
     "--compilers", "coffee:coffee-script"
     "--require", "coffee-script"
-    "--require", "test/test_helper.coffee"
     "--colors"
     "--reporter", REPORTER
     "--recursive"

@@ -1,3 +1,8 @@
+global.chai = require 'chai'
+chai.should()
+global.expect = chai.expect
+global.assert = chai.assert
+
 Amount = require('../../src/Market/Amount')
 
 describe 'Amount', ->
