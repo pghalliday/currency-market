@@ -101,6 +101,8 @@ module.exports = class Market
           delete @orders[rightOrder.id]
           # reduce the left order
           leftOrder.reduceOffer(leftOfferReduction)
+          # call execute again to see if any more orders can be satified
+          @execute(leftBook, rightBook)
         else
           # trade the leftOfferAmount
           leftBalances[leftOfferCurrency].unlock(leftOrder.offerAmount)

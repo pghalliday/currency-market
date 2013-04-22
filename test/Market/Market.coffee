@@ -533,8 +533,97 @@ describe 'Market', ->
                 @market.accounts['Paul'].balances['EUR'].funds.compareTo(new Amount('1000')).should.equal 0
                 @market.accounts['Paul'].balances['BTC'].funds.compareTo(new Amount('200')).should.equal 0
                 @market.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(new Amount('125')).should.equal 0
+    
+    describe 'when multiple orders can be matched', ->
+      beforeEach ->
+        @market = new Market(['EUR', 'USD', 'BTC'])
+        @market.addAccount('Peter')
+        @market.addAccount('Paul')
+        @market.deposit
+          account: 'Peter'
+          currency: 'EUR'
+          amount: '2000'
+        @market.deposit
+          account: 'Paul'
+          currency: 'BTC'
+          amount: '1000'
+        @market.add
+          id: '1'
+          timestamp: '1'
+          account: 'Peter'
+          bidCurrency: 'BTC'
+          offerCurrency: 'EUR'
+          offerPrice: '0.2'
+          offerAmount: '500'
+        @market.add
+          id: '2'
+          timestamp: '2'
+          account: 'Peter'
+          bidCurrency: 'BTC'
+          offerCurrency: 'EUR'
+          offerPrice: '0.25'
+          offerAmount: '500'
+        @market.add
+          id: '3'
+          timestamp: '3'
+          account: 'Peter'
+          bidCurrency: 'BTC'
+          offerCurrency: 'EUR'
+          offerPrice: '0.5'
+          offerAmount: '500'
+        @market.add
+          id: '4'
+          timestamp: '4'
+          account: 'Peter'
+          bidCurrency: 'BTC'
+          offerCurrency: 'EUR'
+          offerPrice: '1.0'
+          offerAmount: '500'
+
+      describe 'and the last order can be completely satisfied', ->
+        it 'should correctly execute as many orders as it can', ->
+          @market.add
+            id: '5'
+            timestamp: '5'
+            account: 'Paul'
+            bidCurrency: 'EUR'
+            offerCurrency: 'BTC'
+            bidPrice: '0.5'
+            bidAmount: '1250'
+          expect(@market.orders['1']).to.not.be.ok
+          expect(@market.orders['2']).to.not.be.ok
+          @market.orders['3'].offerAmount.compareTo(new Amount('250')).should.equal 0
+          @market.orders['4'].offerAmount.compareTo(new Amount('500')).should.equal 0
+          expect(@market.orders['5']).to.not.be.ok
+          @market.accounts['Peter'].balances['EUR'].funds.compareTo(new Amount('750')).should.equal 0
+          @market.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(new Amount('750')).should.equal 0
+          @market.accounts['Peter'].balances['BTC'].funds.compareTo(new Amount('350')).should.equal 0
+          @market.accounts['Paul'].balances['EUR'].funds.compareTo(new Amount('1250')).should.equal 0
+          @market.accounts['Paul'].balances['BTC'].funds.compareTo(new Amount('650')).should.equal 0
+          @market.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
+
+      describe 'and the last order can not be completely satisfied', ->    
+        it 'should correctly execute as many orders as it can', ->
+          @market.add
+            id: '5'
+            timestamp: '5'
+            account: 'Paul'
+            bidCurrency: 'EUR'
+            offerCurrency: 'BTC'
+            bidPrice: '0.5'
+            bidAmount: '1750'
+          expect(@market.orders['1']).to.not.be.ok
+          expect(@market.orders['2']).to.not.be.ok
+          expect(@market.orders['3']).to.not.be.ok
+          @market.orders['4'].offerAmount.compareTo(new Amount('500')).should.equal 0
+          @market.orders['5'].bidAmount.compareTo(new Amount('250')).should.equal 0
+          @market.accounts['Peter'].balances['EUR'].funds.compareTo(new Amount('500')).should.equal 0
+          @market.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(new Amount('500')).should.equal 0
+          @market.accounts['Peter'].balances['BTC'].funds.compareTo(new Amount('475')).should.equal 0
+          @market.accounts['Paul'].balances['EUR'].funds.compareTo(new Amount('1500')).should.equal 0
+          @market.accounts['Paul'].balances['BTC'].funds.compareTo(new Amount('525')).should.equal 0
+          @market.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(new Amount('125')).should.equal 0
               
-            
     it 'should throw an error if the account does not exist', ->
       market = new Market(['EUR', 'USD', 'BTC'])
       expect ->
