@@ -87,54 +87,46 @@ module.exports = class Market
         # just added an order to the left book so the left order must be
         # the most recent addition if we get here. This means that we should
         # take the price from the right order
-        leftBidPrice = rightOrder.offerPrice
-
-        # remember we may have calculated the left bid amount based on a higher price
-        if leftOrder.fillOffer
-          # order was specified as an offer so we want to fill the offer amount if we can
-          leftBidAmount = leftOrder.offerAmount.multiply(rightOrder.bidPrice)
-          leftBalanceUnlockAmount = leftBidAmount.multiply(leftOrder.bidPrice)
-        else
-          # order was specified as a bid so we want to fill the bid amount if we can
-          leftBidAmount = leftOrder.bidAmount
-          leftBalanceUnlockAmount = leftOrder.offerAmount
-
-        if rightOrder.offerAmount.compareTo(leftBidAmount) > 0
-          # record the amount to unlock
-          leftBook.delete(leftOrder)
-          rightOrder.reduceOffer(leftBidAmount)
-        else
-          # we can only buy what the right order is offering
-          leftBidAmount = rightOrder.offerAmount
-          # remember we may have locked funds based on a higher price
-          leftBalanceUnlockAmount = leftBidAmount.multiply(leftOrder.bidPrice)
-          leftOrder.reduceBid(leftBidAmount)
-          rightBook.delete(rightOrder)
-          if leftOrder.bidAmount.compareTo(Amount.ZERO) == 0
-            leftBook.delete(leftOrder)
-
-        leftOfferAmount = leftBidPrice.multiply(leftBidAmount)
-
-        console.log()
-        console.log('leftOfferAmount: ' + leftOfferAmount)
-        console.log('leftBidAmount: ' + leftBidAmount)
 
         leftBalances = @accounts[leftOrder.account].balances
         rightBalances = @accounts[rightOrder.account].balances
-
-        # debit the bid account and credit the offer account
         leftOfferCurrency = leftOrder.offerCurrency
-        leftBalances[leftOfferCurrency].unlock(leftBalanceUnlockAmount)
-        leftBalances[leftOfferCurrency].withdraw(leftOfferAmount)
-        rightBalances[leftOfferCurrency].deposit(leftOfferAmount)
-
-        # debit the offer account and credit the bid account
         leftBidCurrency = leftOrder.bidCurrency
-        rightBalances[leftBidCurrency].unlock(leftBidAmount)
-        rightBalances[leftBidCurrency].withdraw(leftBidAmount)
-        leftBalances[leftBidCurrency].deposit(leftBidAmount)
 
+        rightMaxBidAmount = rightOrder.bidAmount
+        rightMaxOfferAmount = rightOrder.offerAmount
+        if leftOrder.fillOffer
+          leftMaxOfferAmount = leftOrder.offerAmount
+          leftMaxBidAmount = leftOrder.offerAmount.multiply(rightOrder.bidPrice)
+        else
+          leftMaxBidAmount = leftOrder.bidAmount
+          leftMaxOfferAmount = leftMaxBidAmount.multiply(rightOrder.offerPrice)
 
-
-
-
+        if leftMaxOfferAmount.compareTo(rightMaxBidAmount) > 0
+          # trade the rightMaxBidAmount at the right order price
+          leftOfferReduction = rightMaxOfferAmount.multiply(rightOrder.bidPrice)
+          leftBalances[leftOfferCurrency].unlock(leftOfferReduction)
+          leftBalances[leftOfferCurrency].withdraw(rightMaxBidAmount)
+          rightBalances[leftOfferCurrency].deposit(rightMaxBidAmount)
+          rightBalances[leftBidCurrency].unlock(rightMaxOfferAmount)
+          rightBalances[leftBidCurrency].withdraw(rightMaxOfferAmount)
+          leftBalances[leftBidCurrency].deposit(rightMaxOfferAmount)
+          # delete the right order
+          rightBook.delete(rightOrder)
+          # reduce the left order
+          leftOrder.reduceOffer(leftOfferReduction)
+        else
+          # trade the leftMaxOfferAmount at the right order price
+          leftBalances[leftOfferCurrency].unlock(leftOrder.offerAmount)
+          leftBalances[leftOfferCurrency].withdraw(leftMaxOfferAmount)
+          rightBalances[leftOfferCurrency].deposit(leftMaxOfferAmount)
+          rightBalances[leftBidCurrency].unlock(leftMaxBidAmount)
+          rightBalances[leftBidCurrency].withdraw(leftMaxBidAmount)
+          leftBalances[leftBidCurrency].deposit(leftMaxBidAmount)
+          # delete the left order
+          leftBook.delete(leftOrder)
+          # reduce the right order
+          rightOrder.reduceBid(leftMaxOfferAmount)
+          # delete the right order if now has a zero amount
+          if rightOrder.bidAmount.compareTo(Amount.ZERO) == 0
+            rightBook.delete(rightOrder)
