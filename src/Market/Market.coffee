@@ -90,18 +90,24 @@ module.exports = class Market
         leftBidPrice = rightOrder.offerPrice
 
         # remember we may have calculated the left bid amount based on a higher price
-        leftBidAmount = leftOrder.offerAmount.multiply(rightOrder.bidPrice)
+        if leftOrder.fillOffer
+          # order was specified as an offer so we want to fill the offer amount if we can
+          leftBidAmount = leftOrder.offerAmount.multiply(rightOrder.bidPrice)
+          leftBalanceUnlockAmount = leftBidAmount.multiply(leftOrder.bidPrice)
+        else
+          # order was specified as a bid so we want to fill the bid amount if we can
+          leftBidAmount = leftOrder.bidAmount
+          leftBalanceUnlockAmount = leftOrder.offerAmount
 
         if rightOrder.offerAmount.compareTo(leftBidAmount) > 0
           # record the amount to unlock
-          leftBalanceUnlockAmount = leftOrder.offerAmount
           leftBook.delete(leftOrder)
           rightOrder.reduceOffer(leftBidAmount)
         else
-          # remember we may have locked funds based on a higher price
-          leftBalanceUnlockAmount = rightOrder.offerAmount.multiply(leftOrder.bidPrice)
-
+          # we can only buy what the right order is offering
           leftBidAmount = rightOrder.offerAmount
+          # remember we may have locked funds based on a higher price
+          leftBalanceUnlockAmount = leftBidAmount.multiply(leftOrder.bidPrice)
           leftOrder.reduceBid(leftBidAmount)
           rightBook.delete(rightOrder)
           if leftOrder.bidAmount.compareTo(Amount.ZERO) == 0
