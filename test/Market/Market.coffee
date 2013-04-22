@@ -171,62 +171,121 @@ describe 'Market', ->
             offerAmount: '1000' # 200
 
         describe 'and the new (left) price is same', ->
-          describe 'and the right order is offering exactly the amount the left order is offering', ->
-              it 'should trade the amount the right order is offering', ->
-                @market.add
-                  id: '2'
-                  timestamp: '2'
-                  account: 'Paul'
-                  bidCurrency: 'EUR'
-                  offerCurrency: 'BTC'
-                  bidPrice: '0.2'
-                  bidAmount: '1000'
-                expect(@market.books['BTC']['EUR'].orders['1']).to.not.be.ok
-                expect(@market.books['EUR']['BTC'].orders['2']).to.not.be.ok
-                @market.accounts['Peter'].balances['EUR'].funds.compareTo(new Amount('1000')).should.equal 0
-                @market.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
-                @market.accounts['Peter'].balances['BTC'].funds.compareTo(new Amount('200')).should.equal 0
-                @market.accounts['Paul'].balances['EUR'].funds.compareTo(new Amount('1000')).should.equal 0
-                @market.accounts['Paul'].balances['BTC'].funds.compareTo(new Amount('200')).should.equal 0
-                @market.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
+          describe 'and the left order is a bid', ->
+            describe 'and the right order is offering exactly the amount the left order is bidding', ->
+                it 'should trade the amount the right order is offering', ->
+                  @market.add
+                    id: '2'
+                    timestamp: '2'
+                    account: 'Paul'
+                    bidCurrency: 'EUR'
+                    offerCurrency: 'BTC'
+                    bidPrice: '0.2'
+                    bidAmount: '1000'
+                  expect(@market.books['BTC']['EUR'].orders['1']).to.not.be.ok
+                  expect(@market.books['EUR']['BTC'].orders['2']).to.not.be.ok
+                  @market.accounts['Peter'].balances['EUR'].funds.compareTo(new Amount('1000')).should.equal 0
+                  @market.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
+                  @market.accounts['Peter'].balances['BTC'].funds.compareTo(new Amount('200')).should.equal 0
+                  @market.accounts['Paul'].balances['EUR'].funds.compareTo(new Amount('1000')).should.equal 0
+                  @market.accounts['Paul'].balances['BTC'].funds.compareTo(new Amount('200')).should.equal 0
+                  @market.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
 
-          describe 'and the right order is offering more than the left order is offering', ->
-              it 'should trade the amount the left order is offering', ->
-                @market.add
-                  id: '2'
-                  timestamp: '2'
-                  account: 'Paul'
-                  bidCurrency: 'EUR'
-                  offerCurrency: 'BTC'
-                  bidPrice: '0.2'
-                  bidAmount: '500'
-                @market.books['BTC']['EUR'].orders['1'].offerAmount.compareTo(new Amount('500')).should.equal 0
-                expect(@market.books['EUR']['BTC'].orders['2']).to.not.be.ok
-                @market.accounts['Peter'].balances['EUR'].funds.compareTo(new Amount('1500')).should.equal 0
-                @market.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(new Amount('500')).should.equal 0
-                @market.accounts['Peter'].balances['BTC'].funds.compareTo(new Amount('100')).should.equal 0
-                @market.accounts['Paul'].balances['EUR'].funds.compareTo(new Amount('500')).should.equal 0
-                @market.accounts['Paul'].balances['BTC'].funds.compareTo(new Amount('300')).should.equal 0
-                @market.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
+            describe 'and the right order is offering more than the left order is bidding', ->
+                it 'should trade the amount the left order is offering', ->
+                  @market.add
+                    id: '2'
+                    timestamp: '2'
+                    account: 'Paul'
+                    bidCurrency: 'EUR'
+                    offerCurrency: 'BTC'
+                    bidPrice: '0.2'
+                    bidAmount: '500'
+                  @market.books['BTC']['EUR'].orders['1'].offerAmount.compareTo(new Amount('500')).should.equal 0
+                  expect(@market.books['EUR']['BTC'].orders['2']).to.not.be.ok
+                  @market.accounts['Peter'].balances['EUR'].funds.compareTo(new Amount('1500')).should.equal 0
+                  @market.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(new Amount('500')).should.equal 0
+                  @market.accounts['Peter'].balances['BTC'].funds.compareTo(new Amount('100')).should.equal 0
+                  @market.accounts['Paul'].balances['EUR'].funds.compareTo(new Amount('500')).should.equal 0
+                  @market.accounts['Paul'].balances['BTC'].funds.compareTo(new Amount('300')).should.equal 0
+                  @market.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
 
-          describe 'and the right order is offering less than the left order is offering', ->
-              it 'should trade the amount the right order is offering', ->
-                @market.add
-                  id: '2'
-                  timestamp: '2'
-                  account: 'Paul'
-                  bidCurrency: 'EUR'
-                  offerCurrency: 'BTC'
-                  bidPrice: '0.2'
-                  bidAmount: '1500'
-                expect(@market.books['BTC']['EUR'].orders['1']).to.not.be.ok
-                @market.books['EUR']['BTC'].orders['2'].bidAmount.compareTo(new Amount('500')).should.equal 0
-                @market.accounts['Peter'].balances['EUR'].funds.compareTo(new Amount('1000')).should.equal 0
-                @market.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
-                @market.accounts['Peter'].balances['BTC'].funds.compareTo(new Amount('200')).should.equal 0
-                @market.accounts['Paul'].balances['EUR'].funds.compareTo(new Amount('1000')).should.equal 0
-                @market.accounts['Paul'].balances['BTC'].funds.compareTo(new Amount('200')).should.equal 0
-                @market.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(new Amount('100')).should.equal 0
+            describe 'and the right order is offering less than the left order is bidding', ->
+                it 'should trade the amount the right order is offering', ->
+                  @market.add
+                    id: '2'
+                    timestamp: '2'
+                    account: 'Paul'
+                    bidCurrency: 'EUR'
+                    offerCurrency: 'BTC'
+                    bidPrice: '0.2'
+                    bidAmount: '1500'
+                  expect(@market.books['BTC']['EUR'].orders['1']).to.not.be.ok
+                  @market.books['EUR']['BTC'].orders['2'].bidAmount.compareTo(new Amount('500')).should.equal 0
+                  @market.accounts['Peter'].balances['EUR'].funds.compareTo(new Amount('1000')).should.equal 0
+                  @market.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
+                  @market.accounts['Peter'].balances['BTC'].funds.compareTo(new Amount('200')).should.equal 0
+                  @market.accounts['Paul'].balances['EUR'].funds.compareTo(new Amount('1000')).should.equal 0
+                  @market.accounts['Paul'].balances['BTC'].funds.compareTo(new Amount('200')).should.equal 0
+                  @market.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(new Amount('100')).should.equal 0
+
+          describe 'and the left order is an offer', ->
+            describe 'and the right order is offering exactly the amount the left order is offering', ->
+                it 'should trade the amount the right order is offering', ->
+                  @market.add
+                    id: '2'
+                    timestamp: '2'
+                    account: 'Paul'
+                    bidCurrency: 'EUR'
+                    offerCurrency: 'BTC'
+                    offerPrice: '5'
+                    offerAmount: '200'
+                  expect(@market.books['BTC']['EUR'].orders['1']).to.not.be.ok
+                  expect(@market.books['EUR']['BTC'].orders['2']).to.not.be.ok
+                  @market.accounts['Peter'].balances['EUR'].funds.compareTo(new Amount('1000')).should.equal 0
+                  @market.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
+                  @market.accounts['Peter'].balances['BTC'].funds.compareTo(new Amount('200')).should.equal 0
+                  @market.accounts['Paul'].balances['EUR'].funds.compareTo(new Amount('1000')).should.equal 0
+                  @market.accounts['Paul'].balances['BTC'].funds.compareTo(new Amount('200')).should.equal 0
+                  @market.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
+
+            describe 'and the right order is offering more than the left order is offering', ->
+                it 'should trade the amount the left order is offering', ->
+                  @market.add
+                    id: '2'
+                    timestamp: '2'
+                    account: 'Paul'
+                    bidCurrency: 'EUR'
+                    offerCurrency: 'BTC'
+                    offerPrice: '5'
+                    offerAmount: '100'
+                  @market.books['BTC']['EUR'].orders['1'].offerAmount.compareTo(new Amount('500')).should.equal 0
+                  expect(@market.books['EUR']['BTC'].orders['2']).to.not.be.ok
+                  @market.accounts['Peter'].balances['EUR'].funds.compareTo(new Amount('1500')).should.equal 0
+                  @market.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(new Amount('500')).should.equal 0
+                  @market.accounts['Peter'].balances['BTC'].funds.compareTo(new Amount('100')).should.equal 0
+                  @market.accounts['Paul'].balances['EUR'].funds.compareTo(new Amount('500')).should.equal 0
+                  @market.accounts['Paul'].balances['BTC'].funds.compareTo(new Amount('300')).should.equal 0
+                  @market.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
+
+            describe 'and the right order is offering less than the left order is offering', ->
+                it 'should trade the amount the right order is offering', ->
+                  @market.add
+                    id: '2'
+                    timestamp: '2'
+                    account: 'Paul'
+                    bidCurrency: 'EUR'
+                    offerCurrency: 'BTC'
+                    offerPrice: '5'
+                    offerAmount: '300'
+                  expect(@market.books['BTC']['EUR'].orders['1']).to.not.be.ok
+                  @market.books['EUR']['BTC'].orders['2'].offerAmount.compareTo(new Amount('100')).should.equal 0
+                  @market.accounts['Peter'].balances['EUR'].funds.compareTo(new Amount('1000')).should.equal 0
+                  @market.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
+                  @market.accounts['Peter'].balances['BTC'].funds.compareTo(new Amount('200')).should.equal 0
+                  @market.accounts['Paul'].balances['EUR'].funds.compareTo(new Amount('1000')).should.equal 0
+                  @market.accounts['Paul'].balances['BTC'].funds.compareTo(new Amount('200')).should.equal 0
+                  @market.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(new Amount('100')).should.equal 0
 
         describe 'and the new (left) price is the better', ->
           describe 'and the left order is an offer', ->              
