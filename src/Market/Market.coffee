@@ -93,40 +93,40 @@ module.exports = class Market
         leftOfferCurrency = leftOrder.offerCurrency
         leftBidCurrency = leftOrder.bidCurrency
 
-        rightMaxBidAmount = rightOrder.bidAmount
-        rightMaxOfferAmount = rightOrder.offerAmount
+        rightBidAmount = rightOrder.bidAmount
+        rightOfferAmount = rightOrder.offerAmount
         if leftOrder.fillOffer
-          leftMaxOfferAmount = leftOrder.offerAmount
-          leftMaxBidAmount = leftOrder.offerAmount.multiply(rightOrder.bidPrice)
+          leftOfferAmount = leftOrder.offerAmount
+          leftBidAmount = leftOrder.offerAmount.multiply(rightOrder.bidPrice)
         else
-          leftMaxBidAmount = leftOrder.bidAmount
-          leftMaxOfferAmount = leftMaxBidAmount.multiply(rightOrder.offerPrice)
+          leftBidAmount = leftOrder.bidAmount
+          leftOfferAmount = leftBidAmount.multiply(rightOrder.offerPrice)
 
-        if leftMaxOfferAmount.compareTo(rightMaxBidAmount) > 0
-          # trade the rightMaxBidAmount at the right order price
-          leftOfferReduction = rightMaxOfferAmount.multiply(rightOrder.bidPrice)
+        if leftOfferAmount.compareTo(rightBidAmount) > 0
+          # trade the rightBidAmount
+          leftOfferReduction = rightOfferAmount.multiply(rightOrder.bidPrice)
           leftBalances[leftOfferCurrency].unlock(leftOfferReduction)
-          leftBalances[leftOfferCurrency].withdraw(rightMaxBidAmount)
-          rightBalances[leftOfferCurrency].deposit(rightMaxBidAmount)
-          rightBalances[leftBidCurrency].unlock(rightMaxOfferAmount)
-          rightBalances[leftBidCurrency].withdraw(rightMaxOfferAmount)
-          leftBalances[leftBidCurrency].deposit(rightMaxOfferAmount)
+          leftBalances[leftOfferCurrency].withdraw(rightBidAmount)
+          rightBalances[leftOfferCurrency].deposit(rightBidAmount)
+          rightBalances[leftBidCurrency].unlock(rightOfferAmount)
+          rightBalances[leftBidCurrency].withdraw(rightOfferAmount)
+          leftBalances[leftBidCurrency].deposit(rightOfferAmount)
           # delete the right order
           rightBook.delete(rightOrder)
           # reduce the left order
           leftOrder.reduceOffer(leftOfferReduction)
         else
-          # trade the leftMaxOfferAmount at the right order price
+          # trade the leftOfferAmount
           leftBalances[leftOfferCurrency].unlock(leftOrder.offerAmount)
-          leftBalances[leftOfferCurrency].withdraw(leftMaxOfferAmount)
-          rightBalances[leftOfferCurrency].deposit(leftMaxOfferAmount)
-          rightBalances[leftBidCurrency].unlock(leftMaxBidAmount)
-          rightBalances[leftBidCurrency].withdraw(leftMaxBidAmount)
-          leftBalances[leftBidCurrency].deposit(leftMaxBidAmount)
+          leftBalances[leftOfferCurrency].withdraw(leftOfferAmount)
+          rightBalances[leftOfferCurrency].deposit(leftOfferAmount)
+          rightBalances[leftBidCurrency].unlock(leftBidAmount)
+          rightBalances[leftBidCurrency].withdraw(leftBidAmount)
+          leftBalances[leftBidCurrency].deposit(leftBidAmount)
           # delete the left order
           leftBook.delete(leftOrder)
           # reduce the right order
-          rightOrder.reduceBid(leftMaxOfferAmount)
+          rightOrder.reduceBid(leftOfferAmount)
           # delete the right order if now has a zero amount
           if rightOrder.bidAmount.compareTo(Amount.ZERO) == 0
             rightBook.delete(rightOrder)
