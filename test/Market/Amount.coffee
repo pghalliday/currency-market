@@ -1,6 +1,16 @@
 Amount = require('../../src/Market/Amount')
 
 describe 'Amount', ->
+  it 'cannot be initialized from Javascript Numbers as they are inherently innacurate', ->
+    expect ->
+      amount = new Amount(5)
+    .to.throw('Must intialize from string')
+
+  it 'cannot be initialized with a string that cannot be parsed to a number', ->
+    expect ->
+      amount = new Amount('This is not a number')
+    .to.throw('String initializer cannot be parsed to a number')
+
   describe '#compareTo', ->
     it 'cannot be called with Javascript Numbers as they are inherently innacurate', ->
       amount = Amount.ZERO
@@ -22,16 +32,6 @@ describe 'Amount', ->
       amount1 = new Amount('5')
       amount2 = Amount.ZERO
       amount1.compareTo(amount2).should.equal(1)
-
-  it 'cannot be initialized from Javascript Numbers as they are inherently innacurate', ->
-    expect ->
-      amount = new Amount(5)
-    .to.throw('Must intialize from string')
-
-  it 'must be initialized with something that can be parsed to a number', ->
-    expect ->
-      amount = new Amount('This is not a number')
-    .to.throw('String initializer cannot be parsed to a number')
 
   describe '#add', ->
     it 'cannot be called with Javascript Numbers as they are inherently innacurate', ->

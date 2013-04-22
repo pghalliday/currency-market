@@ -19,7 +19,7 @@ module.exports = class Market
     else
       @accounts[name] = new Account(@currencies)
 
-  deposit: (deposit) ->
+  deposit: (deposit) =>
     account = @accounts[deposit.account]
     if typeof account == 'undefined'
       throw new Error('Account does not exist')
@@ -30,7 +30,7 @@ module.exports = class Market
       else
         balance.deposit(new Amount(deposit.amount))
 
-  withdraw: (withdrawal) ->
+  withdraw: (withdrawal) =>
     account = @accounts[withdrawal.account]
     if typeof account == 'undefined'
       throw new Error('Account does not exist')
@@ -41,7 +41,7 @@ module.exports = class Market
       else
         balance.withdraw(new Amount(withdrawal.amount))
 
-  add: (order) ->
+  add: (order) =>
     order = new Order(order)
     account = @accounts[order.account]
     if typeof account == 'undefined'
@@ -59,9 +59,9 @@ module.exports = class Market
           balance.lock(order.offerAmount)
           book.add(order)
           # check the books to see if any orders can be executed
-          @execute(book, @books[order.offerCurrency][order.bidCurrency], order)
+          @execute(book, @books[order.offerCurrency][order.bidCurrency])
 
-  delete: (order) ->
+  delete: (order) =>
     order = new Order(order)
     account = @accounts[order.account]
     if typeof account == 'undefined'
@@ -79,61 +79,54 @@ module.exports = class Market
           book.delete(order)
           balance.unlock(order.offerAmount)
 
-  execute: (bidBook, offerBook, lastOrder) ->
-    highestBid = bidBook.highest
-    lowestOffer = offerBook.highest
-    if typeof highestBid != 'undefined' && typeof lowestOffer != 'undefined'
-      if highestBid.bidPrice.compareTo(lowestOffer.offerPrice) >= 0
-        bidBalances = @accounts[highestBid.account].balances
-        offerBalances = @accounts[lowestOffer.account].balances
-        bidCurrency = highestBid.offerCurrency
-        offerCurrency = highestBid.bidCurrency
+  execute: (leftBook, rightBook) =>
+    leftOrder = leftBook.highest
+    rightOrder = rightBook.highest
+    if typeof leftOrder != 'undefined' && typeof rightOrder != 'undefined'
+      if leftOrder.bidPrice.compareTo(rightOrder.offerPrice) >= 0
+        # just added an order to the left book so the left order must be
+        # the most recent addition if we get here. This means that we should
+        # take the price from the right order
+        leftBidPrice = rightOrder.offerPrice
 
-        if highestBid == lastOrder
-          executionBidPrice = lowestOffer.offerPrice
-          executionOfferPrice = lowestOffer.bidPrice
-          highestBidOfferAmount = highestBid.bidAmount.multiply(executionBidPrice)
-          lowestOfferBidAmount = lowestOffer.bidAmount
+        # remember we may have calculated the left bid amount based on a higher price
+        leftBidAmount = leftOrder.offerAmount.multiply(rightOrder.bidPrice)
+
+        if rightOrder.offerAmount.compareTo(leftBidAmount) > 0
+          # record the amount to unlock
+          leftBalanceUnlockAmount = leftOrder.offerAmount
+          leftBook.delete(leftOrder)
+          rightOrder.reduceOffer(leftBidAmount)
         else
-          executionBidPrice = highestBid.bidPrice
-          executionOfferPrice = highestBid.offerPrice
-          highestBidOfferAmount = highestBid.offerAmount
-          lowestOfferBidAmount = lowestOffer.offerAmount.multiply(executionBidPrice)
+          # remember we may have locked funds based on a higher price
+          leftBalanceUnlockAmount = rightOrder.offerAmount.multiply(leftOrder.bidPrice)
+
+          leftBidAmount = rightOrder.offerAmount
+          leftOrder.reduceBid(leftBidAmount)
+          rightBook.delete(rightOrder)
+          if leftOrder.bidAmount.compareTo(Amount.ZERO) == 0
+            leftBook.delete(leftOrder)
+
+        leftOfferAmount = leftBidPrice.multiply(leftBidAmount)
 
         console.log()
-        console.log(highestBidOfferAmount.toString())
-        console.log(lowestOfferBidAmount.toString())
+        console.log('leftOfferAmount: ' + leftOfferAmount)
+        console.log('leftBidAmount: ' + leftBidAmount)
 
-        if highestBidOfferAmount.compareTo(lowestOfferBidAmount) == 0
-          # debit the bid account and credit the offer account
-          bidTrade = highestBidOfferAmount
-          offerTrade = highestBidOfferAmount.multiply(executionOfferPrice)
-          # remove the orders
-          bidBook.delete(highestBid)
-          offerBook.delete(lowestOffer)
-        else if highestBidOfferAmount.compareTo(lowestOfferBidAmount) > 0
-          # more is being offered than is bid for so use the bid amount
-          bidTrade = lowestOfferBidAmount
-          offerTrade = lowestOfferBidAmount.multiply(executionOfferPrice)
-          # remove/reduce the orders
-          highestBid.reduceOffer(bidTrade)
-          offerBook.delete(lowestOffer)
-        else
-          # use the offer amount
-          bidTrade = highestBidOfferAmount
-          offerTrade = highestBidOfferAmount.multiply(executionOfferPrice)
-          # remove/reduce the orders
-          bidBook.delete(highestBid)
-          lowestOffer.reduceOffer(offerTrade)
+        leftBalances = @accounts[leftOrder.account].balances
+        rightBalances = @accounts[rightOrder.account].balances
 
         # debit the bid account and credit the offer account
-        bidBalances[bidCurrency].unlock(bidTrade)
-        bidBalances[bidCurrency].withdraw(bidTrade)
-        offerBalances[bidCurrency].deposit(bidTrade)
+        leftOfferCurrency = leftOrder.offerCurrency
+        leftBalances[leftOfferCurrency].unlock(leftBalanceUnlockAmount)
+        leftBalances[leftOfferCurrency].withdraw(leftOfferAmount)
+        rightBalances[leftOfferCurrency].deposit(leftOfferAmount)
+
         # debit the offer account and credit the bid account
-        offerBalances[offerCurrency].unlock(offerTrade)
-        offerBalances[offerCurrency].withdraw(offerTrade)
-        bidBalances[offerCurrency].deposit(offerTrade)
+        leftBidCurrency = leftOrder.bidCurrency
+        rightBalances[leftBidCurrency].unlock(leftBidAmount)
+        rightBalances[leftBidCurrency].withdraw(leftBidAmount)
+        leftBalances[leftBidCurrency].deposit(leftBidAmount)
 
 
 

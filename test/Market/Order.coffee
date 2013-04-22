@@ -66,7 +66,7 @@ describe 'Order', ->
         bidCurrency: 'BTC'
         offerCurrency: 'EUR'
         bidPrice: '100'
-    .to.throw('Insufficient information to calculate the order')
+    .to.throw('Must specify either bid amount and price or offer amount and price')
 
   it 'should throw an error if only an offer price is given as it is not enough information to calculate the other fields a bid', ->
     expect ->
@@ -77,7 +77,7 @@ describe 'Order', ->
         bidCurrency: 'BTC'
         offerCurrency: 'EUR'
         offerPrice: '100'
-    .to.throw('Insufficient information to calculate the order')
+    .to.throw('Must specify either bid amount and price or offer amount and price')
 
   it 'should throw an error if only a bid amount is given as it is not enough information to calculate the other fields a bid', ->
     expect ->
@@ -88,7 +88,7 @@ describe 'Order', ->
         bidCurrency: 'BTC'
         offerCurrency: 'EUR'
         bidAmount: '100'
-    .to.throw('Insufficient information to calculate the order')
+    .to.throw('Must specify either bid amount and price or offer amount and price')
 
   it 'should throw an error if only a offer amount is given as it is not enough information to calculate the other fields a bid', ->
     expect ->
@@ -99,7 +99,7 @@ describe 'Order', ->
         bidCurrency: 'BTC'
         offerCurrency: 'EUR'
         offerAmount: '100'
-    .to.throw('Insufficient information to calculate the order')
+    .to.throw('Must specify either bid amount and price or offer amount and price')
 
   it 'should throw an error if both the bid price and offer price are given as we do not want to trust the calculations of others', ->
     expect ->
@@ -112,7 +112,7 @@ describe 'Order', ->
         bidPrice: '100'
         offerPrice: '50'
         bidAmount: '50'
-    .to.throw('Can only specify one of offer price and bid price')
+    .to.throw('Must specify either bid amount and price or offer amount and price')
 
   it 'should throw an error if the bid price, offer amount and bid amount are given as we do not want to trust the calculations of others', ->
     expect ->
@@ -125,7 +125,7 @@ describe 'Order', ->
         bidPrice: '100'
         offerAmount: '60'
         bidAmount: '50'
-    .to.throw('Cannot specify a price if the offer and bid amounts are also specified')
+    .to.throw('Must specify either bid amount and price or offer amount and price')
 
   it 'should throw an error if the offer price, offer amount and bid amount are given as we do not want to trust the calculations of others', ->
     expect ->
@@ -138,7 +138,43 @@ describe 'Order', ->
         offerPrice: '100'
         offerAmount: '60'
         bidAmount: '50'
-    .to.throw('Cannot specify a price if the offer and bid amounts are also specified')
+    .to.throw('Must specify either bid amount and price or offer amount and price')
+
+  it 'should throw an error if only amounts are specified as we need to know which amount to satisfy if the order is excuted at a better price', ->
+    expect ->
+      order = new Order
+        id: '123456789'
+        timestamp: '987654321'
+        account: 'name'
+        bidCurrency: 'BTC'
+        offerCurrency: 'EUR'
+        bidAmount: '100'
+        offerAmount: '50'
+    .to.throw('Must specify either bid amount and price or offer amount and price')
+
+  it 'should throw an error if a bid amount and offer price are specified as we need to know which amount to satisfy if the order is excuted at a better price', ->
+    expect ->
+      order = new Order
+        id: '123456789'
+        timestamp: '987654321'
+        account: 'name'
+        bidCurrency: 'BTC'
+        offerCurrency: 'EUR'
+        bidAmount: '100'
+        offerPrice: '50'
+    .to.throw('Must specify either bid amount and price or offer amount and price')
+
+  it 'should throw an error if an offer amount and bid price are specified as we need to know which amount to satisfy if the order is excuted at a better price', ->
+    expect ->
+      order = new Order
+        id: '123456789'
+        timestamp: '987654321'
+        account: 'name'
+        bidCurrency: 'BTC'
+        offerCurrency: 'EUR'
+        offerAmount: '100'
+        bidPrice: '50'
+    .to.throw('Must specify either bid amount and price or offer amount and price')
 
   it 'should throw an error if the bid amount is negative', ->
     expect ->
@@ -203,7 +239,7 @@ describe 'Order', ->
     order.bidCurrency.should.equal('BTC')
     order.offerCurrency.should.equal('EUR')    
 
-  it 'should instantiate with a bid price and bid amount calculating the offer amount and the offer price', ->
+  it 'should instantiate with a bid price and bid amount calculating the offer amount and the offer price and set fillOffer to false', ->
     order = new Order
       id: '123456789'
       timestamp: '987654321'
@@ -216,8 +252,9 @@ describe 'Order', ->
     order.offerPrice.compareTo(new Amount('0.01')).should.equal(0)
     order.bidAmount.compareTo(new Amount('50')).should.equal(0)
     order.offerAmount.compareTo(new Amount('5000')).should.equal(0)
+    order.fillOffer.should.be.false
 
-  it 'should instantiate with an offer price and offer amount calculating the bid amount and the bid price', ->
+  it 'should instantiate with an offer price and offer amount calculating the bid amount and the bid price and set fillOffer to true', ->
     order = new Order
       id: '123456789'
       timestamp: '987654321'
@@ -230,48 +267,7 @@ describe 'Order', ->
     order.offerPrice.compareTo(new Amount('100')).should.equal(0)
     order.bidAmount.compareTo(new Amount('5000')).should.equal(0)
     order.offerAmount.compareTo(new Amount('50')).should.equal(0)
-
-  it 'should instantiate with an offer price and bid amount calculating the offer amount and the bid price', ->
-    order = new Order
-      id: '123456789'
-      timestamp: '987654321'
-      account: 'name'
-      bidCurrency: 'BTC'
-      offerCurrency: 'EUR'
-      offerPrice: '100'
-      bidAmount: '50'
-    order.bidPrice.compareTo(new Amount('0.01')).should.equal(0)
-    order.offerPrice.compareTo(new Amount('100')).should.equal(0)
-    order.bidAmount.compareTo(new Amount('50')).should.equal(0)
-    order.offerAmount.compareTo(new Amount('0.5')).should.equal(0)
-
-  it 'should instantiate with a bid price and offer amount calculating the bid amount and the offer price', ->
-    order = new Order
-      id: '123456789'
-      timestamp: '987654321'
-      account: 'name'
-      bidCurrency: 'BTC'
-      offerCurrency: 'EUR'
-      bidPrice: '100'
-      offerAmount: '50'
-    order.bidPrice.compareTo(new Amount('100')).should.equal(0)
-    order.offerPrice.compareTo(new Amount('0.01')).should.equal(0)
-    order.bidAmount.compareTo(new Amount('0.5')).should.equal(0)
-    order.offerAmount.compareTo(new Amount('50')).should.equal(0)
-
-  it 'should instantiate with a bid amount and offer amount calculating the bid price and the offer price', ->
-    order = new Order
-      id: '123456789'
-      timestamp: '987654321'
-      account: 'name'
-      bidCurrency: 'BTC'
-      offerCurrency: 'EUR'
-      bidAmount: '100'
-      offerAmount: '50'
-    order.bidPrice.compareTo(new Amount('0.5')).should.equal(0)
-    order.offerPrice.compareTo(new Amount('2')).should.equal(0)
-    order.bidAmount.compareTo(new Amount('100')).should.equal(0)
-    order.offerAmount.compareTo(new Amount('50')).should.equal(0)
+    order.fillOffer.should.be.true
 
   describe '#equals', ->
     it 'should return true if the orders are identical', ->
@@ -427,7 +423,7 @@ describe 'Order', ->
       order1.equals(order2).should.be.false
 
   describe '#reduceOffer', ->
-    it 'should reduce the order by the supplied offer amount', ->
+    it 'should create a copy of the order with the reduced offer amount', ->
       order = new Order
         id: '123456789'
         timestamp: '987654321'
@@ -450,11 +446,11 @@ describe 'Order', ->
         offerPrice: '100'
         offerAmount: '100'
       expect ->
-        order.reduceOffer(new Amount('100'))
-      .to.throw('Order should be deleted and not reduced to zero')
+        order.reduceOffer(new Amount('101'))
+      .to.throw('offer amount cannot be negative')
 
   describe '#reduceBid', ->
-    it 'should reduce the order by the supplied bid amount', ->
+    it 'should create a copy of the order with the reduced bid amount', ->
       order = new Order
         id: '123456789'
         timestamp: '987654321'
@@ -467,7 +463,7 @@ describe 'Order', ->
       order.bidAmount.compareTo(new Amount('75')).should.equal 0
       order.offerAmount.compareTo(new Amount('7500')).should.equal 0
       
-    it 'should throw an error if the order is reduced to zero or below', ->
+    it 'should throw an error if the order is reduced below zero', ->
       order = new Order
         id: '123456789'
         timestamp: '987654321'
@@ -477,7 +473,7 @@ describe 'Order', ->
         bidPrice: '100'
         bidAmount: '100'
       expect ->
-        order.reduceBid(new Amount('100'))
-      .to.throw('Order should be deleted and not reduced to zero')
+        order.reduceBid(new Amount('101'))
+      .to.throw('bid amount cannot be negative')
 
 
