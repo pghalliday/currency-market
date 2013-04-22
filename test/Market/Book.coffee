@@ -1,6 +1,5 @@
 Book = require('../../src/Market/Book')
 Order = require('../../src/Market/Order')
-BigDecimal = require('BigDecimal').BigDecimal
 
 newOrder = (id, price) ->
   new Order
