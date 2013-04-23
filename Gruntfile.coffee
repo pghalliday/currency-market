@@ -1,5 +1,6 @@
 module.exports = (grunt) ->
   grunt.initConfig
+    clean: ['lib']
     coffee:
       compile:
         expand: true 
@@ -12,10 +13,12 @@ module.exports = (grunt) ->
       options:
         reporter: 'spec'
 
+  grunt.loadNpmTasks 'grunt-contrib-clean'
   grunt.loadNpmTasks 'grunt-contrib-coffee'
   grunt.loadNpmTasks 'grunt-mocha-test'
-  
+
   grunt.registerTask 'default', [
+    'clean'
     'coffee'
     'mochaTest'
   ]
