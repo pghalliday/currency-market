@@ -11,6 +11,12 @@ Implemented:
 * Market.withdraw(withdrawal) - withdraw funds from an account
 * Market.add(order) - add a limit order to the market (trades will be executed where possible)
 * Market.delete(order) - remove a limit order from the market
+* Market.on('account', function(account) {}) - fired when a new account is successfully registered
+* Market.on('deposit', function(deposit) {}) - fired when funds are successfully deposited
+* Market.on('withdrawal', function(withdrawal) {}) - fired when funds are successfully withdrawn
+* Market.on('order', function(order) {}) - fired when an order is successfully added
+* Market.on('cancellation', function(order) {}) - fired when an order is successfully deleted
+* Market.on('trade', function(trade) {}) - fired when a trade is executed
 
 TODO:
 
