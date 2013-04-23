@@ -1,7 +1,7 @@
 currency-market
 ===============
 
-A synchronous implementation of a limit order based currencyMarket
+A synchronous implementation of a limit order based currency market
 
 ## Features
 
