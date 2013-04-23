@@ -1,7 +1,8 @@
-global.chai = require 'chai'
+chai = require 'chai'
 chai.should()
-global.expect = chai.expect
-global.assert = chai.assert
+expect = chai.expect
+assert = chai.assert
+Checklist = require('checklist')
 
 Market = require('../../src/Market/Market')
 Book = require('../../src/Market/Book')
@@ -134,8 +135,31 @@ describe 'Market', ->
         offerAmount: '100'        
       account.balances['EUR'].lockedFunds.compareTo(new Amount('150')).should.equal(0)
 
-    it 'should record an order and add it to the correct book', ->
+    it 'should record an order, add it to the correct book and emit an order event', (done) ->
       market = new Market(['EUR', 'USD', 'BTC'])
+      checklist = new Checklist [
+          '123456789'
+          '987654321'
+          'name'
+          'BTC'
+          'EUR'
+          '100'
+          '50'
+        ],
+        ordered: true,
+        (error) =>
+          market.removeAllListeners()
+          done error
+
+      market.on 'order', (order) ->
+        checklist.check order.id
+        checklist.check order.timestamp
+        checklist.check order.account
+        checklist.check order.bidCurrency
+        checklist.check order.offerCurrency
+        checklist.check order.offerPrice
+        checklist.check order.offerAmount
+
       market.addAccount('name')
       market.deposit
         account: 'name'
@@ -180,7 +204,32 @@ describe 'Market', ->
         describe 'and the new (left) price is same', ->
           describe 'and the left order is a bid', ->
             describe 'and the right order is offering exactly the amount the left order is bidding', ->
-                it 'should trade the amount the right order is offering', ->
+                it 'should trade the amount the right order is offering and emit a trade event', (done) ->
+                  checklist = new Checklist [
+                      'EUR'
+                      '1000'
+                      '0.2'
+                      'Paul'
+                      'BTC'
+                      '200.0'
+                      '5'
+                      'Peter'
+                    ],
+                    ordered: true,
+                    (error) =>
+                      @market.removeAllListeners()
+                      done error
+
+                  @market.on 'trade', (trade) ->
+                    checklist.check trade.left.currency
+                    checklist.check trade.left.amount
+                    checklist.check trade.left.price
+                    checklist.check trade.left.account
+                    checklist.check trade.right.currency
+                    checklist.check trade.right.amount
+                    checklist.check trade.right.price
+                    checklist.check trade.right.account
+
                   @market.add
                     id: '2'
                     timestamp: '2'
@@ -199,7 +248,32 @@ describe 'Market', ->
                   @market.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
 
             describe 'and the right order is offering more than the left order is bidding', ->
-                it 'should trade the amount the left order is offering', ->
+                it 'should trade the amount the left order is offering and emit a trade event', (done) ->
+                  checklist = new Checklist [
+                      'EUR'
+                      '500'
+                      '0.2'
+                      'Paul'
+                      'BTC'
+                      '100.0'
+                      '5'
+                      'Peter'
+                    ],
+                    ordered: true,
+                    (error) =>
+                      @market.removeAllListeners()
+                      done error
+
+                  @market.on 'trade', (trade) ->
+                    checklist.check trade.left.currency
+                    checklist.check trade.left.amount
+                    checklist.check trade.left.price
+                    checklist.check trade.left.account
+                    checklist.check trade.right.currency
+                    checklist.check trade.right.amount
+                    checklist.check trade.right.price
+                    checklist.check trade.right.account
+
                   @market.add
                     id: '2'
                     timestamp: '2'
@@ -218,7 +292,32 @@ describe 'Market', ->
                   @market.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
 
             describe 'and the right order is offering less than the left order is bidding', ->
-                it 'should trade the amount the right order is offering', ->
+                it 'should trade the amount the right order is offering and emit a trade event', (done) ->
+                  checklist = new Checklist [
+                      'EUR'
+                      '1000'
+                      '0.2'
+                      'Paul'
+                      'BTC'
+                      '200.0'
+                      '5'
+                      'Peter'
+                    ],
+                    ordered: true,
+                    (error) =>
+                      @market.removeAllListeners()
+                      done error
+
+                  @market.on 'trade', (trade) ->
+                    checklist.check trade.left.currency
+                    checklist.check trade.left.amount
+                    checklist.check trade.left.price
+                    checklist.check trade.left.account
+                    checklist.check trade.right.currency
+                    checklist.check trade.right.amount
+                    checklist.check trade.right.price
+                    checklist.check trade.right.account
+
                   @market.add
                     id: '2'
                     timestamp: '2'
@@ -238,7 +337,32 @@ describe 'Market', ->
 
           describe 'and the left order is an offer', ->
             describe 'and the right order is offering exactly the amount the left order is offering', ->
-                it 'should trade the amount the right order is offering', ->
+                it 'should trade the amount the right order is offering and emit a trade event', (done) ->
+                  checklist = new Checklist [
+                      'EUR'
+                      '1000'
+                      '0.2'
+                      'Paul'
+                      'BTC'
+                      '200'
+                      '5'
+                      'Peter'
+                    ],
+                    ordered: true,
+                    (error) =>
+                      @market.removeAllListeners()
+                      done error
+
+                  @market.on 'trade', (trade) ->
+                    checklist.check trade.left.currency
+                    checklist.check trade.left.amount
+                    checklist.check trade.left.price
+                    checklist.check trade.left.account
+                    checklist.check trade.right.currency
+                    checklist.check trade.right.amount
+                    checklist.check trade.right.price
+                    checklist.check trade.right.account
+
                   @market.add
                     id: '2'
                     timestamp: '2'
@@ -257,7 +381,32 @@ describe 'Market', ->
                   @market.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
 
             describe 'and the right order is offering more than the left order is offering', ->
-                it 'should trade the amount the left order is offering', ->
+                it 'should trade the amount the left order is offering and emit a trade event', (done) ->
+                  checklist = new Checklist [
+                      'EUR'
+                      '500'
+                      '0.2'
+                      'Paul'
+                      'BTC'
+                      '100'
+                      '5'
+                      'Peter'
+                    ],
+                    ordered: true,
+                    (error) =>
+                      @market.removeAllListeners()
+                      done error
+
+                  @market.on 'trade', (trade) ->
+                    checklist.check trade.left.currency
+                    checklist.check trade.left.amount
+                    checklist.check trade.left.price
+                    checklist.check trade.left.account
+                    checklist.check trade.right.currency
+                    checklist.check trade.right.amount
+                    checklist.check trade.right.price
+                    checklist.check trade.right.account
+
                   @market.add
                     id: '2'
                     timestamp: '2'
@@ -276,7 +425,32 @@ describe 'Market', ->
                   @market.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
 
             describe 'and the right order is offering less than the left order is offering', ->
-                it 'should trade the amount the right order is offering', ->
+                it 'should trade the amount the right order is offering and emit a trade event', (done) ->
+                  checklist = new Checklist [
+                      'EUR'
+                      '1000'
+                      '0.2'
+                      'Paul'
+                      'BTC'
+                      '200.0'
+                      '5'
+                      'Peter'
+                    ],
+                    ordered: true,
+                    (error) =>
+                      @market.removeAllListeners()
+                      done error
+
+                  @market.on 'trade', (trade) ->
+                    checklist.check trade.left.currency
+                    checklist.check trade.left.amount
+                    checklist.check trade.left.price
+                    checklist.check trade.left.account
+                    checklist.check trade.right.currency
+                    checklist.check trade.right.amount
+                    checklist.check trade.right.price
+                    checklist.check trade.right.account
+
                   @market.add
                     id: '2'
                     timestamp: '2'
@@ -297,7 +471,32 @@ describe 'Market', ->
         describe 'and the new (left) price is the better', ->
           describe 'and the left order is an offer', ->              
             describe 'and the right order is offering exactly the amount that the left order is offering multiplied by the right order price', ->
-              it 'should trade the amount the right order is offering at the right order price', ->
+              it 'should trade the amount the right order is offering at the right order price and emit a trade event', (done) ->
+                checklist = new Checklist [
+                    'EUR'
+                    '1000'
+                    '0.2'
+                    'Paul'
+                    'BTC'
+                    '200'
+                    '5'
+                    'Peter'
+                  ],
+                  ordered: true,
+                  (error) =>
+                    @market.removeAllListeners()
+                    done error
+
+                @market.on 'trade', (trade) ->
+                  checklist.check trade.left.currency
+                  checklist.check trade.left.amount
+                  checklist.check trade.left.price
+                  checklist.check trade.left.account
+                  checklist.check trade.right.currency
+                  checklist.check trade.right.amount
+                  checklist.check trade.right.price
+                  checklist.check trade.right.account
+
                 @market.add
                   id: '2'
                   timestamp: '2'
@@ -316,7 +515,32 @@ describe 'Market', ->
                 @market.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
 
             describe 'and the right order is offering more than the left order is offering multiplied by the right order price', ->
-              it 'should trade the amount the left order is offering at the right order price', ->
+              it 'should trade the amount the left order is offering at the right order price and emit a trade event', (done) ->
+                checklist = new Checklist [
+                    'EUR'
+                    '500'
+                    '0.2'
+                    'Paul'
+                    'BTC'
+                    '100'
+                    '5'
+                    'Peter'
+                  ],
+                  ordered: true,
+                  (error) =>
+                    @market.removeAllListeners()
+                    done error
+
+                @market.on 'trade', (trade) ->
+                  checklist.check trade.left.currency
+                  checklist.check trade.left.amount
+                  checklist.check trade.left.price
+                  checklist.check trade.left.account
+                  checklist.check trade.right.currency
+                  checklist.check trade.right.amount
+                  checklist.check trade.right.price
+                  checklist.check trade.right.account
+
                 @market.add
                   id: '2'
                   timestamp: '2'
@@ -335,7 +559,32 @@ describe 'Market', ->
                 @market.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
 
             describe 'and the right order is offering less than the left order is offering multiplied by the right order price', ->
-              it 'should trade the amount the right order is offering at the right order price', ->
+              it 'should trade the amount the right order is offering at the right order price and emit a trade event', (done) ->
+                checklist = new Checklist [
+                    'EUR'
+                    '1000'
+                    '0.2'
+                    'Paul'
+                    'BTC'
+                    '200.0'
+                    '5'
+                    'Peter'
+                  ],
+                  ordered: true,
+                  (error) =>
+                    @market.removeAllListeners()
+                    done error
+
+                @market.on 'trade', (trade) ->
+                  checklist.check trade.left.currency
+                  checklist.check trade.left.amount
+                  checklist.check trade.left.price
+                  checklist.check trade.left.account
+                  checklist.check trade.right.currency
+                  checklist.check trade.right.amount
+                  checklist.check trade.right.price
+                  checklist.check trade.right.account
+
                 @market.add
                   id: '2'
                   timestamp: '2'
@@ -355,7 +604,32 @@ describe 'Market', ->
                 
           describe 'and the left order is a bid', ->
             describe 'and the right order is offering exactly the amount that the left order is bidding', ->
-              it 'should trade the amount the right order is offering at the right order price', ->
+              it 'should trade the amount the right order is offering at the right order price and emit a trade event', (done) ->
+                checklist = new Checklist [
+                    'EUR'
+                    '1000'
+                    '0.2'
+                    'Paul'
+                    'BTC'
+                    '200.0'
+                    '5'
+                    'Peter'
+                  ],
+                  ordered: true,
+                  (error) =>
+                    @market.removeAllListeners()
+                    done error
+
+                @market.on 'trade', (trade) ->
+                  checklist.check trade.left.currency
+                  checklist.check trade.left.amount
+                  checklist.check trade.left.price
+                  checklist.check trade.left.account
+                  checklist.check trade.right.currency
+                  checklist.check trade.right.amount
+                  checklist.check trade.right.price
+                  checklist.check trade.right.account
+
                 @market.add
                   id: '2'
                   timestamp: '2'
@@ -374,7 +648,32 @@ describe 'Market', ->
                 @market.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
                 
             describe 'and the right order is offering more than the left order is bidding', ->
-              it 'should trade the amount the left order is bidding at the right order price', ->
+              it 'should trade the amount the left order is bidding at the right order price and emit a trade event', (done) ->
+                checklist = new Checklist [
+                    'EUR'
+                    '500'
+                    '0.2'
+                    'Paul'
+                    'BTC'
+                    '100.0'
+                    '5'
+                    'Peter'
+                  ],
+                  ordered: true,
+                  (error) =>
+                    @market.removeAllListeners()
+                    done error
+
+                @market.on 'trade', (trade) ->
+                  checklist.check trade.left.currency
+                  checklist.check trade.left.amount
+                  checklist.check trade.left.price
+                  checklist.check trade.left.account
+                  checklist.check trade.right.currency
+                  checklist.check trade.right.amount
+                  checklist.check trade.right.price
+                  checklist.check trade.right.account
+
                 @market.add
                   id: '2'
                   timestamp: '2'
@@ -393,7 +692,32 @@ describe 'Market', ->
                 @market.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
                 
             describe 'and the right order is offering less than the left order is bidding', ->
-              it 'should trade the amount the right order is offering at the right order price', ->
+              it 'should trade the amount the right order is offering at the right order price and emit a trade event', (done) ->
+                checklist = new Checklist [
+                    'EUR'
+                    '1000'
+                    '0.2'
+                    'Paul'
+                    'BTC'
+                    '200.0'
+                    '5'
+                    'Peter'
+                  ],
+                  ordered: true,
+                  (error) =>
+                    @market.removeAllListeners()
+                    done error
+
+                @market.on 'trade', (trade) ->
+                  checklist.check trade.left.currency
+                  checklist.check trade.left.amount
+                  checklist.check trade.left.price
+                  checklist.check trade.left.account
+                  checklist.check trade.right.currency
+                  checklist.check trade.right.amount
+                  checklist.check trade.right.price
+                  checklist.check trade.right.account
+
                 @market.add
                   id: '2'
                   timestamp: '2'
@@ -425,7 +749,32 @@ describe 'Market', ->
         describe 'and the new (left) price is better', ->
           describe 'and the left order is an offer', ->
             describe 'and the right order is bidding exactly the amount that the left order is offering', ->
-              it 'should trade the amount the right order is bidding at the right order price', ->
+              it 'should trade the amount the right order is bidding at the right order price and emit a trade event', (done) ->
+                checklist = new Checklist [
+                    'EUR'
+                    '1000'
+                    '0.2'
+                    'Paul'
+                    'BTC'
+                    '200'
+                    '5'
+                    'Peter'
+                  ],
+                  ordered: true,
+                  (error) =>
+                    @market.removeAllListeners()
+                    done error
+
+                @market.on 'trade', (trade) ->
+                  checklist.check trade.left.currency
+                  checklist.check trade.left.amount
+                  checklist.check trade.left.price
+                  checklist.check trade.left.account
+                  checklist.check trade.right.currency
+                  checklist.check trade.right.amount
+                  checklist.check trade.right.price
+                  checklist.check trade.right.account
+
                 @market.add
                   id: '2'
                   timestamp: '2'
@@ -444,7 +793,32 @@ describe 'Market', ->
                 @market.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
                 
             describe 'and the right order is bidding more than the left order is offering', ->
-              it 'should trade the amount the left order is offering at the right order price', ->
+              it 'should trade the amount the left order is offering at the right order price and emit a trade event', (done) ->
+                checklist = new Checklist [
+                    'EUR'
+                    '500'
+                    '0.2'
+                    'Paul'
+                    'BTC'
+                    '100'
+                    '5'
+                    'Peter'
+                  ],
+                  ordered: true,
+                  (error) =>
+                    @market.removeAllListeners()
+                    done error
+
+                @market.on 'trade', (trade) ->
+                  checklist.check trade.left.currency
+                  checklist.check trade.left.amount
+                  checklist.check trade.left.price
+                  checklist.check trade.left.account
+                  checklist.check trade.right.currency
+                  checklist.check trade.right.amount
+                  checklist.check trade.right.price
+                  checklist.check trade.right.account
+
                 @market.add
                   id: '2'
                   timestamp: '2'
@@ -463,7 +837,32 @@ describe 'Market', ->
                 @market.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
                 
             describe 'and the right order is bidding less than the left order is offering', ->
-              it 'should trade the amount the right order is bidding at the right order price', ->
+              it 'should trade the amount the right order is bidding at the right order price and emit a trade event', (done) ->
+                checklist = new Checklist [
+                    'EUR'
+                    '1000'
+                    '0.2'
+                    'Paul'
+                    'BTC'
+                    '200'
+                    '5'
+                    'Peter'
+                  ],
+                  ordered: true,
+                  (error) =>
+                    @market.removeAllListeners()
+                    done error
+
+                @market.on 'trade', (trade) ->
+                  checklist.check trade.left.currency
+                  checklist.check trade.left.amount
+                  checklist.check trade.left.price
+                  checklist.check trade.left.account
+                  checklist.check trade.right.currency
+                  checklist.check trade.right.amount
+                  checklist.check trade.right.price
+                  checklist.check trade.right.account
+
                 @market.add
                   id: '2'
                   timestamp: '2'
@@ -483,7 +882,32 @@ describe 'Market', ->
                 
           describe 'and the left order is a bid', ->
             describe 'and the right order is bidding exactly the amount that the left order is bidding multiplied by the right order price', ->
-              it 'should trade the amount the right order is bidding at the right order price', ->
+              it 'should trade the amount the right order is bidding at the right order price and emit a trade event', (done) ->
+                checklist = new Checklist [
+                    'EUR'
+                    '1000'
+                    '0.2'
+                    'Paul'
+                    'BTC'
+                    '200.0'
+                    '5'
+                    'Peter'
+                  ],
+                  ordered: true,
+                  (error) =>
+                    @market.removeAllListeners()
+                    done error
+
+                @market.on 'trade', (trade) ->
+                  checklist.check trade.left.currency
+                  checklist.check trade.left.amount
+                  checklist.check trade.left.price
+                  checklist.check trade.left.account
+                  checklist.check trade.right.currency
+                  checklist.check trade.right.amount
+                  checklist.check trade.right.price
+                  checklist.check trade.right.account
+
                 @market.add
                   id: '2'
                   timestamp: '2'
@@ -502,7 +926,32 @@ describe 'Market', ->
                 @market.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
                 
             describe 'and the right order is bidding more than the left order is bidding multiplied by the right order price', ->
-              it 'should trade the amount the left order is bidding at the right order price', ->
+              it 'should trade the amount the left order is bidding at the right order price and emit a trade event', (done) ->
+                checklist = new Checklist [
+                    'EUR'
+                    '500'
+                    '0.2'
+                    'Paul'
+                    'BTC'
+                    '100.0'
+                    '5'
+                    'Peter'
+                  ],
+                  ordered: true,
+                  (error) =>
+                    @market.removeAllListeners()
+                    done error
+
+                @market.on 'trade', (trade) ->
+                  checklist.check trade.left.currency
+                  checklist.check trade.left.amount
+                  checklist.check trade.left.price
+                  checklist.check trade.left.account
+                  checklist.check trade.right.currency
+                  checklist.check trade.right.amount
+                  checklist.check trade.right.price
+                  checklist.check trade.right.account
+
                 @market.add
                   id: '2'
                   timestamp: '2'
@@ -521,7 +970,32 @@ describe 'Market', ->
                 @market.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
                 
             describe 'and the right order is bidding less than the left order is bidding multiplied by the right order price', ->
-              it 'should trade the amount the right order is bidding at the right order price', ->
+              it 'should trade the amount the right order is bidding at the right order price and emit a trade event', (done) ->
+                checklist = new Checklist [
+                    'EUR'
+                    '1000'
+                    '0.2'
+                    'Paul'
+                    'BTC'
+                    '200'
+                    '5'
+                    'Peter'
+                  ],
+                  ordered: true,
+                  (error) =>
+                    @market.removeAllListeners()
+                    done error
+
+                @market.on 'trade', (trade) ->
+                  checklist.check trade.left.currency
+                  checklist.check trade.left.amount
+                  checklist.check trade.left.price
+                  checklist.check trade.left.account
+                  checklist.check trade.right.currency
+                  checklist.check trade.right.amount
+                  checklist.check trade.right.price
+                  checklist.check trade.right.account
+
                 @market.add
                   id: '2'
                   timestamp: '2'
@@ -586,7 +1060,48 @@ describe 'Market', ->
           offerAmount: '500'
 
       describe 'and the last order can be completely satisfied', ->
-        it 'should correctly execute as many orders as it can', ->
+        it 'should correctly execute as many orders as it can and emit trade events', (done) ->
+          checklist = new Checklist [
+              'EUR'
+              '500'
+              '0.2'
+              'Paul'
+              'BTC'
+              '100.0'
+              '5'
+              'Peter'
+              'EUR'
+              '500'
+              '0.25'
+              'Paul'
+              'BTC'
+              '125.00'
+              '4'
+              'Peter'
+              'EUR'
+              '250.0'
+              '0.5'
+              'Paul'
+              'BTC'
+              '125.00'
+              '2'
+              'Peter'
+            ],
+            ordered: true,
+            (error) =>
+              @market.removeAllListeners()
+              done error
+
+          @market.on 'trade', (trade) ->
+            checklist.check trade.left.currency
+            checklist.check trade.left.amount
+            checklist.check trade.left.price
+            checklist.check trade.left.account
+            checklist.check trade.right.currency
+            checklist.check trade.right.amount
+            checklist.check trade.right.price
+            checklist.check trade.right.account
+
           @market.add
             id: '5'
             timestamp: '5'
@@ -608,7 +1123,48 @@ describe 'Market', ->
           @market.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
 
       describe 'and the last order can not be completely satisfied', ->    
-        it 'should correctly execute as many orders as it can', ->
+        it 'should correctly execute as many orders as it can and emit trade events', (done) ->
+          checklist = new Checklist [
+              'EUR'
+              '500'
+              '0.2'
+              'Paul'
+              'BTC'
+              '100.0'
+              '5'
+              'Peter'
+              'EUR'
+              '500'
+              '0.25'
+              'Paul'
+              'BTC'
+              '125.00'
+              '4'
+              'Peter'
+              'EUR'
+              '500'
+              '0.5'
+              'Paul'
+              'BTC'
+              '250.0'
+              '2'
+              'Peter'
+            ],
+            ordered: true,
+            (error) =>
+              @market.removeAllListeners()
+              done error
+
+          @market.on 'trade', (trade) ->
+            checklist.check trade.left.currency
+            checklist.check trade.left.amount
+            checklist.check trade.left.price
+            checklist.check trade.left.account
+            checklist.check trade.right.currency
+            checklist.check trade.right.amount
+            checklist.check trade.right.price
+            checklist.check trade.right.account
+
           @market.add
             id: '5'
             timestamp: '5'

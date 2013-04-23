@@ -2,8 +2,9 @@ Account = require('./Account/Account')
 Book = require('./Book')
 Order = require('./Order')
 Amount = require('./Amount')
+EventEmitter = require('events').EventEmitter
 
-module.exports = class Market
+module.exports = class Market extends EventEmitter
   constructor: (@currencies) ->
     @accounts = Object.create null
     @orders = Object.create null
@@ -42,8 +43,8 @@ module.exports = class Market
       else
         balance.withdraw(new Amount(withdrawal.amount))
 
-  add: (order) =>
-    order = new Order(order)
+  add: (params) =>
+    order = new Order(params)
     account = @accounts[order.account]
     if typeof account == 'undefined'
       throw new Error('Account does not exist')
@@ -60,6 +61,8 @@ module.exports = class Market
           balance.lock(order.offerAmount)
           book.add(order)
           @orders[order.id] = order
+          # emit an order added event
+          @emit 'order', params
           # check the books to see if any orders can be executed
           @execute(book, @books[order.offerCurrency][order.bidCurrency])
 
@@ -101,6 +104,19 @@ module.exports = class Market
           delete @orders[rightOrder.id]
           # reduce the left order
           leftOrder.reduceOffer(leftOfferReduction)
+          # emit a trade event
+          @emit 'trade',
+            left:
+              currency: leftBidCurrency
+              amount: rightOfferAmount.toString()
+              price: rightOrder.offerPrice.toString()
+              account: leftOrder.account
+            right:
+              currency: leftOfferCurrency
+              amount: rightBidAmount.toString()
+              price: rightOrder.bidPrice.toString()
+              account: rightOrder.account
+
           # call execute again to see if any more orders can be satified
           @execute(leftBook, rightBook)
         else
@@ -120,6 +136,17 @@ module.exports = class Market
           if rightOrder.bidAmount.compareTo(Amount.ZERO) == 0
             rightBook.delete(rightOrder)
             delete @orders[rightOrder.id]
+          @emit 'trade',
+            left:
+              currency: leftBidCurrency
+              amount: leftBidAmount.toString()
+              price: rightOrder.offerPrice.toString()
+              account: leftOrder.account
+            right:
+              currency: leftOfferCurrency
+              amount: leftOfferAmount.toString()
+              price: rightOrder.bidPrice.toString()
+              account: rightOrder.account
 
   delete: (order) =>
     match = new Order(order)
