@@ -21,22 +21,25 @@
       "url": "https://github.com/pghalliday/currency-market/blob/master/LICENSE-MIT"
     }
   ],
-  "main": "src/",
+  "main": "lib/src/CurrencyMarket",
   "engines": {
     "node": ">= 0.10.4"
   },
   "scripts": {
-    "test": "cake test"
+    "prepublish": "grunt",
+    "test": "grunt"
   },
   "dependencies": {
     "bigdecimal": "~0.6.1"
   },
   "devDependencies": {
-    "coffee-script": "~1.6.2",
     "chai": "~1.5.0",
     "node-uuid": "~1.4.0",
-    "mocha": "~1.9.0",
-    "checklist": "0.0.6"
+    "checklist": "0.0.6",
+    "grunt-cli": "~0.1.7",
+    "grunt": "~0.4.1",
+    "grunt-contrib-coffee": "~0.7.0",
+    "grunt-mocha-test": "~0.2.2"
   },
   "keywords": []
 }
