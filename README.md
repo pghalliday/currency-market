@@ -3,35 +3,164 @@ currency-market
 
 A synchronous implementation of a limit order based currencyMarket
 
-Implemented:
+## Features
 
-The following functions complete synchronously and throw errors if they fail (ie. you don't have to wait for the events to know if they completed successfully)
+- Supports an arbitrary list of currencies
+- Synchronously executes trades as orders are added
+- Emits events when changes are made to the market
 
-* new CurrencyMarket(currencies) - constructor accepts an array of supported currencies
-* currencyMarket.register(name) - add a new account using a unique name
-* currencyMarket.deposit(deposit) - deposit funds to an account
-* currencyMarket.withdraw(withdrawal) - withdraw funds from an account
-* currencyMarket.submit(order) - submit a limit order to the currencyMarket (trades will be executed where possible)
-* currencyMarket.cancel(order) - remove a limit order from the currencyMarket
+## Installation
 
-The following events are emitted when successful changes are made to the currencyMarket. They are for the use of monitoring services
+```
+npm install currency-market
+```
 
-* currencyMarket.on('account', function(account) {}) - fired when a new account is successfully registered
-* currencyMarket.on('deposit', function(deposit) {}) - fired when funds are successfully deposited
-* currencyMarket.on('withdrawal', function(withdrawal) {}) - fired when funds are successfully withdrawn
-* currencyMarket.on('order', function(order) {}) - fired when an order is successfully submitted
-* currencyMarket.on('cancellation', function(order) {}) - fired when an order is successfully cancelled
-* currencyMarket.on('trade', function(trade) {}) - fired when a trade is executed
+## API
 
-The following properties are intended for public use
+All functions complete synchronously and throw errors if they fail.
+Events are made available for monitoring changes in the market.
 
-* currencyMarket.accounts - the collection of accounts keyed by account name
-* currencyMarket.orders - the collection of orders currently active keyed by order ID
-* currencyMarket.books - the collection of order books keyed by offer currency and then bid currency
+```javascript
+var CurrencyMarket = require('currency-market');
 
-TODO:
+// instantiate a market
+var currencyMarket = new CurrencyMarket({
+  currencies: [
+    'EUR',
+    'USD',
+    'BTC'
+  ]
+});
 
-* should implement instant orders (execute or cancel)
-* should implement rounding policies
-* should implement simple commission
-* should implement pluggable commission schemes
+// register for events
+currencyMarket.on('account', function(account) {
+  console.log(account);
+});
+currencyMarket.on('deposit', function(deposit) {
+  console.log(deposit);
+});
+currencyMarket.on('withdrawal', function(withdrawal) {
+  console.log(withdrawal);
+});
+currencyMarket.on('order', function(order) {
+  console.log(order);
+});
+currencyMarket.on('cancellation', function(order) {
+  console.log(order);
+});
+currencyMarket.on('trade', function(trade) {
+  console.log(trade);
+});
+
+// add accounts
+currencyMarket.register({
+  id: 'Peter'
+});
+currencyMarket.register({
+  id: 'Paul'
+});
+
+// make deposits
+currencyMarket.deposit({
+  account: 'Peter',
+  currency: 'EUR',
+  amount: '5000'
+});
+currencyMarket.deposit({
+  account: 'Paul',
+  currency: 'BTC',
+  amount: '5000'
+});
+
+// make withdrawals
+currencyMarket.withdraw({
+  account: 'Peter',
+  currency: 'EUR',
+  amount: '1000'
+});
+currencyMarket.withdraw({
+  account: 'Paul',
+  currency: 'BTC',
+  amount: '1000'
+});
+
+// submit orders
+currencyMarket.submit({
+  id: '1',
+  timestamp: '1366758222',
+  account: 'Peter',
+  bidCurrency: 'BTC',
+  offerCurrency: 'EUR',
+  bidPrice: '2',
+  bidAmount: '500'
+});
+currencyMarket.submit({
+  id: '2',
+  timestamp: '1366758245',
+  account: 'Peter',
+  bidCurrency: 'BTC',
+  offerCurrency: 'EUR',
+  bidPrice: '1',
+  bidAmount: '2000'
+});
+currencyMarket.submit({
+  id: '3',
+  timestamp: '1366758256',
+  account: 'Paul',
+  bidCurrency: 'EUR',
+  offerCurrency: 'BTC',
+  offerPrice: '2',
+  offerAmount: '250'
+});
+currencyMarket.submit({
+  id: '4',
+  timestamp: '1366758268',
+  account: 'Paul',
+  bidCurrency: 'EUR',
+  offerCurrency: 'BTC',
+  offerPrice: '3',
+  offerAmount: '3000'
+});
+
+// cancel an order
+currencyMarket.cancel({
+  id: '1',
+  timestamp: '1366758222',
+  account: 'Peter',
+  bidCurrency: 'BTC',
+  offerCurrency: 'EUR',
+  bidPrice: '2',
+  bidAmount: '250'
+});
+
+// list all the active orders (keyed by id)
+console.log(currencyMarket.orders);
+
+// list all the active accounts (keyed by id)
+console.log(currencyMarket.accounts);
+
+// list all the active order books 
+console.log(currencyMarket.books);
+
+// Get the top of an order book
+console.log(currencyMarket.books['EUR']['BTC'].highest);
+console.log(currencyMarket.books['BTC']['EUR'].highest);
+```
+
+## Roadmap
+
+- Instant orders (execute or cancel)
+- Pluggable rounding policies
+- Pluggable commission schemes
+
+## Contributing
+
+In lieu of a formal styleguide, take care to maintain the existing coding style. Add unit tests for any new or changed functionality.
+
+The CoffeeScript source is located in the `src/` directory and tests in the `test/` directory. Do not edit the contents of the `lib/` directory as this is compiled from the CoffeeScript source.
+
+Before commiting run `npm test` to perform a clean compile of the source and run the tests. This ensures that everything commited is up to date and tested and allows people to `npm install` directly from the git repository (useful for integrating development branches, etc).
+
+## License
+Copyright (c) 2013 Peter Halliday  
+Licensed under the MIT license.
