@@ -1,10 +1,10 @@
-Account = require('./Account/Account')
+Account = require('./Account')
 Book = require('./Book')
 Order = require('./Order')
 Amount = require('./Amount')
 EventEmitter = require('events').EventEmitter
 
-module.exports = class Market extends EventEmitter
+module.exports = class CurrencyMarket extends EventEmitter
   constructor: (params) ->
     @accounts = Object.create null
     @orders = Object.create null

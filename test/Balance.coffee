@@ -3,8 +3,8 @@ chai.should()
 expect = chai.expect
 assert = chai.assert
 
-Balance = require('../../../src/Market/Account/Balance')
-Amount = require('../../../src/Market/Amount')
+Balance = require('../src/Balance')
+Amount = require('../src/Amount')
 
 describe 'Balance', ->
   it 'should instantiate with funds of zero and locked funds of zero', ->

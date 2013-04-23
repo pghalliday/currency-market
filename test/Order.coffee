@@ -3,8 +3,8 @@ chai.should()
 expect = chai.expect
 assert = chai.assert
 
-Order = require('../../src/Market/Order')
-Amount = require('../../src/Market/Amount')
+Order = require('../src/Order')
+Amount = require('../src/Amount')
 
 describe 'Order', ->
   it 'should throw an error if the ID is missing', ->

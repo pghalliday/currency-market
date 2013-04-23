@@ -1,4 +1,4 @@
-Amount = require('../Amount')
+Amount = require('./Amount')
 
 module.exports = class Balance
   constructor: () ->

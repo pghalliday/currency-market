@@ -4,15 +4,15 @@ expect = chai.expect
 assert = chai.assert
 Checklist = require('checklist')
 
-Market = require('../../src/Market/Market')
-Book = require('../../src/Market/Book')
-Account = require('../../src/Market/Account/Account')
-Balance = require('../../src/Market/Account/Balance')
-Amount = require('../../src/Market/Amount')
+CurrencyMarket = require('../src/CurrencyMarket')
+Book = require('../src/Book')
+Account = require('../src/Account')
+Balance = require('../src/Balance')
+Amount = require('../src/Amount')
 
-describe 'Market', ->
+describe 'CurrencyMarket', ->
   beforeEach ->
-    @market = new Market
+    @currencyMarket = new CurrencyMarket
       currencies: [
         'EUR'
         'USD'
@@ -20,41 +20,41 @@ describe 'Market', ->
       ]
 
   it 'should instantiate with a collection of accounts, orders and books matching the supported currencies', ->
-    Object.keys(@market.accounts).should.be.empty
-    Object.keys(@market.orders).should.be.empty
-    @market.books['EUR']['BTC'].should.be.an.instanceOf(Book)
-    @market.books['EUR']['USD'].should.be.an.instanceOf(Book)
-    @market.books['USD']['EUR'].should.be.an.instanceOf(Book)
-    @market.books['BTC']['EUR'].should.be.an.instanceOf(Book)
-    @market.books['USD']['EUR'].should.be.an.instanceOf(Book)
-    @market.books['EUR']['USD'].should.be.an.instanceOf(Book)
+    Object.keys(@currencyMarket.accounts).should.be.empty
+    Object.keys(@currencyMarket.orders).should.be.empty
+    @currencyMarket.books['EUR']['BTC'].should.be.an.instanceOf(Book)
+    @currencyMarket.books['EUR']['USD'].should.be.an.instanceOf(Book)
+    @currencyMarket.books['USD']['EUR'].should.be.an.instanceOf(Book)
+    @currencyMarket.books['BTC']['EUR'].should.be.an.instanceOf(Book)
+    @currencyMarket.books['USD']['EUR'].should.be.an.instanceOf(Book)
+    @currencyMarket.books['EUR']['USD'].should.be.an.instanceOf(Book)
 
   describe '#register', ->
-    it 'should submit an account to the market with the supported currencies and emit an account event', (done) ->
+    it 'should submit an account to the currencyMarket with the supported currencies and emit an account event', (done) ->
       checklist = new Checklist [
           'Peter'
         ],
         ordered: true,
         (error) =>
-          @market.removeAllListeners()
+          @currencyMarket.removeAllListeners()
           done error
 
-      @market.on 'account', (account) ->
+      @currencyMarket.on 'account', (account) ->
         checklist.check account.id
 
-      @market.register
+      @currencyMarket.register
         id: 'Peter'
-      account = @market.accounts['Peter']
+      account = @currencyMarket.accounts['Peter']
       account.should.be.an.instanceOf(Account)
       account.balances['EUR'].should.be.an.instanceOf(Balance)
       account.balances['USD'].should.be.an.instanceOf(Balance)
       account.balances['BTC'].should.be.an.instanceOf(Balance)
 
     it 'should throw an error if the account already exists', ->
-      @market.register
+      @currencyMarket.register
         id: 'Peter'
       expect =>
-        @market.register
+        @currencyMarket.register
           id: 'Peter'
       .to.throw('Account already exists')
 
@@ -67,21 +67,21 @@ describe 'Market', ->
         ],
         ordered: true,
         (error) =>
-          @market.removeAllListeners()
+          @currencyMarket.removeAllListeners()
           done error
 
-      @market.on 'deposit', (deposit) ->
+      @currencyMarket.on 'deposit', (deposit) ->
         checklist.check deposit.account
         checklist.check deposit.currency
         checklist.check deposit.amount
 
-      @market.register
+      @currencyMarket.register
         id: 'Peter'
-      account = @market.accounts['Peter']
+      account = @currencyMarket.accounts['Peter']
       account.balances['EUR'].funds.compareTo(Amount.ZERO).should.equal(0)
       account.balances['USD'].funds.compareTo(Amount.ZERO).should.equal(0)
       account.balances['BTC'].funds.compareTo(Amount.ZERO).should.equal(0)
-      @market.deposit
+      @currencyMarket.deposit
         account: 'Peter'
         currency: 'BTC'
         amount: '50'
@@ -91,17 +91,17 @@ describe 'Market', ->
 
     it 'should throw an error if the account does not exist', ->
       expect =>
-        @market.deposit
+        @currencyMarket.deposit
           account: 'Peter',
           currency: 'BTC',
           amount: '50'
       .to.throw('Account does not exist')
 
     it 'should throw an error if the currency is not supported', ->
-      @market.register
+      @currencyMarket.register
         id: 'Peter'
       expect =>
-        @market.deposit
+        @currencyMarket.deposit
           account: 'Peter'
           currency: 'CAD'
           amount: '50'
@@ -116,22 +116,22 @@ describe 'Market', ->
         ],
         ordered: true,
         (error) =>
-          @market.removeAllListeners()
+          @currencyMarket.removeAllListeners()
           done error
 
-      @market.on 'withdrawal', (withdrawal) ->
+      @currencyMarket.on 'withdrawal', (withdrawal) ->
         checklist.check withdrawal.account
         checklist.check withdrawal.currency
         checklist.check withdrawal.amount
 
-      @market.register
+      @currencyMarket.register
         id: 'Peter'
-      account = @market.accounts['Peter']
-      @market.deposit
+      account = @currencyMarket.accounts['Peter']
+      @currencyMarket.deposit
         account: 'Peter'
         currency: 'BTC'
         amount: '200'
-      @market.withdraw
+      @currencyMarket.withdraw
         account: 'Peter'
         currency: 'BTC'
         amount: '50'
@@ -139,17 +139,17 @@ describe 'Market', ->
 
     it 'should throw an error if the account does not exist', ->
       expect =>
-        @market.withdraw
+        @currencyMarket.withdraw
           account: 'Peter'
           currency: 'BTC'
           amount: '50'
       .to.throw('Account does not exist')
 
     it 'should throw an error if the currency is not supported', ->
-      @market.register
+      @currencyMarket.register
         id: 'Peter'
       expect =>
-        @market.withdraw
+        @currencyMarket.withdraw
           account: 'Peter'
           currency: 'CAD'
           amount: '50'
@@ -157,14 +157,14 @@ describe 'Market', ->
 
   describe '#submit', ->
     it 'should lock the correct funds in the correct account', ->
-      @market.register
+      @currencyMarket.register
         id: 'Peter'
-      account = @market.accounts['Peter']
-      @market.deposit
+      account = @currencyMarket.accounts['Peter']
+      @currencyMarket.deposit
         account: 'Peter'
         currency: 'EUR'
         amount: '200'
-      @market.submit
+      @currencyMarket.submit
         id: '123456789'
         timestamp: '987654321'
         account: 'Peter'
@@ -172,7 +172,7 @@ describe 'Market', ->
         offerCurrency: 'EUR'
         offerPrice: '100'
         offerAmount: '50'        
-      @market.submit
+      @currencyMarket.submit
         id: '123456790'
         timestamp: '987654322'
         account: 'Peter'
@@ -194,10 +194,10 @@ describe 'Market', ->
         ],
         ordered: true,
         (error) =>
-          @market.removeAllListeners()
+          @currencyMarket.removeAllListeners()
           done error
 
-      @market.on 'order', (order) ->
+      @currencyMarket.on 'order', (order) ->
         checklist.check order.id
         checklist.check order.timestamp
         checklist.check order.account
@@ -206,13 +206,13 @@ describe 'Market', ->
         checklist.check order.offerPrice.toString()
         checklist.check order.offerAmount.toString()
 
-      @market.register
+      @currencyMarket.register
         id: 'Peter'
-      @market.deposit
+      @currencyMarket.deposit
         account: 'Peter'
         currency: 'EUR'
         amount: '200'
-      @market.submit
+      @currencyMarket.submit
         id: '123456789'
         timestamp: '987654321'
         account: 'Peter'
@@ -220,27 +220,27 @@ describe 'Market', ->
         offerCurrency: 'EUR'
         offerPrice: '100'
         offerAmount: '50'
-      @market.orders['123456789'].should.be.ok
-      @market.books['BTC']['EUR'].highest.id.should.equal('123456789')
+      @currencyMarket.orders['123456789'].should.be.ok
+      @currencyMarket.books['BTC']['EUR'].highest.id.should.equal('123456789')
 
     describe 'while executing orders', ->
       beforeEach ->
-        @market.register
+        @currencyMarket.register
           id: 'Peter'
-        @market.register
+        @currencyMarket.register
           id: 'Paul'
-        @market.deposit
+        @currencyMarket.deposit
           account: 'Peter'
           currency: 'EUR'
           amount: '2000'
-        @market.deposit
+        @currencyMarket.deposit
           account: 'Paul'
           currency: 'BTC'
           amount: '400'
 
       describe 'where the existing (right) order is an offer', ->
         beforeEach ->
-          @market.submit
+          @currencyMarket.submit
             id: '1'
             timestamp: '1'
             account: 'Peter'
@@ -265,10 +265,10 @@ describe 'Market', ->
                     ],
                     ordered: true,
                     (error) =>
-                      @market.removeAllListeners()
+                      @currencyMarket.removeAllListeners()
                       done error
 
-                  @market.on 'trade', (trade) ->
+                  @currencyMarket.on 'trade', (trade) ->
                     checklist.check trade.left.currency
                     checklist.check trade.left.amount
                     checklist.check trade.left.price
@@ -278,7 +278,7 @@ describe 'Market', ->
                     checklist.check trade.right.price
                     checklist.check trade.right.account
 
-                  @market.submit
+                  @currencyMarket.submit
                     id: '2'
                     timestamp: '2'
                     account: 'Paul'
@@ -286,14 +286,14 @@ describe 'Market', ->
                     offerCurrency: 'BTC'
                     bidPrice: '0.2'
                     bidAmount: '1000'
-                  expect(@market.orders['1']).to.not.be.ok
-                  expect(@market.orders['2']).to.not.be.ok
-                  @market.accounts['Peter'].balances['EUR'].funds.compareTo(new Amount('1000')).should.equal 0
-                  @market.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
-                  @market.accounts['Peter'].balances['BTC'].funds.compareTo(new Amount('200')).should.equal 0
-                  @market.accounts['Paul'].balances['EUR'].funds.compareTo(new Amount('1000')).should.equal 0
-                  @market.accounts['Paul'].balances['BTC'].funds.compareTo(new Amount('200')).should.equal 0
-                  @market.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
+                  expect(@currencyMarket.orders['1']).to.not.be.ok
+                  expect(@currencyMarket.orders['2']).to.not.be.ok
+                  @currencyMarket.accounts['Peter'].balances['EUR'].funds.compareTo(new Amount('1000')).should.equal 0
+                  @currencyMarket.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
+                  @currencyMarket.accounts['Peter'].balances['BTC'].funds.compareTo(new Amount('200')).should.equal 0
+                  @currencyMarket.accounts['Paul'].balances['EUR'].funds.compareTo(new Amount('1000')).should.equal 0
+                  @currencyMarket.accounts['Paul'].balances['BTC'].funds.compareTo(new Amount('200')).should.equal 0
+                  @currencyMarket.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
 
             describe 'and the right order is offering more than the left order is bidding', ->
                 it 'should trade the amount the left order is offering and emit a trade event', (done) ->
@@ -309,10 +309,10 @@ describe 'Market', ->
                     ],
                     ordered: true,
                     (error) =>
-                      @market.removeAllListeners()
+                      @currencyMarket.removeAllListeners()
                       done error
 
-                  @market.on 'trade', (trade) ->
+                  @currencyMarket.on 'trade', (trade) ->
                     checklist.check trade.left.currency
                     checklist.check trade.left.amount
                     checklist.check trade.left.price
@@ -322,7 +322,7 @@ describe 'Market', ->
                     checklist.check trade.right.price
                     checklist.check trade.right.account
 
-                  @market.submit
+                  @currencyMarket.submit
                     id: '2'
                     timestamp: '2'
                     account: 'Paul'
@@ -330,14 +330,14 @@ describe 'Market', ->
                     offerCurrency: 'BTC'
                     bidPrice: '0.2'
                     bidAmount: '500'
-                  @market.orders['1'].offerAmount.compareTo(new Amount('500')).should.equal 0
-                  expect(@market.orders['2']).to.not.be.ok
-                  @market.accounts['Peter'].balances['EUR'].funds.compareTo(new Amount('1500')).should.equal 0
-                  @market.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(new Amount('500')).should.equal 0
-                  @market.accounts['Peter'].balances['BTC'].funds.compareTo(new Amount('100')).should.equal 0
-                  @market.accounts['Paul'].balances['EUR'].funds.compareTo(new Amount('500')).should.equal 0
-                  @market.accounts['Paul'].balances['BTC'].funds.compareTo(new Amount('300')).should.equal 0
-                  @market.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
+                  @currencyMarket.orders['1'].offerAmount.compareTo(new Amount('500')).should.equal 0
+                  expect(@currencyMarket.orders['2']).to.not.be.ok
+                  @currencyMarket.accounts['Peter'].balances['EUR'].funds.compareTo(new Amount('1500')).should.equal 0
+                  @currencyMarket.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(new Amount('500')).should.equal 0
+                  @currencyMarket.accounts['Peter'].balances['BTC'].funds.compareTo(new Amount('100')).should.equal 0
+                  @currencyMarket.accounts['Paul'].balances['EUR'].funds.compareTo(new Amount('500')).should.equal 0
+                  @currencyMarket.accounts['Paul'].balances['BTC'].funds.compareTo(new Amount('300')).should.equal 0
+                  @currencyMarket.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
 
             describe 'and the right order is offering less than the left order is bidding', ->
                 it 'should trade the amount the right order is offering and emit a trade event', (done) ->
@@ -353,10 +353,10 @@ describe 'Market', ->
                     ],
                     ordered: true,
                     (error) =>
-                      @market.removeAllListeners()
+                      @currencyMarket.removeAllListeners()
                       done error
 
-                  @market.on 'trade', (trade) ->
+                  @currencyMarket.on 'trade', (trade) ->
                     checklist.check trade.left.currency
                     checklist.check trade.left.amount
                     checklist.check trade.left.price
@@ -366,7 +366,7 @@ describe 'Market', ->
                     checklist.check trade.right.price
                     checklist.check trade.right.account
 
-                  @market.submit
+                  @currencyMarket.submit
                     id: '2'
                     timestamp: '2'
                     account: 'Paul'
@@ -374,14 +374,14 @@ describe 'Market', ->
                     offerCurrency: 'BTC'
                     bidPrice: '0.2'
                     bidAmount: '1500'
-                  expect(@market.orders['1']).to.not.be.ok
-                  @market.orders['2'].bidAmount.compareTo(new Amount('500')).should.equal 0
-                  @market.accounts['Peter'].balances['EUR'].funds.compareTo(new Amount('1000')).should.equal 0
-                  @market.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
-                  @market.accounts['Peter'].balances['BTC'].funds.compareTo(new Amount('200')).should.equal 0
-                  @market.accounts['Paul'].balances['EUR'].funds.compareTo(new Amount('1000')).should.equal 0
-                  @market.accounts['Paul'].balances['BTC'].funds.compareTo(new Amount('200')).should.equal 0
-                  @market.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(new Amount('100')).should.equal 0
+                  expect(@currencyMarket.orders['1']).to.not.be.ok
+                  @currencyMarket.orders['2'].bidAmount.compareTo(new Amount('500')).should.equal 0
+                  @currencyMarket.accounts['Peter'].balances['EUR'].funds.compareTo(new Amount('1000')).should.equal 0
+                  @currencyMarket.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
+                  @currencyMarket.accounts['Peter'].balances['BTC'].funds.compareTo(new Amount('200')).should.equal 0
+                  @currencyMarket.accounts['Paul'].balances['EUR'].funds.compareTo(new Amount('1000')).should.equal 0
+                  @currencyMarket.accounts['Paul'].balances['BTC'].funds.compareTo(new Amount('200')).should.equal 0
+                  @currencyMarket.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(new Amount('100')).should.equal 0
 
           describe 'and the left order is an offer', ->
             describe 'and the right order is offering exactly the amount the left order is offering', ->
@@ -398,10 +398,10 @@ describe 'Market', ->
                     ],
                     ordered: true,
                     (error) =>
-                      @market.removeAllListeners()
+                      @currencyMarket.removeAllListeners()
                       done error
 
-                  @market.on 'trade', (trade) ->
+                  @currencyMarket.on 'trade', (trade) ->
                     checklist.check trade.left.currency
                     checklist.check trade.left.amount
                     checklist.check trade.left.price
@@ -411,7 +411,7 @@ describe 'Market', ->
                     checklist.check trade.right.price
                     checklist.check trade.right.account
 
-                  @market.submit
+                  @currencyMarket.submit
                     id: '2'
                     timestamp: '2'
                     account: 'Paul'
@@ -419,14 +419,14 @@ describe 'Market', ->
                     offerCurrency: 'BTC'
                     offerPrice: '5'
                     offerAmount: '200'
-                  expect(@market.orders['1']).to.not.be.ok
-                  expect(@market.orders['2']).to.not.be.ok
-                  @market.accounts['Peter'].balances['EUR'].funds.compareTo(new Amount('1000')).should.equal 0
-                  @market.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
-                  @market.accounts['Peter'].balances['BTC'].funds.compareTo(new Amount('200')).should.equal 0
-                  @market.accounts['Paul'].balances['EUR'].funds.compareTo(new Amount('1000')).should.equal 0
-                  @market.accounts['Paul'].balances['BTC'].funds.compareTo(new Amount('200')).should.equal 0
-                  @market.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
+                  expect(@currencyMarket.orders['1']).to.not.be.ok
+                  expect(@currencyMarket.orders['2']).to.not.be.ok
+                  @currencyMarket.accounts['Peter'].balances['EUR'].funds.compareTo(new Amount('1000')).should.equal 0
+                  @currencyMarket.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
+                  @currencyMarket.accounts['Peter'].balances['BTC'].funds.compareTo(new Amount('200')).should.equal 0
+                  @currencyMarket.accounts['Paul'].balances['EUR'].funds.compareTo(new Amount('1000')).should.equal 0
+                  @currencyMarket.accounts['Paul'].balances['BTC'].funds.compareTo(new Amount('200')).should.equal 0
+                  @currencyMarket.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
 
             describe 'and the right order is offering more than the left order is offering', ->
                 it 'should trade the amount the left order is offering and emit a trade event', (done) ->
@@ -442,10 +442,10 @@ describe 'Market', ->
                     ],
                     ordered: true,
                     (error) =>
-                      @market.removeAllListeners()
+                      @currencyMarket.removeAllListeners()
                       done error
 
-                  @market.on 'trade', (trade) ->
+                  @currencyMarket.on 'trade', (trade) ->
                     checklist.check trade.left.currency
                     checklist.check trade.left.amount
                     checklist.check trade.left.price
@@ -455,7 +455,7 @@ describe 'Market', ->
                     checklist.check trade.right.price
                     checklist.check trade.right.account
 
-                  @market.submit
+                  @currencyMarket.submit
                     id: '2'
                     timestamp: '2'
                     account: 'Paul'
@@ -463,14 +463,14 @@ describe 'Market', ->
                     offerCurrency: 'BTC'
                     offerPrice: '5'
                     offerAmount: '100'
-                  @market.orders['1'].offerAmount.compareTo(new Amount('500')).should.equal 0
-                  expect(@market.orders['2']).to.not.be.ok
-                  @market.accounts['Peter'].balances['EUR'].funds.compareTo(new Amount('1500')).should.equal 0
-                  @market.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(new Amount('500')).should.equal 0
-                  @market.accounts['Peter'].balances['BTC'].funds.compareTo(new Amount('100')).should.equal 0
-                  @market.accounts['Paul'].balances['EUR'].funds.compareTo(new Amount('500')).should.equal 0
-                  @market.accounts['Paul'].balances['BTC'].funds.compareTo(new Amount('300')).should.equal 0
-                  @market.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
+                  @currencyMarket.orders['1'].offerAmount.compareTo(new Amount('500')).should.equal 0
+                  expect(@currencyMarket.orders['2']).to.not.be.ok
+                  @currencyMarket.accounts['Peter'].balances['EUR'].funds.compareTo(new Amount('1500')).should.equal 0
+                  @currencyMarket.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(new Amount('500')).should.equal 0
+                  @currencyMarket.accounts['Peter'].balances['BTC'].funds.compareTo(new Amount('100')).should.equal 0
+                  @currencyMarket.accounts['Paul'].balances['EUR'].funds.compareTo(new Amount('500')).should.equal 0
+                  @currencyMarket.accounts['Paul'].balances['BTC'].funds.compareTo(new Amount('300')).should.equal 0
+                  @currencyMarket.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
 
             describe 'and the right order is offering less than the left order is offering', ->
                 it 'should trade the amount the right order is offering and emit a trade event', (done) ->
@@ -486,10 +486,10 @@ describe 'Market', ->
                     ],
                     ordered: true,
                     (error) =>
-                      @market.removeAllListeners()
+                      @currencyMarket.removeAllListeners()
                       done error
 
-                  @market.on 'trade', (trade) ->
+                  @currencyMarket.on 'trade', (trade) ->
                     checklist.check trade.left.currency
                     checklist.check trade.left.amount
                     checklist.check trade.left.price
@@ -499,7 +499,7 @@ describe 'Market', ->
                     checklist.check trade.right.price
                     checklist.check trade.right.account
 
-                  @market.submit
+                  @currencyMarket.submit
                     id: '2'
                     timestamp: '2'
                     account: 'Paul'
@@ -507,14 +507,14 @@ describe 'Market', ->
                     offerCurrency: 'BTC'
                     offerPrice: '5'
                     offerAmount: '300'
-                  expect(@market.orders['1']).to.not.be.ok
-                  @market.orders['2'].offerAmount.compareTo(new Amount('100')).should.equal 0
-                  @market.accounts['Peter'].balances['EUR'].funds.compareTo(new Amount('1000')).should.equal 0
-                  @market.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
-                  @market.accounts['Peter'].balances['BTC'].funds.compareTo(new Amount('200')).should.equal 0
-                  @market.accounts['Paul'].balances['EUR'].funds.compareTo(new Amount('1000')).should.equal 0
-                  @market.accounts['Paul'].balances['BTC'].funds.compareTo(new Amount('200')).should.equal 0
-                  @market.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(new Amount('100')).should.equal 0
+                  expect(@currencyMarket.orders['1']).to.not.be.ok
+                  @currencyMarket.orders['2'].offerAmount.compareTo(new Amount('100')).should.equal 0
+                  @currencyMarket.accounts['Peter'].balances['EUR'].funds.compareTo(new Amount('1000')).should.equal 0
+                  @currencyMarket.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
+                  @currencyMarket.accounts['Peter'].balances['BTC'].funds.compareTo(new Amount('200')).should.equal 0
+                  @currencyMarket.accounts['Paul'].balances['EUR'].funds.compareTo(new Amount('1000')).should.equal 0
+                  @currencyMarket.accounts['Paul'].balances['BTC'].funds.compareTo(new Amount('200')).should.equal 0
+                  @currencyMarket.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(new Amount('100')).should.equal 0
 
         describe 'and the new (left) price is the better', ->
           describe 'and the left order is an offer', ->              
@@ -532,10 +532,10 @@ describe 'Market', ->
                   ],
                   ordered: true,
                   (error) =>
-                    @market.removeAllListeners()
+                    @currencyMarket.removeAllListeners()
                     done error
 
-                @market.on 'trade', (trade) ->
+                @currencyMarket.on 'trade', (trade) ->
                   checklist.check trade.left.currency
                   checklist.check trade.left.amount
                   checklist.check trade.left.price
@@ -545,7 +545,7 @@ describe 'Market', ->
                   checklist.check trade.right.price
                   checklist.check trade.right.account
 
-                @market.submit
+                @currencyMarket.submit
                   id: '2'
                   timestamp: '2'
                   account: 'Paul'
@@ -553,14 +553,14 @@ describe 'Market', ->
                   offerCurrency: 'BTC'
                   offerPrice: '4'
                   offerAmount: '200'
-                expect(@market.orders['1']).to.not.be.ok
-                expect(@market.orders['2']).to.not.be.ok
-                @market.accounts['Peter'].balances['EUR'].funds.compareTo(new Amount('1000')).should.equal 0
-                @market.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
-                @market.accounts['Peter'].balances['BTC'].funds.compareTo(new Amount('200')).should.equal 0
-                @market.accounts['Paul'].balances['EUR'].funds.compareTo(new Amount('1000')).should.equal 0
-                @market.accounts['Paul'].balances['BTC'].funds.compareTo(new Amount('200')).should.equal 0
-                @market.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
+                expect(@currencyMarket.orders['1']).to.not.be.ok
+                expect(@currencyMarket.orders['2']).to.not.be.ok
+                @currencyMarket.accounts['Peter'].balances['EUR'].funds.compareTo(new Amount('1000')).should.equal 0
+                @currencyMarket.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
+                @currencyMarket.accounts['Peter'].balances['BTC'].funds.compareTo(new Amount('200')).should.equal 0
+                @currencyMarket.accounts['Paul'].balances['EUR'].funds.compareTo(new Amount('1000')).should.equal 0
+                @currencyMarket.accounts['Paul'].balances['BTC'].funds.compareTo(new Amount('200')).should.equal 0
+                @currencyMarket.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
 
             describe 'and the right order is offering more than the left order is offering multiplied by the right order price', ->
               it 'should trade the amount the left order is offering at the right order price and emit a trade event', (done) ->
@@ -576,10 +576,10 @@ describe 'Market', ->
                   ],
                   ordered: true,
                   (error) =>
-                    @market.removeAllListeners()
+                    @currencyMarket.removeAllListeners()
                     done error
 
-                @market.on 'trade', (trade) ->
+                @currencyMarket.on 'trade', (trade) ->
                   checklist.check trade.left.currency
                   checklist.check trade.left.amount
                   checklist.check trade.left.price
@@ -589,7 +589,7 @@ describe 'Market', ->
                   checklist.check trade.right.price
                   checklist.check trade.right.account
 
-                @market.submit
+                @currencyMarket.submit
                   id: '2'
                   timestamp: '2'
                   account: 'Paul'
@@ -597,14 +597,14 @@ describe 'Market', ->
                   offerCurrency: 'BTC'
                   offerPrice: '4'
                   offerAmount: '100'
-                @market.orders['1'].offerAmount.compareTo(new Amount('500')).should.equal 0
-                expect(@market.orders['2']).to.not.be.ok
-                @market.accounts['Peter'].balances['EUR'].funds.compareTo(new Amount('1500')).should.equal 0
-                @market.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(new Amount('500')).should.equal 0
-                @market.accounts['Peter'].balances['BTC'].funds.compareTo(new Amount('100')).should.equal 0
-                @market.accounts['Paul'].balances['EUR'].funds.compareTo(new Amount('500')).should.equal 0
-                @market.accounts['Paul'].balances['BTC'].funds.compareTo(new Amount('300')).should.equal 0
-                @market.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
+                @currencyMarket.orders['1'].offerAmount.compareTo(new Amount('500')).should.equal 0
+                expect(@currencyMarket.orders['2']).to.not.be.ok
+                @currencyMarket.accounts['Peter'].balances['EUR'].funds.compareTo(new Amount('1500')).should.equal 0
+                @currencyMarket.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(new Amount('500')).should.equal 0
+                @currencyMarket.accounts['Peter'].balances['BTC'].funds.compareTo(new Amount('100')).should.equal 0
+                @currencyMarket.accounts['Paul'].balances['EUR'].funds.compareTo(new Amount('500')).should.equal 0
+                @currencyMarket.accounts['Paul'].balances['BTC'].funds.compareTo(new Amount('300')).should.equal 0
+                @currencyMarket.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
 
             describe 'and the right order is offering less than the left order is offering multiplied by the right order price', ->
               it 'should trade the amount the right order is offering at the right order price and emit a trade event', (done) ->
@@ -620,10 +620,10 @@ describe 'Market', ->
                   ],
                   ordered: true,
                   (error) =>
-                    @market.removeAllListeners()
+                    @currencyMarket.removeAllListeners()
                     done error
 
-                @market.on 'trade', (trade) ->
+                @currencyMarket.on 'trade', (trade) ->
                   checklist.check trade.left.currency
                   checklist.check trade.left.amount
                   checklist.check trade.left.price
@@ -633,7 +633,7 @@ describe 'Market', ->
                   checklist.check trade.right.price
                   checklist.check trade.right.account
 
-                @market.submit
+                @currencyMarket.submit
                   id: '2'
                   timestamp: '2'
                   account: 'Paul'
@@ -641,14 +641,14 @@ describe 'Market', ->
                   offerCurrency: 'BTC'
                   offerPrice: '4'
                   offerAmount: '300'
-                expect(@market.orders['1']).to.not.be.ok
-                @market.orders['2'].offerAmount.compareTo(new Amount('100')).should.equal 0
-                @market.accounts['Peter'].balances['EUR'].funds.compareTo(new Amount('1000')).should.equal 0
-                @market.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
-                @market.accounts['Peter'].balances['BTC'].funds.compareTo(new Amount('200')).should.equal 0
-                @market.accounts['Paul'].balances['EUR'].funds.compareTo(new Amount('1000')).should.equal 0
-                @market.accounts['Paul'].balances['BTC'].funds.compareTo(new Amount('200')).should.equal 0
-                @market.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(new Amount('100')).should.equal 0
+                expect(@currencyMarket.orders['1']).to.not.be.ok
+                @currencyMarket.orders['2'].offerAmount.compareTo(new Amount('100')).should.equal 0
+                @currencyMarket.accounts['Peter'].balances['EUR'].funds.compareTo(new Amount('1000')).should.equal 0
+                @currencyMarket.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
+                @currencyMarket.accounts['Peter'].balances['BTC'].funds.compareTo(new Amount('200')).should.equal 0
+                @currencyMarket.accounts['Paul'].balances['EUR'].funds.compareTo(new Amount('1000')).should.equal 0
+                @currencyMarket.accounts['Paul'].balances['BTC'].funds.compareTo(new Amount('200')).should.equal 0
+                @currencyMarket.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(new Amount('100')).should.equal 0
                 
           describe 'and the left order is a bid', ->
             describe 'and the right order is offering exactly the amount that the left order is bidding', ->
@@ -665,10 +665,10 @@ describe 'Market', ->
                   ],
                   ordered: true,
                   (error) =>
-                    @market.removeAllListeners()
+                    @currencyMarket.removeAllListeners()
                     done error
 
-                @market.on 'trade', (trade) ->
+                @currencyMarket.on 'trade', (trade) ->
                   checklist.check trade.left.currency
                   checklist.check trade.left.amount
                   checklist.check trade.left.price
@@ -678,7 +678,7 @@ describe 'Market', ->
                   checklist.check trade.right.price
                   checklist.check trade.right.account
 
-                @market.submit
+                @currencyMarket.submit
                   id: '2'
                   timestamp: '2'
                   account: 'Paul'
@@ -686,14 +686,14 @@ describe 'Market', ->
                   offerCurrency: 'BTC'
                   bidPrice: '0.25'
                   bidAmount: '1000'
-                expect(@market.orders['1']).to.not.be.ok
-                expect(@market.orders['2']).to.not.be.ok
-                @market.accounts['Peter'].balances['EUR'].funds.compareTo(new Amount('1000')).should.equal 0
-                @market.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
-                @market.accounts['Peter'].balances['BTC'].funds.compareTo(new Amount('200')).should.equal 0
-                @market.accounts['Paul'].balances['EUR'].funds.compareTo(new Amount('1000')).should.equal 0
-                @market.accounts['Paul'].balances['BTC'].funds.compareTo(new Amount('200')).should.equal 0
-                @market.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
+                expect(@currencyMarket.orders['1']).to.not.be.ok
+                expect(@currencyMarket.orders['2']).to.not.be.ok
+                @currencyMarket.accounts['Peter'].balances['EUR'].funds.compareTo(new Amount('1000')).should.equal 0
+                @currencyMarket.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
+                @currencyMarket.accounts['Peter'].balances['BTC'].funds.compareTo(new Amount('200')).should.equal 0
+                @currencyMarket.accounts['Paul'].balances['EUR'].funds.compareTo(new Amount('1000')).should.equal 0
+                @currencyMarket.accounts['Paul'].balances['BTC'].funds.compareTo(new Amount('200')).should.equal 0
+                @currencyMarket.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
                 
             describe 'and the right order is offering more than the left order is bidding', ->
               it 'should trade the amount the left order is bidding at the right order price and emit a trade event', (done) ->
@@ -709,10 +709,10 @@ describe 'Market', ->
                   ],
                   ordered: true,
                   (error) =>
-                    @market.removeAllListeners()
+                    @currencyMarket.removeAllListeners()
                     done error
 
-                @market.on 'trade', (trade) ->
+                @currencyMarket.on 'trade', (trade) ->
                   checklist.check trade.left.currency
                   checklist.check trade.left.amount
                   checklist.check trade.left.price
@@ -722,7 +722,7 @@ describe 'Market', ->
                   checklist.check trade.right.price
                   checklist.check trade.right.account
 
-                @market.submit
+                @currencyMarket.submit
                   id: '2'
                   timestamp: '2'
                   account: 'Paul'
@@ -730,14 +730,14 @@ describe 'Market', ->
                   offerCurrency: 'BTC'
                   bidPrice: '0.25'
                   bidAmount: '500'
-                @market.orders['1'].offerAmount.compareTo(new Amount('500')).should.equal 0
-                expect(@market.orders['2']).to.not.be.ok
-                @market.accounts['Peter'].balances['EUR'].funds.compareTo(new Amount('1500')).should.equal 0
-                @market.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(new Amount('500')).should.equal 0
-                @market.accounts['Peter'].balances['BTC'].funds.compareTo(new Amount('100')).should.equal 0
-                @market.accounts['Paul'].balances['EUR'].funds.compareTo(new Amount('500')).should.equal 0
-                @market.accounts['Paul'].balances['BTC'].funds.compareTo(new Amount('300')).should.equal 0
-                @market.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
+                @currencyMarket.orders['1'].offerAmount.compareTo(new Amount('500')).should.equal 0
+                expect(@currencyMarket.orders['2']).to.not.be.ok
+                @currencyMarket.accounts['Peter'].balances['EUR'].funds.compareTo(new Amount('1500')).should.equal 0
+                @currencyMarket.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(new Amount('500')).should.equal 0
+                @currencyMarket.accounts['Peter'].balances['BTC'].funds.compareTo(new Amount('100')).should.equal 0
+                @currencyMarket.accounts['Paul'].balances['EUR'].funds.compareTo(new Amount('500')).should.equal 0
+                @currencyMarket.accounts['Paul'].balances['BTC'].funds.compareTo(new Amount('300')).should.equal 0
+                @currencyMarket.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
                 
             describe 'and the right order is offering less than the left order is bidding', ->
               it 'should trade the amount the right order is offering at the right order price and emit a trade event', (done) ->
@@ -753,10 +753,10 @@ describe 'Market', ->
                   ],
                   ordered: true,
                   (error) =>
-                    @market.removeAllListeners()
+                    @currencyMarket.removeAllListeners()
                     done error
 
-                @market.on 'trade', (trade) ->
+                @currencyMarket.on 'trade', (trade) ->
                   checklist.check trade.left.currency
                   checklist.check trade.left.amount
                   checklist.check trade.left.price
@@ -766,7 +766,7 @@ describe 'Market', ->
                   checklist.check trade.right.price
                   checklist.check trade.right.account
 
-                @market.submit
+                @currencyMarket.submit
                   id: '2'
                   timestamp: '2'
                   account: 'Paul'
@@ -774,18 +774,18 @@ describe 'Market', ->
                   offerCurrency: 'BTC'
                   bidPrice: '0.25'
                   bidAmount: '1500'
-                expect(@market.orders['1']).to.not.be.ok
-                @market.orders['2'].bidAmount.compareTo(new Amount('500')).should.equal 0
-                @market.accounts['Peter'].balances['EUR'].funds.compareTo(new Amount('1000')).should.equal 0
-                @market.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
-                @market.accounts['Peter'].balances['BTC'].funds.compareTo(new Amount('200')).should.equal 0
-                @market.accounts['Paul'].balances['EUR'].funds.compareTo(new Amount('1000')).should.equal 0
-                @market.accounts['Paul'].balances['BTC'].funds.compareTo(new Amount('200')).should.equal 0
-                @market.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(new Amount('125')).should.equal 0
+                expect(@currencyMarket.orders['1']).to.not.be.ok
+                @currencyMarket.orders['2'].bidAmount.compareTo(new Amount('500')).should.equal 0
+                @currencyMarket.accounts['Peter'].balances['EUR'].funds.compareTo(new Amount('1000')).should.equal 0
+                @currencyMarket.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
+                @currencyMarket.accounts['Peter'].balances['BTC'].funds.compareTo(new Amount('200')).should.equal 0
+                @currencyMarket.accounts['Paul'].balances['EUR'].funds.compareTo(new Amount('1000')).should.equal 0
+                @currencyMarket.accounts['Paul'].balances['BTC'].funds.compareTo(new Amount('200')).should.equal 0
+                @currencyMarket.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(new Amount('125')).should.equal 0
               
       describe 'where the existing (right) order is a bid', ->
         beforeEach ->
-          @market.submit
+          @currencyMarket.submit
             id: '1'
             timestamp: '1'
             account: 'Peter'
@@ -810,10 +810,10 @@ describe 'Market', ->
                   ],
                   ordered: true,
                   (error) =>
-                    @market.removeAllListeners()
+                    @currencyMarket.removeAllListeners()
                     done error
 
-                @market.on 'trade', (trade) ->
+                @currencyMarket.on 'trade', (trade) ->
                   checklist.check trade.left.currency
                   checklist.check trade.left.amount
                   checklist.check trade.left.price
@@ -823,7 +823,7 @@ describe 'Market', ->
                   checklist.check trade.right.price
                   checklist.check trade.right.account
 
-                @market.submit
+                @currencyMarket.submit
                   id: '2'
                   timestamp: '2'
                   account: 'Paul'
@@ -831,14 +831,14 @@ describe 'Market', ->
                   offerCurrency: 'BTC'
                   offerPrice: '4'
                   offerAmount: '200'
-                expect(@market.orders['1']).to.not.be.ok
-                expect(@market.orders['2']).to.not.be.ok
-                @market.accounts['Peter'].balances['EUR'].funds.compareTo(new Amount('1000')).should.equal 0
-                @market.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
-                @market.accounts['Peter'].balances['BTC'].funds.compareTo(new Amount('200')).should.equal 0
-                @market.accounts['Paul'].balances['EUR'].funds.compareTo(new Amount('1000')).should.equal 0
-                @market.accounts['Paul'].balances['BTC'].funds.compareTo(new Amount('200')).should.equal 0
-                @market.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
+                expect(@currencyMarket.orders['1']).to.not.be.ok
+                expect(@currencyMarket.orders['2']).to.not.be.ok
+                @currencyMarket.accounts['Peter'].balances['EUR'].funds.compareTo(new Amount('1000')).should.equal 0
+                @currencyMarket.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
+                @currencyMarket.accounts['Peter'].balances['BTC'].funds.compareTo(new Amount('200')).should.equal 0
+                @currencyMarket.accounts['Paul'].balances['EUR'].funds.compareTo(new Amount('1000')).should.equal 0
+                @currencyMarket.accounts['Paul'].balances['BTC'].funds.compareTo(new Amount('200')).should.equal 0
+                @currencyMarket.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
                 
             describe 'and the right order is bidding more than the left order is offering', ->
               it 'should trade the amount the left order is offering at the right order price and emit a trade event', (done) ->
@@ -854,10 +854,10 @@ describe 'Market', ->
                   ],
                   ordered: true,
                   (error) =>
-                    @market.removeAllListeners()
+                    @currencyMarket.removeAllListeners()
                     done error
 
-                @market.on 'trade', (trade) ->
+                @currencyMarket.on 'trade', (trade) ->
                   checklist.check trade.left.currency
                   checklist.check trade.left.amount
                   checklist.check trade.left.price
@@ -867,7 +867,7 @@ describe 'Market', ->
                   checklist.check trade.right.price
                   checklist.check trade.right.account
 
-                @market.submit
+                @currencyMarket.submit
                   id: '2'
                   timestamp: '2'
                   account: 'Paul'
@@ -875,14 +875,14 @@ describe 'Market', ->
                   offerCurrency: 'BTC'
                   offerPrice: '4'
                   offerAmount: '100'
-                @market.orders['1'].bidAmount.compareTo(new Amount('100')).should.equal 0
-                expect(@market.orders['2']).to.not.be.ok
-                @market.accounts['Peter'].balances['EUR'].funds.compareTo(new Amount('1500')).should.equal 0
-                @market.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(new Amount('500')).should.equal 0
-                @market.accounts['Peter'].balances['BTC'].funds.compareTo(new Amount('100')).should.equal 0
-                @market.accounts['Paul'].balances['EUR'].funds.compareTo(new Amount('500')).should.equal 0
-                @market.accounts['Paul'].balances['BTC'].funds.compareTo(new Amount('300')).should.equal 0
-                @market.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
+                @currencyMarket.orders['1'].bidAmount.compareTo(new Amount('100')).should.equal 0
+                expect(@currencyMarket.orders['2']).to.not.be.ok
+                @currencyMarket.accounts['Peter'].balances['EUR'].funds.compareTo(new Amount('1500')).should.equal 0
+                @currencyMarket.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(new Amount('500')).should.equal 0
+                @currencyMarket.accounts['Peter'].balances['BTC'].funds.compareTo(new Amount('100')).should.equal 0
+                @currencyMarket.accounts['Paul'].balances['EUR'].funds.compareTo(new Amount('500')).should.equal 0
+                @currencyMarket.accounts['Paul'].balances['BTC'].funds.compareTo(new Amount('300')).should.equal 0
+                @currencyMarket.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
                 
             describe 'and the right order is bidding less than the left order is offering', ->
               it 'should trade the amount the right order is bidding at the right order price and emit a trade event', (done) ->
@@ -898,10 +898,10 @@ describe 'Market', ->
                   ],
                   ordered: true,
                   (error) =>
-                    @market.removeAllListeners()
+                    @currencyMarket.removeAllListeners()
                     done error
 
-                @market.on 'trade', (trade) ->
+                @currencyMarket.on 'trade', (trade) ->
                   checklist.check trade.left.currency
                   checklist.check trade.left.amount
                   checklist.check trade.left.price
@@ -911,7 +911,7 @@ describe 'Market', ->
                   checklist.check trade.right.price
                   checklist.check trade.right.account
 
-                @market.submit
+                @currencyMarket.submit
                   id: '2'
                   timestamp: '2'
                   account: 'Paul'
@@ -919,14 +919,14 @@ describe 'Market', ->
                   offerCurrency: 'BTC'
                   offerPrice: '4'
                   offerAmount: '300'
-                expect(@market.orders['1']).to.not.be.ok
-                @market.orders['2'].offerAmount.compareTo(new Amount('100')).should.equal 0
-                @market.accounts['Peter'].balances['EUR'].funds.compareTo(new Amount('1000')).should.equal 0
-                @market.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
-                @market.accounts['Peter'].balances['BTC'].funds.compareTo(new Amount('200')).should.equal 0
-                @market.accounts['Paul'].balances['EUR'].funds.compareTo(new Amount('1000')).should.equal 0
-                @market.accounts['Paul'].balances['BTC'].funds.compareTo(new Amount('200')).should.equal 0
-                @market.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(new Amount('100')).should.equal 0
+                expect(@currencyMarket.orders['1']).to.not.be.ok
+                @currencyMarket.orders['2'].offerAmount.compareTo(new Amount('100')).should.equal 0
+                @currencyMarket.accounts['Peter'].balances['EUR'].funds.compareTo(new Amount('1000')).should.equal 0
+                @currencyMarket.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
+                @currencyMarket.accounts['Peter'].balances['BTC'].funds.compareTo(new Amount('200')).should.equal 0
+                @currencyMarket.accounts['Paul'].balances['EUR'].funds.compareTo(new Amount('1000')).should.equal 0
+                @currencyMarket.accounts['Paul'].balances['BTC'].funds.compareTo(new Amount('200')).should.equal 0
+                @currencyMarket.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(new Amount('100')).should.equal 0
                 
           describe 'and the left order is a bid', ->
             describe 'and the right order is bidding exactly the amount that the left order is bidding multiplied by the right order price', ->
@@ -943,10 +943,10 @@ describe 'Market', ->
                   ],
                   ordered: true,
                   (error) =>
-                    @market.removeAllListeners()
+                    @currencyMarket.removeAllListeners()
                     done error
 
-                @market.on 'trade', (trade) ->
+                @currencyMarket.on 'trade', (trade) ->
                   checklist.check trade.left.currency
                   checklist.check trade.left.amount
                   checklist.check trade.left.price
@@ -956,7 +956,7 @@ describe 'Market', ->
                   checklist.check trade.right.price
                   checklist.check trade.right.account
 
-                @market.submit
+                @currencyMarket.submit
                   id: '2'
                   timestamp: '2'
                   account: 'Paul'
@@ -964,14 +964,14 @@ describe 'Market', ->
                   offerCurrency: 'BTC'
                   bidPrice: '0.25'
                   bidAmount: '1000'
-                expect(@market.orders['1']).to.not.be.ok
-                expect(@market.orders['2']).to.not.be.ok
-                @market.accounts['Peter'].balances['EUR'].funds.compareTo(new Amount('1000')).should.equal 0
-                @market.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
-                @market.accounts['Peter'].balances['BTC'].funds.compareTo(new Amount('200')).should.equal 0
-                @market.accounts['Paul'].balances['EUR'].funds.compareTo(new Amount('1000')).should.equal 0
-                @market.accounts['Paul'].balances['BTC'].funds.compareTo(new Amount('200')).should.equal 0
-                @market.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
+                expect(@currencyMarket.orders['1']).to.not.be.ok
+                expect(@currencyMarket.orders['2']).to.not.be.ok
+                @currencyMarket.accounts['Peter'].balances['EUR'].funds.compareTo(new Amount('1000')).should.equal 0
+                @currencyMarket.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
+                @currencyMarket.accounts['Peter'].balances['BTC'].funds.compareTo(new Amount('200')).should.equal 0
+                @currencyMarket.accounts['Paul'].balances['EUR'].funds.compareTo(new Amount('1000')).should.equal 0
+                @currencyMarket.accounts['Paul'].balances['BTC'].funds.compareTo(new Amount('200')).should.equal 0
+                @currencyMarket.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
                 
             describe 'and the right order is bidding more than the left order is bidding multiplied by the right order price', ->
               it 'should trade the amount the left order is bidding at the right order price and emit a trade event', (done) ->
@@ -987,10 +987,10 @@ describe 'Market', ->
                   ],
                   ordered: true,
                   (error) =>
-                    @market.removeAllListeners()
+                    @currencyMarket.removeAllListeners()
                     done error
 
-                @market.on 'trade', (trade) ->
+                @currencyMarket.on 'trade', (trade) ->
                   checklist.check trade.left.currency
                   checklist.check trade.left.amount
                   checklist.check trade.left.price
@@ -1000,7 +1000,7 @@ describe 'Market', ->
                   checklist.check trade.right.price
                   checklist.check trade.right.account
 
-                @market.submit
+                @currencyMarket.submit
                   id: '2'
                   timestamp: '2'
                   account: 'Paul'
@@ -1008,14 +1008,14 @@ describe 'Market', ->
                   offerCurrency: 'BTC'
                   bidPrice: '0.25'
                   bidAmount: '500'
-                @market.orders['1'].bidAmount.compareTo(new Amount('100')).should.equal 0
-                expect(@market.orders['2']).to.not.be.ok
-                @market.accounts['Peter'].balances['EUR'].funds.compareTo(new Amount('1500')).should.equal 0
-                @market.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(new Amount('500')).should.equal 0
-                @market.accounts['Peter'].balances['BTC'].funds.compareTo(new Amount('100')).should.equal 0
-                @market.accounts['Paul'].balances['EUR'].funds.compareTo(new Amount('500')).should.equal 0
-                @market.accounts['Paul'].balances['BTC'].funds.compareTo(new Amount('300')).should.equal 0
-                @market.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
+                @currencyMarket.orders['1'].bidAmount.compareTo(new Amount('100')).should.equal 0
+                expect(@currencyMarket.orders['2']).to.not.be.ok
+                @currencyMarket.accounts['Peter'].balances['EUR'].funds.compareTo(new Amount('1500')).should.equal 0
+                @currencyMarket.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(new Amount('500')).should.equal 0
+                @currencyMarket.accounts['Peter'].balances['BTC'].funds.compareTo(new Amount('100')).should.equal 0
+                @currencyMarket.accounts['Paul'].balances['EUR'].funds.compareTo(new Amount('500')).should.equal 0
+                @currencyMarket.accounts['Paul'].balances['BTC'].funds.compareTo(new Amount('300')).should.equal 0
+                @currencyMarket.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
                 
             describe 'and the right order is bidding less than the left order is bidding multiplied by the right order price', ->
               it 'should trade the amount the right order is bidding at the right order price and emit a trade event', (done) ->
@@ -1031,10 +1031,10 @@ describe 'Market', ->
                   ],
                   ordered: true,
                   (error) =>
-                    @market.removeAllListeners()
+                    @currencyMarket.removeAllListeners()
                     done error
 
-                @market.on 'trade', (trade) ->
+                @currencyMarket.on 'trade', (trade) ->
                   checklist.check trade.left.currency
                   checklist.check trade.left.amount
                   checklist.check trade.left.price
@@ -1044,7 +1044,7 @@ describe 'Market', ->
                   checklist.check trade.right.price
                   checklist.check trade.right.account
 
-                @market.submit
+                @currencyMarket.submit
                   id: '2'
                   timestamp: '2'
                   account: 'Paul'
@@ -1052,30 +1052,30 @@ describe 'Market', ->
                   offerCurrency: 'BTC'
                   bidPrice: '0.25'
                   bidAmount: '1500'
-                expect(@market.orders['1']).to.not.be.ok
-                @market.orders['2'].bidAmount.compareTo(new Amount('500')).should.equal 0
-                @market.accounts['Peter'].balances['EUR'].funds.compareTo(new Amount('1000')).should.equal 0
-                @market.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
-                @market.accounts['Peter'].balances['BTC'].funds.compareTo(new Amount('200')).should.equal 0
-                @market.accounts['Paul'].balances['EUR'].funds.compareTo(new Amount('1000')).should.equal 0
-                @market.accounts['Paul'].balances['BTC'].funds.compareTo(new Amount('200')).should.equal 0
-                @market.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(new Amount('125')).should.equal 0
+                expect(@currencyMarket.orders['1']).to.not.be.ok
+                @currencyMarket.orders['2'].bidAmount.compareTo(new Amount('500')).should.equal 0
+                @currencyMarket.accounts['Peter'].balances['EUR'].funds.compareTo(new Amount('1000')).should.equal 0
+                @currencyMarket.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
+                @currencyMarket.accounts['Peter'].balances['BTC'].funds.compareTo(new Amount('200')).should.equal 0
+                @currencyMarket.accounts['Paul'].balances['EUR'].funds.compareTo(new Amount('1000')).should.equal 0
+                @currencyMarket.accounts['Paul'].balances['BTC'].funds.compareTo(new Amount('200')).should.equal 0
+                @currencyMarket.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(new Amount('125')).should.equal 0
     
     describe 'when multiple orders can be matched', ->
       beforeEach ->
-        @market.register
+        @currencyMarket.register
           id: 'Peter'
-        @market.register
+        @currencyMarket.register
           id: 'Paul'
-        @market.deposit
+        @currencyMarket.deposit
           account: 'Peter'
           currency: 'EUR'
           amount: '2000'
-        @market.deposit
+        @currencyMarket.deposit
           account: 'Paul'
           currency: 'BTC'
           amount: '1000'
-        @market.submit
+        @currencyMarket.submit
           id: '1'
           timestamp: '1'
           account: 'Peter'
@@ -1083,7 +1083,7 @@ describe 'Market', ->
           offerCurrency: 'EUR'
           offerPrice: '0.2'
           offerAmount: '500'
-        @market.submit
+        @currencyMarket.submit
           id: '2'
           timestamp: '2'
           account: 'Peter'
@@ -1091,7 +1091,7 @@ describe 'Market', ->
           offerCurrency: 'EUR'
           offerPrice: '0.25'
           offerAmount: '500'
-        @market.submit
+        @currencyMarket.submit
           id: '3'
           timestamp: '3'
           account: 'Peter'
@@ -1099,7 +1099,7 @@ describe 'Market', ->
           offerCurrency: 'EUR'
           offerPrice: '0.5'
           offerAmount: '500'
-        @market.submit
+        @currencyMarket.submit
           id: '4'
           timestamp: '4'
           account: 'Peter'
@@ -1138,10 +1138,10 @@ describe 'Market', ->
             ],
             ordered: true,
             (error) =>
-              @market.removeAllListeners()
+              @currencyMarket.removeAllListeners()
               done error
 
-          @market.on 'trade', (trade) ->
+          @currencyMarket.on 'trade', (trade) ->
             checklist.check trade.left.currency
             checklist.check trade.left.amount
             checklist.check trade.left.price
@@ -1151,7 +1151,7 @@ describe 'Market', ->
             checklist.check trade.right.price
             checklist.check trade.right.account
 
-          @market.submit
+          @currencyMarket.submit
             id: '5'
             timestamp: '5'
             account: 'Paul'
@@ -1159,17 +1159,17 @@ describe 'Market', ->
             offerCurrency: 'BTC'
             bidPrice: '0.5'
             bidAmount: '1250'
-          expect(@market.orders['1']).to.not.be.ok
-          expect(@market.orders['2']).to.not.be.ok
-          @market.orders['3'].offerAmount.compareTo(new Amount('250')).should.equal 0
-          @market.orders['4'].offerAmount.compareTo(new Amount('500')).should.equal 0
-          expect(@market.orders['5']).to.not.be.ok
-          @market.accounts['Peter'].balances['EUR'].funds.compareTo(new Amount('750')).should.equal 0
-          @market.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(new Amount('750')).should.equal 0
-          @market.accounts['Peter'].balances['BTC'].funds.compareTo(new Amount('350')).should.equal 0
-          @market.accounts['Paul'].balances['EUR'].funds.compareTo(new Amount('1250')).should.equal 0
-          @market.accounts['Paul'].balances['BTC'].funds.compareTo(new Amount('650')).should.equal 0
-          @market.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
+          expect(@currencyMarket.orders['1']).to.not.be.ok
+          expect(@currencyMarket.orders['2']).to.not.be.ok
+          @currencyMarket.orders['3'].offerAmount.compareTo(new Amount('250')).should.equal 0
+          @currencyMarket.orders['4'].offerAmount.compareTo(new Amount('500')).should.equal 0
+          expect(@currencyMarket.orders['5']).to.not.be.ok
+          @currencyMarket.accounts['Peter'].balances['EUR'].funds.compareTo(new Amount('750')).should.equal 0
+          @currencyMarket.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(new Amount('750')).should.equal 0
+          @currencyMarket.accounts['Peter'].balances['BTC'].funds.compareTo(new Amount('350')).should.equal 0
+          @currencyMarket.accounts['Paul'].balances['EUR'].funds.compareTo(new Amount('1250')).should.equal 0
+          @currencyMarket.accounts['Paul'].balances['BTC'].funds.compareTo(new Amount('650')).should.equal 0
+          @currencyMarket.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
 
       describe 'and the last order can not be completely satisfied', ->    
         it 'should correctly execute as many orders as it can and emit trade events', (done) ->
@@ -1201,10 +1201,10 @@ describe 'Market', ->
             ],
             ordered: true,
             (error) =>
-              @market.removeAllListeners()
+              @currencyMarket.removeAllListeners()
               done error
 
-          @market.on 'trade', (trade) ->
+          @currencyMarket.on 'trade', (trade) ->
             checklist.check trade.left.currency
             checklist.check trade.left.amount
             checklist.check trade.left.price
@@ -1214,7 +1214,7 @@ describe 'Market', ->
             checklist.check trade.right.price
             checklist.check trade.right.account
 
-          @market.submit
+          @currencyMarket.submit
             id: '5'
             timestamp: '5'
             account: 'Paul'
@@ -1222,21 +1222,21 @@ describe 'Market', ->
             offerCurrency: 'BTC'
             bidPrice: '0.5'
             bidAmount: '1750'
-          expect(@market.orders['1']).to.not.be.ok
-          expect(@market.orders['2']).to.not.be.ok
-          expect(@market.orders['3']).to.not.be.ok
-          @market.orders['4'].offerAmount.compareTo(new Amount('500')).should.equal 0
-          @market.orders['5'].bidAmount.compareTo(new Amount('250')).should.equal 0
-          @market.accounts['Peter'].balances['EUR'].funds.compareTo(new Amount('500')).should.equal 0
-          @market.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(new Amount('500')).should.equal 0
-          @market.accounts['Peter'].balances['BTC'].funds.compareTo(new Amount('475')).should.equal 0
-          @market.accounts['Paul'].balances['EUR'].funds.compareTo(new Amount('1500')).should.equal 0
-          @market.accounts['Paul'].balances['BTC'].funds.compareTo(new Amount('525')).should.equal 0
-          @market.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(new Amount('125')).should.equal 0
+          expect(@currencyMarket.orders['1']).to.not.be.ok
+          expect(@currencyMarket.orders['2']).to.not.be.ok
+          expect(@currencyMarket.orders['3']).to.not.be.ok
+          @currencyMarket.orders['4'].offerAmount.compareTo(new Amount('500')).should.equal 0
+          @currencyMarket.orders['5'].bidAmount.compareTo(new Amount('250')).should.equal 0
+          @currencyMarket.accounts['Peter'].balances['EUR'].funds.compareTo(new Amount('500')).should.equal 0
+          @currencyMarket.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(new Amount('500')).should.equal 0
+          @currencyMarket.accounts['Peter'].balances['BTC'].funds.compareTo(new Amount('475')).should.equal 0
+          @currencyMarket.accounts['Paul'].balances['EUR'].funds.compareTo(new Amount('1500')).should.equal 0
+          @currencyMarket.accounts['Paul'].balances['BTC'].funds.compareTo(new Amount('525')).should.equal 0
+          @currencyMarket.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(new Amount('125')).should.equal 0
               
     it 'should throw an error if the account does not exist', ->
       expect =>
-        @market.submit
+        @currencyMarket.submit
           id: '123456789'
           timestamp: '987654321'
           account: 'Peter'
@@ -1247,10 +1247,10 @@ describe 'Market', ->
       .to.throw('Account does not exist')
 
     it 'should throw an error if the offer currency is not supported', ->
-      @market.register
+      @currencyMarket.register
         id: 'Peter'
       expect =>
-        @market.submit
+        @currencyMarket.submit
           id: '123456789'
           timestamp: '987654321'
           account: 'Peter'
@@ -1261,10 +1261,10 @@ describe 'Market', ->
       .to.throw('Offer currency is not supported')
 
     it 'should throw an error if the bid currency is not supported', ->
-      @market.register
+      @currencyMarket.register
         id: 'Peter'
       expect =>
-        @market.submit
+        @currencyMarket.submit
           id: '123456789'
           timestamp: '987654321'
           account: 'Peter'
@@ -1276,14 +1276,14 @@ describe 'Market', ->
 
   describe '#cancel', ->
     it 'should unlock the correct funds in the correct account', ->
-      @market.register
+      @currencyMarket.register
         id: 'Peter'
-      account = @market.accounts['Peter']
-      @market.deposit
+      account = @currencyMarket.accounts['Peter']
+      @currencyMarket.deposit
         account: 'Peter'
         currency: 'EUR'
         amount: '200'
-      @market.submit
+      @currencyMarket.submit
         id: '123456789'
         timestamp: '987654321'
         account: 'Peter'
@@ -1291,7 +1291,7 @@ describe 'Market', ->
         offerCurrency: 'EUR'
         offerPrice: '100'
         offerAmount: '50'        
-      @market.submit
+      @currencyMarket.submit
         id: '123456790'
         timestamp: '987654322'
         account: 'Peter'
@@ -1300,7 +1300,7 @@ describe 'Market', ->
         offerPrice: '100'
         offerAmount: '100'        
       account.balances['EUR'].lockedFunds.compareTo(new Amount('150')).should.equal(0)
-      @market.cancel
+      @currencyMarket.cancel
         id: '123456789'
         timestamp: '987654321'
         account: 'Peter'
@@ -1322,10 +1322,10 @@ describe 'Market', ->
         ],
         ordered: true,
         (error) =>
-          @market.removeAllListeners()
+          @currencyMarket.removeAllListeners()
           done error
 
-      @market.on 'cancellation', (order) ->
+      @currencyMarket.on 'cancellation', (order) ->
         checklist.check order.id
         checklist.check order.timestamp
         checklist.check order.account
@@ -1334,13 +1334,13 @@ describe 'Market', ->
         checklist.check order.offerPrice.toString()
         checklist.check order.offerAmount.toString()
 
-      @market.register
+      @currencyMarket.register
         id: 'Peter'
-      @market.deposit
+      @currencyMarket.deposit
         account: 'Peter'
         currency: 'EUR'
         amount: '200'
-      @market.submit
+      @currencyMarket.submit
         id: '123456789'
         timestamp: '987654321'
         account: 'Peter'
@@ -1348,7 +1348,7 @@ describe 'Market', ->
         offerCurrency: 'EUR'
         offerPrice: '100'
         offerAmount: '50'        
-      @market.cancel
+      @currencyMarket.cancel
         id: '123456789'
         timestamp: '987654321'
         account: 'Peter'
@@ -1356,12 +1356,12 @@ describe 'Market', ->
         offerCurrency: 'EUR'
         offerPrice: '100'
         offerAmount: '50'
-      expect(@market.orders['123456789']).to.not.be.ok
-      expect(@market.books['BTC']['EUR'].highest).to.not.be.ok
+      expect(@currencyMarket.orders['123456789']).to.not.be.ok
+      expect(@currencyMarket.books['BTC']['EUR'].highest).to.not.be.ok
 
     it 'should throw an error if the order cannot be found', ->
       expect =>
-        @market.cancel
+        @currencyMarket.cancel
           id: '123456789'
           timestamp: '987654321'
           account: 'Peter'
@@ -1372,14 +1372,14 @@ describe 'Market', ->
       .to.throw('Order cannot be found')
 
     it 'should throw an error if the order does not match', ->
-      @market.register
+      @currencyMarket.register
         id: 'Peter'
-      account = @market.accounts['Peter']
-      @market.deposit
+      account = @currencyMarket.accounts['Peter']
+      @currencyMarket.deposit
         account: 'Peter'
         currency: 'EUR'
         amount: '200'
-      @market.submit
+      @currencyMarket.submit
         id: '123456789'
         timestamp: '987654321'
         account: 'Peter'
@@ -1388,7 +1388,7 @@ describe 'Market', ->
         offerPrice: '100'
         offerAmount: '50'        
       expect =>
-        @market.cancel
+        @currencyMarket.cancel
           id: '123456789'
           timestamp: '987654321'
           account: 'Peter'

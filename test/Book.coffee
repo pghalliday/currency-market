@@ -1,10 +1,10 @@
-Book = require('../../src/Market/Book')
 chai = require 'chai'
 chai.should()
 expect = chai.expect
 assert = chai.assert
 
-Order = require('../../src/Market/Order')
+Book = require('../src/Book')
+Order = require('../src/Order')
 
 newOrder = (id, price) ->
   new Order

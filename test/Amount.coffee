@@ -3,7 +3,7 @@ chai.should()
 expect = chai.expect
 assert = chai.assert
 
-Amount = require('../../src/Market/Amount')
+Amount = require('../src/Amount')
 
 describe 'Amount', ->
   it 'cannot be initialized from Javascript Numbers as they are inherently innacurate', ->

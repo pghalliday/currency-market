@@ -3,8 +3,8 @@ chai.should()
 expect = chai.expect
 assert = chai.assert
 
-Account = require('../../../src/Market/Account/Account')
-Balance = require('../../../src/Market/Account/Balance')
+Account = require('../src/Account')
+Balance = require('../src/Balance')
 
 describe 'Account', ->
   it 'should instantiate with a collection of balances matching the supported currencies', ->
