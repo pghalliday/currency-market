@@ -23,7 +23,7 @@ describe 'Market', ->
     market.books['EUR']['USD'].should.be.an.instanceOf(Book)
 
   describe '#register', ->
-    it 'should add an account to the market with the supported currencies and emit an account event', (done) ->
+    it 'should submit an account to the market with the supported currencies and emit an account event', (done) ->
       market = new Market(['EUR', 'USD', 'BTC'])
       checklist = new Checklist [
           'name'
@@ -149,7 +149,7 @@ describe 'Market', ->
           amount: '50'
       .to.throw('Currency is not supported')
 
-  describe '#add', ->
+  describe '#submit', ->
     it 'should lock the correct funds in the correct account', ->
       market = new Market(['EUR', 'USD', 'BTC'])
       market.register('name')
@@ -158,7 +158,7 @@ describe 'Market', ->
         account: 'name'
         currency: 'EUR'
         amount: '200'
-      market.add
+      market.submit
         id: '123456789'
         timestamp: '987654321'
         account: 'name'
@@ -166,7 +166,7 @@ describe 'Market', ->
         offerCurrency: 'EUR'
         offerPrice: '100'
         offerAmount: '50'        
-      market.add
+      market.submit
         id: '123456790'
         timestamp: '987654322'
         account: 'name'
@@ -176,7 +176,7 @@ describe 'Market', ->
         offerAmount: '100'        
       account.balances['EUR'].lockedFunds.compareTo(new Amount('150')).should.equal(0)
 
-    it 'should record an order, add it to the correct book and emit an order event', (done) ->
+    it 'should record an order, submit it to the correct book and emit an order event', (done) ->
       market = new Market(['EUR', 'USD', 'BTC'])
       checklist = new Checklist [
           '123456789'
@@ -206,7 +206,7 @@ describe 'Market', ->
         account: 'name'
         currency: 'EUR'
         amount: '200'
-      market.add
+      market.submit
         id: '123456789'
         timestamp: '987654321'
         account: 'name'
@@ -233,7 +233,7 @@ describe 'Market', ->
 
       describe 'where the existing (right) order is an offer', ->
         beforeEach ->
-          @market.add
+          @market.submit
             id: '1'
             timestamp: '1'
             account: 'Peter'
@@ -271,7 +271,7 @@ describe 'Market', ->
                     checklist.check trade.right.price
                     checklist.check trade.right.account
 
-                  @market.add
+                  @market.submit
                     id: '2'
                     timestamp: '2'
                     account: 'Paul'
@@ -315,7 +315,7 @@ describe 'Market', ->
                     checklist.check trade.right.price
                     checklist.check trade.right.account
 
-                  @market.add
+                  @market.submit
                     id: '2'
                     timestamp: '2'
                     account: 'Paul'
@@ -359,7 +359,7 @@ describe 'Market', ->
                     checklist.check trade.right.price
                     checklist.check trade.right.account
 
-                  @market.add
+                  @market.submit
                     id: '2'
                     timestamp: '2'
                     account: 'Paul'
@@ -404,7 +404,7 @@ describe 'Market', ->
                     checklist.check trade.right.price
                     checklist.check trade.right.account
 
-                  @market.add
+                  @market.submit
                     id: '2'
                     timestamp: '2'
                     account: 'Paul'
@@ -448,7 +448,7 @@ describe 'Market', ->
                     checklist.check trade.right.price
                     checklist.check trade.right.account
 
-                  @market.add
+                  @market.submit
                     id: '2'
                     timestamp: '2'
                     account: 'Paul'
@@ -492,7 +492,7 @@ describe 'Market', ->
                     checklist.check trade.right.price
                     checklist.check trade.right.account
 
-                  @market.add
+                  @market.submit
                     id: '2'
                     timestamp: '2'
                     account: 'Paul'
@@ -538,7 +538,7 @@ describe 'Market', ->
                   checklist.check trade.right.price
                   checklist.check trade.right.account
 
-                @market.add
+                @market.submit
                   id: '2'
                   timestamp: '2'
                   account: 'Paul'
@@ -582,7 +582,7 @@ describe 'Market', ->
                   checklist.check trade.right.price
                   checklist.check trade.right.account
 
-                @market.add
+                @market.submit
                   id: '2'
                   timestamp: '2'
                   account: 'Paul'
@@ -626,7 +626,7 @@ describe 'Market', ->
                   checklist.check trade.right.price
                   checklist.check trade.right.account
 
-                @market.add
+                @market.submit
                   id: '2'
                   timestamp: '2'
                   account: 'Paul'
@@ -671,7 +671,7 @@ describe 'Market', ->
                   checklist.check trade.right.price
                   checklist.check trade.right.account
 
-                @market.add
+                @market.submit
                   id: '2'
                   timestamp: '2'
                   account: 'Paul'
@@ -715,7 +715,7 @@ describe 'Market', ->
                   checklist.check trade.right.price
                   checklist.check trade.right.account
 
-                @market.add
+                @market.submit
                   id: '2'
                   timestamp: '2'
                   account: 'Paul'
@@ -759,7 +759,7 @@ describe 'Market', ->
                   checklist.check trade.right.price
                   checklist.check trade.right.account
 
-                @market.add
+                @market.submit
                   id: '2'
                   timestamp: '2'
                   account: 'Paul'
@@ -778,7 +778,7 @@ describe 'Market', ->
               
       describe 'where the existing (right) order is a bid', ->
         beforeEach ->
-          @market.add
+          @market.submit
             id: '1'
             timestamp: '1'
             account: 'Peter'
@@ -816,7 +816,7 @@ describe 'Market', ->
                   checklist.check trade.right.price
                   checklist.check trade.right.account
 
-                @market.add
+                @market.submit
                   id: '2'
                   timestamp: '2'
                   account: 'Paul'
@@ -860,7 +860,7 @@ describe 'Market', ->
                   checklist.check trade.right.price
                   checklist.check trade.right.account
 
-                @market.add
+                @market.submit
                   id: '2'
                   timestamp: '2'
                   account: 'Paul'
@@ -904,7 +904,7 @@ describe 'Market', ->
                   checklist.check trade.right.price
                   checklist.check trade.right.account
 
-                @market.add
+                @market.submit
                   id: '2'
                   timestamp: '2'
                   account: 'Paul'
@@ -949,7 +949,7 @@ describe 'Market', ->
                   checklist.check trade.right.price
                   checklist.check trade.right.account
 
-                @market.add
+                @market.submit
                   id: '2'
                   timestamp: '2'
                   account: 'Paul'
@@ -993,7 +993,7 @@ describe 'Market', ->
                   checklist.check trade.right.price
                   checklist.check trade.right.account
 
-                @market.add
+                @market.submit
                   id: '2'
                   timestamp: '2'
                   account: 'Paul'
@@ -1037,7 +1037,7 @@ describe 'Market', ->
                   checklist.check trade.right.price
                   checklist.check trade.right.account
 
-                @market.add
+                @market.submit
                   id: '2'
                   timestamp: '2'
                   account: 'Paul'
@@ -1067,7 +1067,7 @@ describe 'Market', ->
           account: 'Paul'
           currency: 'BTC'
           amount: '1000'
-        @market.add
+        @market.submit
           id: '1'
           timestamp: '1'
           account: 'Peter'
@@ -1075,7 +1075,7 @@ describe 'Market', ->
           offerCurrency: 'EUR'
           offerPrice: '0.2'
           offerAmount: '500'
-        @market.add
+        @market.submit
           id: '2'
           timestamp: '2'
           account: 'Peter'
@@ -1083,7 +1083,7 @@ describe 'Market', ->
           offerCurrency: 'EUR'
           offerPrice: '0.25'
           offerAmount: '500'
-        @market.add
+        @market.submit
           id: '3'
           timestamp: '3'
           account: 'Peter'
@@ -1091,7 +1091,7 @@ describe 'Market', ->
           offerCurrency: 'EUR'
           offerPrice: '0.5'
           offerAmount: '500'
-        @market.add
+        @market.submit
           id: '4'
           timestamp: '4'
           account: 'Peter'
@@ -1143,7 +1143,7 @@ describe 'Market', ->
             checklist.check trade.right.price
             checklist.check trade.right.account
 
-          @market.add
+          @market.submit
             id: '5'
             timestamp: '5'
             account: 'Paul'
@@ -1206,7 +1206,7 @@ describe 'Market', ->
             checklist.check trade.right.price
             checklist.check trade.right.account
 
-          @market.add
+          @market.submit
             id: '5'
             timestamp: '5'
             account: 'Paul'
@@ -1229,7 +1229,7 @@ describe 'Market', ->
     it 'should throw an error if the account does not exist', ->
       market = new Market(['EUR', 'USD', 'BTC'])
       expect ->
-        market.add
+        market.submit
           id: '123456789'
           timestamp: '987654321'
           account: 'name'
@@ -1243,7 +1243,7 @@ describe 'Market', ->
       market = new Market(['EUR', 'USD', 'BTC'])
       market.register('name')
       expect ->
-        market.add
+        market.submit
           id: '123456789'
           timestamp: '987654321'
           account: 'name'
@@ -1257,7 +1257,7 @@ describe 'Market', ->
       market = new Market(['EUR', 'USD', 'BTC'])
       market.register('name')
       expect ->
-        market.add
+        market.submit
           id: '123456789'
           timestamp: '987654321'
           account: 'name'
@@ -1267,7 +1267,7 @@ describe 'Market', ->
           offerAmount: '50'        
       .to.throw('Bid currency is not supported')
 
-  describe '#delete', ->
+  describe '#cancel', ->
     it 'should unlock the correct funds in the correct account', ->
       market = new Market(['EUR', 'USD', 'BTC'])
       market.register('name')
@@ -1276,7 +1276,7 @@ describe 'Market', ->
         account: 'name'
         currency: 'EUR'
         amount: '200'
-      market.add
+      market.submit
         id: '123456789'
         timestamp: '987654321'
         account: 'name'
@@ -1284,7 +1284,7 @@ describe 'Market', ->
         offerCurrency: 'EUR'
         offerPrice: '100'
         offerAmount: '50'        
-      market.add
+      market.submit
         id: '123456790'
         timestamp: '987654322'
         account: 'name'
@@ -1293,7 +1293,7 @@ describe 'Market', ->
         offerPrice: '100'
         offerAmount: '100'        
       account.balances['EUR'].lockedFunds.compareTo(new Amount('150')).should.equal(0)
-      market.delete
+      market.cancel
         id: '123456789'
         timestamp: '987654321'
         account: 'name'
@@ -1333,7 +1333,7 @@ describe 'Market', ->
         account: 'name'
         currency: 'EUR'
         amount: '200'
-      market.add
+      market.submit
         id: '123456789'
         timestamp: '987654321'
         account: 'name'
@@ -1341,7 +1341,7 @@ describe 'Market', ->
         offerCurrency: 'EUR'
         offerPrice: '100'
         offerAmount: '50'        
-      market.delete
+      market.cancel
         id: '123456789'
         timestamp: '987654321'
         account: 'name'
@@ -1355,7 +1355,7 @@ describe 'Market', ->
     it 'should throw an error if the order cannot be found', ->
       market = new Market(['EUR', 'USD', 'BTC'])
       expect ->
-        market.delete
+        market.cancel
           id: '123456789'
           timestamp: '987654321'
           account: 'name'
@@ -1373,7 +1373,7 @@ describe 'Market', ->
         account: 'name'
         currency: 'EUR'
         amount: '200'
-      market.add
+      market.submit
         id: '123456789'
         timestamp: '987654321'
         account: 'name'
@@ -1382,7 +1382,7 @@ describe 'Market', ->
         offerPrice: '100'
         offerAmount: '50'        
       expect ->
-        market.delete
+        market.cancel
           id: '123456789'
           timestamp: '987654321'
           account: 'name'

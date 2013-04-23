@@ -47,7 +47,7 @@ module.exports = class Market extends EventEmitter
         balance.withdraw(new Amount(withdrawal.amount))
         @emit 'withdrawal', withdrawal
 
-  add: (params) =>
+  submit: (params) =>
     order = new Order(params)
     account = @accounts[order.account]
     if typeof account == 'undefined'
@@ -152,7 +152,7 @@ module.exports = class Market extends EventEmitter
               price: rightOrder.bidPrice.toString()
               account: rightOrder.account
 
-  delete: (params) =>
+  cancel: (params) =>
     match = new Order(params)
     order = @orders[match.id]
     if typeof order == 'undefined'
