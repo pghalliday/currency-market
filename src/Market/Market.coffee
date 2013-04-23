@@ -15,7 +15,7 @@ module.exports = class Market extends EventEmitter
         if bidCurrency != orderCurrency
           @books[bidCurrency][orderCurrency] = new Book()
 
-  addAccount: (name) =>
+  register: (name) =>
     if @accounts[name]
       throw new Error('Account already exists')
     else

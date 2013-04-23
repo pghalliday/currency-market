@@ -22,7 +22,7 @@ describe 'Market', ->
     market.books['USD']['EUR'].should.be.an.instanceOf(Book)
     market.books['EUR']['USD'].should.be.an.instanceOf(Book)
 
-  describe '#addAccount', ->
+  describe '#register', ->
     it 'should add an account to the market with the supported currencies and emit an account event', (done) ->
       market = new Market(['EUR', 'USD', 'BTC'])
       checklist = new Checklist [
@@ -36,7 +36,7 @@ describe 'Market', ->
       market.on 'account', (account) ->
         checklist.check account.name
 
-      market.addAccount('name')
+      market.register('name')
       account = market.accounts['name']
       account.should.be.an.instanceOf(Account)
       account.balances['EUR'].should.be.an.instanceOf(Balance)
@@ -45,9 +45,9 @@ describe 'Market', ->
 
     it 'should throw an error if the account already exists', ->
       market = new Market(['EUR', 'USD', 'BTC'])
-      market.addAccount('name')
+      market.register('name')
       expect ->
-        market.addAccount('name')
+        market.register('name')
       .to.throw('Account already exists')
 
   describe '#deposit', ->
@@ -68,7 +68,7 @@ describe 'Market', ->
         checklist.check deposit.currency
         checklist.check deposit.amount
 
-      market.addAccount('name')
+      market.register('name')
       account = market.accounts['name']
       account.balances['EUR'].funds.compareTo(Amount.ZERO).should.equal(0)
       account.balances['USD'].funds.compareTo(Amount.ZERO).should.equal(0)
@@ -92,7 +92,7 @@ describe 'Market', ->
 
     it 'should throw an error if the currency is not supported', ->
       market = new Market(['EUR', 'USD', 'BTC'])
-      market.addAccount('name')
+      market.register('name')
       expect ->
         market.deposit
           account: 'name'
@@ -118,7 +118,7 @@ describe 'Market', ->
         checklist.check withdrawal.currency
         checklist.check withdrawal.amount
 
-      market.addAccount('name')
+      market.register('name')
       account = market.accounts['name']
       market.deposit
         account: 'name'
@@ -141,7 +141,7 @@ describe 'Market', ->
 
     it 'should throw an error if the currency is not supported', ->
       market = new Market(['EUR', 'USD', 'BTC'])
-      market.addAccount('name')
+      market.register('name')
       expect ->
         market.withdraw
           account: 'name'
@@ -152,7 +152,7 @@ describe 'Market', ->
   describe '#add', ->
     it 'should lock the correct funds in the correct account', ->
       market = new Market(['EUR', 'USD', 'BTC'])
-      market.addAccount('name')
+      market.register('name')
       account = market.accounts['name']
       market.deposit
         account: 'name'
@@ -201,7 +201,7 @@ describe 'Market', ->
         checklist.check order.offerPrice
         checklist.check order.offerAmount
 
-      market.addAccount('name')
+      market.register('name')
       market.deposit
         account: 'name'
         currency: 'EUR'
@@ -220,8 +220,8 @@ describe 'Market', ->
     describe 'while executing orders', ->
       beforeEach ->
         @market = new Market(['EUR', 'USD', 'BTC'])
-        @market.addAccount('Peter')
-        @market.addAccount('Paul')
+        @market.register('Peter')
+        @market.register('Paul')
         @market.deposit
           account: 'Peter'
           currency: 'EUR'
@@ -1057,8 +1057,8 @@ describe 'Market', ->
     describe 'when multiple orders can be matched', ->
       beforeEach ->
         @market = new Market(['EUR', 'USD', 'BTC'])
-        @market.addAccount('Peter')
-        @market.addAccount('Paul')
+        @market.register('Peter')
+        @market.register('Paul')
         @market.deposit
           account: 'Peter'
           currency: 'EUR'
@@ -1241,7 +1241,7 @@ describe 'Market', ->
 
     it 'should throw an error if the offer currency is not supported', ->
       market = new Market(['EUR', 'USD', 'BTC'])
-      market.addAccount('name')
+      market.register('name')
       expect ->
         market.add
           id: '123456789'
@@ -1255,7 +1255,7 @@ describe 'Market', ->
 
     it 'should throw an error if the bid currency is not supported', ->
       market = new Market(['EUR', 'USD', 'BTC'])
-      market.addAccount('name')
+      market.register('name')
       expect ->
         market.add
           id: '123456789'
@@ -1270,7 +1270,7 @@ describe 'Market', ->
   describe '#delete', ->
     it 'should unlock the correct funds in the correct account', ->
       market = new Market(['EUR', 'USD', 'BTC'])
-      market.addAccount('name')
+      market.register('name')
       account = market.accounts['name']
       market.deposit
         account: 'name'
@@ -1328,7 +1328,7 @@ describe 'Market', ->
         checklist.check order.offerPrice
         checklist.check order.offerAmount
 
-      market.addAccount('name')
+      market.register('name')
       market.deposit
         account: 'name'
         currency: 'EUR'
@@ -1367,7 +1367,7 @@ describe 'Market', ->
 
     it 'should throw an error if the order does not match', ->
       market = new Market(['EUR', 'USD', 'BTC'])
-      market.addAccount('name')
+      market.register('name')
       account = market.accounts['name']
       market.deposit
         account: 'name'

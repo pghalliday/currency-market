@@ -14,7 +14,6 @@ Implemented:
 
 TODO:
 
-* should emit events when trades are made and/or the order book changes
 * should implement instant orders (execute or cancel)
 * should implement simple commission
 * should implement pluggable commission schemes
