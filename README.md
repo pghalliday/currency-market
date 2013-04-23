@@ -7,8 +7,8 @@ Implemented:
 
 The following functions complete synchronously and throw errors if they fail (ie. you don't have to wait for the events to know if they completed successfully)
 
-* new Market(currencies) - constructor accepts array list of supported currencies
-* market.addAccount(name) - add a new account using a unique name
+* new Market(currencies) - constructor accepts an array of supported currencies
+* market.register(name) - add a new account using a unique name
 * market.deposit(deposit) - deposit funds to an account
 * market.withdraw(withdrawal) - withdraw funds from an account
 * market.add(order) - add a limit order to the market (trades will be executed where possible)
