@@ -1,7 +1,7 @@
-SimpleOrderBook
-===============
+market-engine
+=============
 
-A simple node implementation of a Limit Order Book and Balances
+A synchronous implementation of a limit order based market
 
 Implemented:
 

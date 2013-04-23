@@ -1,8 +1,8 @@
 {
-  "name": "SimpleOrderBook",
-  "description": "A simple node implementation of a Limit Order Book and Balnaces",
+  "name": "market-engine",
+  "description": "A synchronous implementation of a limit order based market",
   "version": "1.0.0",
-  "homepage": "https://github.com/pghalliday/SimpleOrderBook",
+  "homepage": "https://github.com/pghalliday/market-engine",
   "author": {
     "name": "Peter Halliday",
     "email": "pghalliday@gmail.com",
@@ -10,15 +10,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/pghalliday/SimpleOrderBook.git"
+    "url": "git://github.com/pghalliday/market-engine.git"
   },
   "bugs": {
-    "url": "https://github.com/pghalliday/SimpleOrderBook/issues"
+    "url": "https://github.com/pghalliday/market-engine/issues"
   },
   "licenses": [
     {
       "type": "MIT",
-      "url": "https://github.com/pghalliday/SimpleOrderBook/blob/master/LICENSE-MIT"
+      "url": "https://github.com/pghalliday/market-engine/blob/master/LICENSE-MIT"
     }
   ],
   "main": "src/",
