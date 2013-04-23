@@ -1,8 +1,9 @@
 Balance = require('./Balance')
 
 module.exports = class Account
-  constructor: (currencies) ->
+  constructor: (params) ->
+    @id = params.id
     @balances = Object.create null
-    currencies.forEach (currency) =>
+    params.currencies.forEach (currency) =>
       @balances[currency] = new Balance()
 

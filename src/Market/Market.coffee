@@ -5,23 +5,25 @@ Amount = require('./Amount')
 EventEmitter = require('events').EventEmitter
 
 module.exports = class Market extends EventEmitter
-  constructor: (@currencies) ->
+  constructor: (params) ->
     @accounts = Object.create null
     @orders = Object.create null
     @books = Object.create null
+    @currencies = params.currencies
     @currencies.forEach (bidCurrency) =>
       @books[bidCurrency] = Object.create null
       @currencies.forEach (orderCurrency) =>
         if bidCurrency != orderCurrency
           @books[bidCurrency][orderCurrency] = new Book()
 
-  register: (name) =>
-    if @accounts[name]
+  register: (params) =>
+    if @accounts[params.id]
       throw new Error('Account already exists')
     else
-      @accounts[name] = new Account(@currencies)
-      @emit 'account',
-        name: name
+      @accounts[params.id] = new Account
+        id: params.id
+        currencies: @currencies
+      @emit 'account', @accounts[params.id]
 
   deposit: (deposit) =>
     account = @accounts[deposit.account]
@@ -66,7 +68,7 @@ module.exports = class Market extends EventEmitter
           book.add(order)
           @orders[order.id] = order
           # emit an order added event
-          @emit 'order', params
+          @emit 'order', order
           # check the books to see if any orders can be executed
           @execute(book, @books[order.offerCurrency][order.bidCurrency])
 

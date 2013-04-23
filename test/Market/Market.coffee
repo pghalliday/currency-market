@@ -11,70 +11,78 @@ Balance = require('../../src/Market/Account/Balance')
 Amount = require('../../src/Market/Amount')
 
 describe 'Market', ->
+  beforeEach ->
+    @market = new Market
+      currencies: [
+        'EUR'
+        'USD'
+        'BTC'
+      ]
+
   it 'should instantiate with a collection of accounts, orders and books matching the supported currencies', ->
-    market = new Market(['EUR', 'USD', 'BTC'])
-    Object.keys(market.accounts).should.be.empty
-    Object.keys(market.orders).should.be.empty
-    market.books['EUR']['BTC'].should.be.an.instanceOf(Book)
-    market.books['EUR']['USD'].should.be.an.instanceOf(Book)
-    market.books['USD']['EUR'].should.be.an.instanceOf(Book)
-    market.books['BTC']['EUR'].should.be.an.instanceOf(Book)
-    market.books['USD']['EUR'].should.be.an.instanceOf(Book)
-    market.books['EUR']['USD'].should.be.an.instanceOf(Book)
+    Object.keys(@market.accounts).should.be.empty
+    Object.keys(@market.orders).should.be.empty
+    @market.books['EUR']['BTC'].should.be.an.instanceOf(Book)
+    @market.books['EUR']['USD'].should.be.an.instanceOf(Book)
+    @market.books['USD']['EUR'].should.be.an.instanceOf(Book)
+    @market.books['BTC']['EUR'].should.be.an.instanceOf(Book)
+    @market.books['USD']['EUR'].should.be.an.instanceOf(Book)
+    @market.books['EUR']['USD'].should.be.an.instanceOf(Book)
 
   describe '#register', ->
     it 'should submit an account to the market with the supported currencies and emit an account event', (done) ->
-      market = new Market(['EUR', 'USD', 'BTC'])
       checklist = new Checklist [
-          'name'
+          'Peter'
         ],
         ordered: true,
         (error) =>
-          market.removeAllListeners()
+          @market.removeAllListeners()
           done error
 
-      market.on 'account', (account) ->
-        checklist.check account.name
+      @market.on 'account', (account) ->
+        checklist.check account.id
 
-      market.register('name')
-      account = market.accounts['name']
+      @market.register
+        id: 'Peter'
+      account = @market.accounts['Peter']
       account.should.be.an.instanceOf(Account)
       account.balances['EUR'].should.be.an.instanceOf(Balance)
       account.balances['USD'].should.be.an.instanceOf(Balance)
       account.balances['BTC'].should.be.an.instanceOf(Balance)
 
     it 'should throw an error if the account already exists', ->
-      market = new Market(['EUR', 'USD', 'BTC'])
-      market.register('name')
-      expect ->
-        market.register('name')
+      @market.register
+        id: 'Peter'
+      expect =>
+        @market.register
+          id: 'Peter'
       .to.throw('Account already exists')
 
   describe '#deposit', ->
     it 'should credit the correct account and currency and emit a deposit event', (done) ->
-      market = new Market(['EUR', 'USD', 'BTC'])
       checklist = new Checklist [
-          'name'
+          'Peter'
           'BTC'
           '50'
         ],
         ordered: true,
         (error) =>
-          market.removeAllListeners()
+          @market.removeAllListeners()
           done error
 
-      market.on 'deposit', (deposit) ->
+      @market.on 'deposit', (deposit) ->
         checklist.check deposit.account
         checklist.check deposit.currency
         checklist.check deposit.amount
 
-      market.register('name')
-      account = market.accounts['name']
+      @market.register
+        id: 'Peter'
+      account = @market.accounts['Peter']
       account.balances['EUR'].funds.compareTo(Amount.ZERO).should.equal(0)
       account.balances['USD'].funds.compareTo(Amount.ZERO).should.equal(0)
       account.balances['BTC'].funds.compareTo(Amount.ZERO).should.equal(0)
-      market.deposit
-        account: 'name'
+      @market.deposit
+        account: 'Peter'
         currency: 'BTC'
         amount: '50'
       account.balances['EUR'].funds.compareTo(Amount.ZERO).should.equal(0)
@@ -82,94 +90,92 @@ describe 'Market', ->
       account.balances['BTC'].funds.compareTo(new Amount('50')).should.equal(0)
 
     it 'should throw an error if the account does not exist', ->
-      market = new Market(['EUR', 'USD', 'BTC'])
-      expect ->
-        market.deposit
-          account: 'name',
+      expect =>
+        @market.deposit
+          account: 'Peter',
           currency: 'BTC',
           amount: '50'
       .to.throw('Account does not exist')
 
     it 'should throw an error if the currency is not supported', ->
-      market = new Market(['EUR', 'USD', 'BTC'])
-      market.register('name')
-      expect ->
-        market.deposit
-          account: 'name'
+      @market.register
+        id: 'Peter'
+      expect =>
+        @market.deposit
+          account: 'Peter'
           currency: 'CAD'
           amount: '50'
       .to.throw('Currency is not supported')
 
   describe '#withdraw', ->
     it 'should debit the correct account and currency and emit a withdrawal event', (done) ->
-      market = new Market(['EUR', 'USD', 'BTC'])
       checklist = new Checklist [
-          'name'
+          'Peter'
           'BTC'
           '50'
         ],
         ordered: true,
         (error) =>
-          market.removeAllListeners()
+          @market.removeAllListeners()
           done error
 
-      market.on 'withdrawal', (withdrawal) ->
+      @market.on 'withdrawal', (withdrawal) ->
         checklist.check withdrawal.account
         checklist.check withdrawal.currency
         checklist.check withdrawal.amount
 
-      market.register('name')
-      account = market.accounts['name']
-      market.deposit
-        account: 'name'
+      @market.register
+        id: 'Peter'
+      account = @market.accounts['Peter']
+      @market.deposit
+        account: 'Peter'
         currency: 'BTC'
         amount: '200'
-      market.withdraw
-        account: 'name'
+      @market.withdraw
+        account: 'Peter'
         currency: 'BTC'
         amount: '50'
       account.balances['BTC'].funds.compareTo(new Amount('150')).should.equal(0)
 
     it 'should throw an error if the account does not exist', ->
-      market = new Market(['EUR', 'USD', 'BTC'])
-      expect ->
-        market.withdraw
-          account: 'name'
+      expect =>
+        @market.withdraw
+          account: 'Peter'
           currency: 'BTC'
           amount: '50'
       .to.throw('Account does not exist')
 
     it 'should throw an error if the currency is not supported', ->
-      market = new Market(['EUR', 'USD', 'BTC'])
-      market.register('name')
-      expect ->
-        market.withdraw
-          account: 'name'
+      @market.register
+        id: 'Peter'
+      expect =>
+        @market.withdraw
+          account: 'Peter'
           currency: 'CAD'
           amount: '50'
       .to.throw('Currency is not supported')
 
   describe '#submit', ->
     it 'should lock the correct funds in the correct account', ->
-      market = new Market(['EUR', 'USD', 'BTC'])
-      market.register('name')
-      account = market.accounts['name']
-      market.deposit
-        account: 'name'
+      @market.register
+        id: 'Peter'
+      account = @market.accounts['Peter']
+      @market.deposit
+        account: 'Peter'
         currency: 'EUR'
         amount: '200'
-      market.submit
+      @market.submit
         id: '123456789'
         timestamp: '987654321'
-        account: 'name'
+        account: 'Peter'
         bidCurrency: 'BTC'
         offerCurrency: 'EUR'
         offerPrice: '100'
         offerAmount: '50'        
-      market.submit
+      @market.submit
         id: '123456790'
         timestamp: '987654322'
-        account: 'name'
+        account: 'Peter'
         bidCurrency: 'USD'
         offerCurrency: 'EUR'
         offerPrice: '100'
@@ -177,11 +183,10 @@ describe 'Market', ->
       account.balances['EUR'].lockedFunds.compareTo(new Amount('150')).should.equal(0)
 
     it 'should record an order, submit it to the correct book and emit an order event', (done) ->
-      market = new Market(['EUR', 'USD', 'BTC'])
       checklist = new Checklist [
           '123456789'
           '987654321'
-          'name'
+          'Peter'
           'BTC'
           'EUR'
           '100'
@@ -189,39 +194,41 @@ describe 'Market', ->
         ],
         ordered: true,
         (error) =>
-          market.removeAllListeners()
+          @market.removeAllListeners()
           done error
 
-      market.on 'order', (order) ->
+      @market.on 'order', (order) ->
         checklist.check order.id
         checklist.check order.timestamp
         checklist.check order.account
         checklist.check order.bidCurrency
         checklist.check order.offerCurrency
-        checklist.check order.offerPrice
-        checklist.check order.offerAmount
+        checklist.check order.offerPrice.toString()
+        checklist.check order.offerAmount.toString()
 
-      market.register('name')
-      market.deposit
-        account: 'name'
+      @market.register
+        id: 'Peter'
+      @market.deposit
+        account: 'Peter'
         currency: 'EUR'
         amount: '200'
-      market.submit
+      @market.submit
         id: '123456789'
         timestamp: '987654321'
-        account: 'name'
+        account: 'Peter'
         bidCurrency: 'BTC'
         offerCurrency: 'EUR'
         offerPrice: '100'
         offerAmount: '50'
-      market.orders['123456789'].should.be.ok
-      market.books['BTC']['EUR'].highest.id.should.equal('123456789')
+      @market.orders['123456789'].should.be.ok
+      @market.books['BTC']['EUR'].highest.id.should.equal('123456789')
 
     describe 'while executing orders', ->
       beforeEach ->
-        @market = new Market(['EUR', 'USD', 'BTC'])
-        @market.register('Peter')
-        @market.register('Paul')
+        @market.register
+          id: 'Peter'
+        @market.register
+          id: 'Paul'
         @market.deposit
           account: 'Peter'
           currency: 'EUR'
@@ -1056,9 +1063,10 @@ describe 'Market', ->
     
     describe 'when multiple orders can be matched', ->
       beforeEach ->
-        @market = new Market(['EUR', 'USD', 'BTC'])
-        @market.register('Peter')
-        @market.register('Paul')
+        @market.register
+          id: 'Peter'
+        @market.register
+          id: 'Paul'
         @market.deposit
           account: 'Peter'
           currency: 'EUR'
@@ -1227,12 +1235,11 @@ describe 'Market', ->
           @market.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(new Amount('125')).should.equal 0
               
     it 'should throw an error if the account does not exist', ->
-      market = new Market(['EUR', 'USD', 'BTC'])
-      expect ->
-        market.submit
+      expect =>
+        @market.submit
           id: '123456789'
           timestamp: '987654321'
-          account: 'name'
+          account: 'Peter'
           bidCurrency: 'BTC'
           offerCurrency: 'EUR'
           offerPrice: '100'
@@ -1240,13 +1247,13 @@ describe 'Market', ->
       .to.throw('Account does not exist')
 
     it 'should throw an error if the offer currency is not supported', ->
-      market = new Market(['EUR', 'USD', 'BTC'])
-      market.register('name')
-      expect ->
-        market.submit
+      @market.register
+        id: 'Peter'
+      expect =>
+        @market.submit
           id: '123456789'
           timestamp: '987654321'
-          account: 'name'
+          account: 'Peter'
           bidCurrency: 'BTC'
           offerCurrency: 'CAD'
           offerPrice: '100'
@@ -1254,13 +1261,13 @@ describe 'Market', ->
       .to.throw('Offer currency is not supported')
 
     it 'should throw an error if the bid currency is not supported', ->
-      market = new Market(['EUR', 'USD', 'BTC'])
-      market.register('name')
-      expect ->
-        market.submit
+      @market.register
+        id: 'Peter'
+      expect =>
+        @market.submit
           id: '123456789'
           timestamp: '987654321'
-          account: 'name'
+          account: 'Peter'
           bidCurrency: 'CAD'
           offerCurrency: 'EUR'
           offerPrice: '100'
@@ -1269,34 +1276,34 @@ describe 'Market', ->
 
   describe '#cancel', ->
     it 'should unlock the correct funds in the correct account', ->
-      market = new Market(['EUR', 'USD', 'BTC'])
-      market.register('name')
-      account = market.accounts['name']
-      market.deposit
-        account: 'name'
+      @market.register
+        id: 'Peter'
+      account = @market.accounts['Peter']
+      @market.deposit
+        account: 'Peter'
         currency: 'EUR'
         amount: '200'
-      market.submit
+      @market.submit
         id: '123456789'
         timestamp: '987654321'
-        account: 'name'
+        account: 'Peter'
         bidCurrency: 'BTC'
         offerCurrency: 'EUR'
         offerPrice: '100'
         offerAmount: '50'        
-      market.submit
+      @market.submit
         id: '123456790'
         timestamp: '987654322'
-        account: 'name'
+        account: 'Peter'
         bidCurrency: 'USD'
         offerCurrency: 'EUR'
         offerPrice: '100'
         offerAmount: '100'        
       account.balances['EUR'].lockedFunds.compareTo(new Amount('150')).should.equal(0)
-      market.cancel
+      @market.cancel
         id: '123456789'
         timestamp: '987654321'
-        account: 'name'
+        account: 'Peter'
         bidCurrency: 'BTC'
         offerCurrency: 'EUR'
         offerPrice: '100'
@@ -1304,11 +1311,10 @@ describe 'Market', ->
       account.balances['EUR'].lockedFunds.compareTo(new Amount('100')).should.equal(0)
 
     it 'should remove the order from the orders collection and from the correct book and emit an cancellation event', (done) ->
-      market = new Market(['EUR', 'USD', 'BTC'])
       checklist = new Checklist [
           '123456789'
           '987654321'
-          'name'
+          'Peter'
           'BTC'
           'EUR'
           '100'
@@ -1316,49 +1322,49 @@ describe 'Market', ->
         ],
         ordered: true,
         (error) =>
-          market.removeAllListeners()
+          @market.removeAllListeners()
           done error
 
-      market.on 'cancellation', (order) ->
+      @market.on 'cancellation', (order) ->
         checklist.check order.id
         checklist.check order.timestamp
         checklist.check order.account
         checklist.check order.bidCurrency
         checklist.check order.offerCurrency
-        checklist.check order.offerPrice
-        checklist.check order.offerAmount
+        checklist.check order.offerPrice.toString()
+        checklist.check order.offerAmount.toString()
 
-      market.register('name')
-      market.deposit
-        account: 'name'
+      @market.register
+        id: 'Peter'
+      @market.deposit
+        account: 'Peter'
         currency: 'EUR'
         amount: '200'
-      market.submit
+      @market.submit
         id: '123456789'
         timestamp: '987654321'
-        account: 'name'
+        account: 'Peter'
         bidCurrency: 'BTC'
         offerCurrency: 'EUR'
         offerPrice: '100'
         offerAmount: '50'        
-      market.cancel
+      @market.cancel
         id: '123456789'
         timestamp: '987654321'
-        account: 'name'
+        account: 'Peter'
         bidCurrency: 'BTC'
         offerCurrency: 'EUR'
         offerPrice: '100'
         offerAmount: '50'
-      expect(market.orders['123456789']).to.not.be.ok
-      expect(market.books['BTC']['EUR'].highest).to.not.be.ok
+      expect(@market.orders['123456789']).to.not.be.ok
+      expect(@market.books['BTC']['EUR'].highest).to.not.be.ok
 
     it 'should throw an error if the order cannot be found', ->
-      market = new Market(['EUR', 'USD', 'BTC'])
-      expect ->
-        market.cancel
+      expect =>
+        @market.cancel
           id: '123456789'
           timestamp: '987654321'
-          account: 'name'
+          account: 'Peter'
           bidCurrency: 'BTC'
           offerCurrency: 'EUR'
           offerPrice: '100'
@@ -1366,26 +1372,26 @@ describe 'Market', ->
       .to.throw('Order cannot be found')
 
     it 'should throw an error if the order does not match', ->
-      market = new Market(['EUR', 'USD', 'BTC'])
-      market.register('name')
-      account = market.accounts['name']
-      market.deposit
-        account: 'name'
+      @market.register
+        id: 'Peter'
+      account = @market.accounts['Peter']
+      @market.deposit
+        account: 'Peter'
         currency: 'EUR'
         amount: '200'
-      market.submit
+      @market.submit
         id: '123456789'
         timestamp: '987654321'
-        account: 'name'
+        account: 'Peter'
         bidCurrency: 'BTC'
         offerCurrency: 'EUR'
         offerPrice: '100'
         offerAmount: '50'        
-      expect ->
-        market.cancel
+      expect =>
+        @market.cancel
           id: '123456789'
           timestamp: '987654321'
-          account: 'name'
+          account: 'Peter'
           bidCurrency: 'BTC'
           offerCurrency: 'EUR'
           offerPrice: '100'
