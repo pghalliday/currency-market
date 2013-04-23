@@ -32,7 +32,6 @@ The following properties are intended for public use
 TODO:
 
 * should implement instant orders (execute or cancel)
+* should implement rounding policies
 * should implement simple commission
 * should implement pluggable commission schemes
-* should support punishment mode?
-  * enter orders on behalf of the exchange to fill the gap between bids that overshoot offers instead of executing at best prices for the later order
