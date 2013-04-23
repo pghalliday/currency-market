@@ -42,5 +42,11 @@
     "grunt-mocha-test": "~0.2.2",
     "grunt-contrib-clean": "~0.4.1"
   },
-  "keywords": []
+  "keywords": [
+    "currency",
+    "trading",
+    "limit order",
+    "synchronous",
+    "market"
+  ]
 }
