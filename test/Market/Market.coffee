@@ -23,8 +23,19 @@ describe 'Market', ->
     market.books['EUR']['USD'].should.be.an.instanceOf(Book)
 
   describe '#addAccount', ->
-    it 'should add an account to the market with the supported currencies', ->
+    it 'should add an account to the market with the supported currencies and emit an account event', (done) ->
       market = new Market(['EUR', 'USD', 'BTC'])
+      checklist = new Checklist [
+          'name'
+        ],
+        ordered: true,
+        (error) =>
+          market.removeAllListeners()
+          done error
+
+      market.on 'account', (account) ->
+        checklist.check account.name
+
       market.addAccount('name')
       account = market.accounts['name']
       account.should.be.an.instanceOf(Account)
@@ -40,8 +51,23 @@ describe 'Market', ->
       .to.throw('Account already exists')
 
   describe '#deposit', ->
-    it 'should credit the correct account and currency', ->
+    it 'should credit the correct account and currency and emit a deposit event', (done) ->
       market = new Market(['EUR', 'USD', 'BTC'])
+      checklist = new Checklist [
+          'name'
+          'BTC'
+          '50'
+        ],
+        ordered: true,
+        (error) =>
+          market.removeAllListeners()
+          done error
+
+      market.on 'deposit', (deposit) ->
+        checklist.check deposit.account
+        checklist.check deposit.currency
+        checklist.check deposit.amount
+
       market.addAccount('name')
       account = market.accounts['name']
       account.balances['EUR'].funds.compareTo(Amount.ZERO).should.equal(0)
@@ -75,8 +101,23 @@ describe 'Market', ->
       .to.throw('Currency is not supported')
 
   describe '#withdraw', ->
-    it 'should debit the correct account and currency', ->
+    it 'should debit the correct account and currency and emit a withdrawal event', (done) ->
       market = new Market(['EUR', 'USD', 'BTC'])
+      checklist = new Checklist [
+          'name'
+          'BTC'
+          '50'
+        ],
+        ordered: true,
+        (error) =>
+          market.removeAllListeners()
+          done error
+
+      market.on 'withdrawal', (withdrawal) ->
+        checklist.check withdrawal.account
+        checklist.check withdrawal.currency
+        checklist.check withdrawal.amount
+
       market.addAccount('name')
       account = market.accounts['name']
       market.deposit
@@ -1262,8 +1303,31 @@ describe 'Market', ->
         offerAmount: '50'        
       account.balances['EUR'].lockedFunds.compareTo(new Amount('100')).should.equal(0)
 
-    it 'should remove the order from the orders collection and from the correct book', ->
+    it 'should remove the order from the orders collection and from the correct book and emit an cancellation event', (done) ->
       market = new Market(['EUR', 'USD', 'BTC'])
+      checklist = new Checklist [
+          '123456789'
+          '987654321'
+          'name'
+          'BTC'
+          'EUR'
+          '100'
+          '50'
+        ],
+        ordered: true,
+        (error) =>
+          market.removeAllListeners()
+          done error
+
+      market.on 'cancellation', (order) ->
+        checklist.check order.id
+        checklist.check order.timestamp
+        checklist.check order.account
+        checklist.check order.bidCurrency
+        checklist.check order.offerCurrency
+        checklist.check order.offerPrice
+        checklist.check order.offerAmount
+
       market.addAccount('name')
       market.deposit
         account: 'name'

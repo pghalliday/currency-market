@@ -15,11 +15,13 @@ module.exports = class Market extends EventEmitter
         if bidCurrency != orderCurrency
           @books[bidCurrency][orderCurrency] = new Book()
 
-  addAccount: (name) ->
+  addAccount: (name) =>
     if @accounts[name]
       throw new Error('Account already exists')
     else
       @accounts[name] = new Account(@currencies)
+      @emit 'account',
+        name: name
 
   deposit: (deposit) =>
     account = @accounts[deposit.account]
@@ -31,6 +33,7 @@ module.exports = class Market extends EventEmitter
         throw new Error('Currency is not supported')
       else
         balance.deposit(new Amount(deposit.amount))
+        @emit 'deposit', deposit
 
   withdraw: (withdrawal) =>
     account = @accounts[withdrawal.account]
@@ -42,6 +45,7 @@ module.exports = class Market extends EventEmitter
         throw new Error('Currency is not supported')
       else
         balance.withdraw(new Amount(withdrawal.amount))
+        @emit 'withdrawal', withdrawal
 
   add: (params) =>
     order = new Order(params)
@@ -148,8 +152,8 @@ module.exports = class Market extends EventEmitter
               price: rightOrder.bidPrice.toString()
               account: rightOrder.account
 
-  delete: (order) =>
-    match = new Order(order)
+  delete: (params) =>
+    match = new Order(params)
     order = @orders[match.id]
     if typeof order == 'undefined'
       throw new Error('Order cannot be found')
@@ -158,5 +162,6 @@ module.exports = class Market extends EventEmitter
         delete @orders[order.id]
         @books[order.bidCurrency][order.offerCurrency].delete(order)
         @accounts[order.account].balances[order.offerCurrency].unlock(order.offerAmount)
+        @emit 'cancellation', params
       else
         throw new Error('Order does not match')
