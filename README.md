@@ -1,4 +1,4 @@
-currency-currencyMarket
+currency-market
 ===============
 
 A synchronous implementation of a limit order based currencyMarket
