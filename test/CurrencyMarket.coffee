@@ -1502,6 +1502,17 @@ describe 'CurrencyMarket', ->
           'EUR'
           '100'
           '50'
+          'undefined'
+          'undefined'
+          '123456790'
+          '987654322'
+          'Paul'
+          'EUR'
+          'BTC'
+          'undefined'
+          'undefined'
+          '99'
+          '50'
         ],
         ordered: true,
         (error) =>
@@ -1514,19 +1525,31 @@ describe 'CurrencyMarket', ->
         checklist.check order.account
         checklist.check order.bidCurrency
         checklist.check order.offerCurrency
-        checklist.check order.offerPrice.toString()
-        checklist.check order.offerAmount.toString()
+        checklist.check order.offerPrice + ''
+        checklist.check order.offerAmount + ''
+        checklist.check order.bidPrice + ''
+        checklist.check order.bidAmount + ''
 
       @currencyMarket.register
         id: '123456789'
         timestamp: '987654321'
         key: 'Peter'
+      @currencyMarket.register
+        id: '123456789'
+        timestamp: '987654321'
+        key: 'Paul'
       @currencyMarket.deposit
         id: '123456790'
         timestamp: '987654322'
         account: 'Peter'
         currency: 'EUR'
         amount: '200'
+      @currencyMarket.deposit
+        id: '123456790'
+        timestamp: '987654322'
+        account: 'Paul'
+        currency: 'BTC'
+        amount: '4950'
       @currencyMarket.submit
         id: '123456789'
         timestamp: '987654321'
@@ -1534,7 +1557,15 @@ describe 'CurrencyMarket', ->
         bidCurrency: 'BTC'
         offerCurrency: 'EUR'
         offerPrice: '100'
-        offerAmount: '50'        
+        offerAmount: '50'
+      @currencyMarket.submit
+        id: '123456790'
+        timestamp: '987654322'
+        account: 'Paul'
+        bidCurrency: 'EUR'
+        offerCurrency: 'BTC'
+        bidPrice: '99'
+        bidAmount: '50'
       @currencyMarket.cancel
         id: '123456789'
         timestamp: '987654321'
@@ -1545,6 +1576,16 @@ describe 'CurrencyMarket', ->
         offerAmount: '50'
       expect(@currencyMarket.orders['123456789']).to.not.be.ok
       expect(@currencyMarket.books['BTC']['EUR'].highest).to.not.be.ok
+      @currencyMarket.cancel
+        id: '123456790'
+        timestamp: '987654322'
+        account: 'Paul'
+        bidCurrency: 'EUR'
+        offerCurrency: 'BTC'
+        bidPrice: '99'
+        bidAmount: '50'
+      expect(@currencyMarket.orders['123456790']).to.not.be.ok
+      expect(@currencyMarket.books['EUR']['BTC'].highest).to.not.be.ok
 
     it 'should throw an error if the order cannot be found', ->
       expect =>
