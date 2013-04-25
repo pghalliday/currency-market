@@ -1,28 +1,4 @@
-currency-market
-===============
-
-A synchronous implementation of a limit order based currency market
-
-## Features
-
-- Supports an arbitrary list of currencies
-- Synchronously executes trades as orders are added
-- Emits events when changes are made to the market
-- Can export the state and initialise from an exported state
-
-## Installation
-
-```
-npm install currency-market
-```
-
-## API
-
-All functions complete synchronously and throw errors if they fail.
-Events are made available for monitoring changes in the market.
-
-```javascript
-var CurrencyMarket = require('currency-market');
+var CurrencyMarket = require('../');
 
 // instantiate a market
 var currencyMarket = new CurrencyMarket({
@@ -157,42 +133,4 @@ console.log(json);
 // initialise an identical market from the state
 var anotherCurrencyMarket = new CurrencyMarket({
   state: JSON.parse(json)
-});```
-
-## Roadmap
-
-- require transaction id and timestamp with every state changing operation
-  - register
-  - deposit
-  - withdraw
-  - submit
-  - cancel
-- record the last transaction id
-- state changed events should include the associated transaction ID and timestamp
-  - account
-  - deposit
-  - withdrawal
-  - order
-  - cancellation
-  - trade
-- Instant orders
-  - Fill or Kill limit orders
-  - Market orders
-- Pluggable commission schemes
-  - fixed rate
-  - calculated through callback
-- Pluggable rounding policies
-  - Amount factory required?
-  - Divide at last possible moment?
-
-## Contributing
-
-In lieu of a formal styleguide, take care to maintain the existing coding style. Add unit tests for any new or changed functionality.
-
-The CoffeeScript source is located in the `src/` directory and tests in the `test/` directory. Do not edit the contents of the `lib/` directory as this is compiled from the CoffeeScript source.
-
-Before commiting run `npm test` to perform a clean compile of the source and run the tests. This ensures that everything commited is up to date and tested and allows people to `npm install` directly from the git repository (useful for integrating development branches, etc).
-
-## License
-Copyright (c) 2013 Peter Halliday  
-Licensed under the MIT license.
+});
