@@ -56,6 +56,7 @@ module.exports = class CurrencyMarket extends EventEmitter
         key: params.key
         timestamp: params.timestamp
         currencies: @currencies
+      @lastTransaction = params.id
       @emit 'account', params
 
   deposit: (deposit) =>
@@ -74,6 +75,7 @@ module.exports = class CurrencyMarket extends EventEmitter
             throw new Error('Currency is not supported')
           else
             balance.deposit(new Amount(deposit.amount))
+            @lastTransaction = deposit.id
             @emit 'deposit', deposit
 
   withdraw: (withdrawal) =>
@@ -92,6 +94,7 @@ module.exports = class CurrencyMarket extends EventEmitter
             throw new Error('Currency is not supported')
           else
             balance.withdraw(new Amount(withdrawal.amount))
+            @lastTransaction = withdrawal.id
             @emit 'withdrawal', withdrawal
 
   submit: (params) =>
@@ -113,6 +116,7 @@ module.exports = class CurrencyMarket extends EventEmitter
           book.add(order)
           @orders[order.id] = order
           # emit an order added event
+          @lastTransaction = params.id
           @emit 'order', params
           # check the books to see if any orders can be executed
           @execute(book, @books[order.offerCurrency][order.bidCurrency])
@@ -200,7 +204,16 @@ module.exports = class CurrencyMarket extends EventEmitter
               account: rightOrder.account
 
   cancel: (params) =>
-    match = new Order(params)
+    match = new Order
+      id: params.orderId
+      timestamp: params.orderTimestamp
+      account: params.account
+      bidCurrency: params.bidCurrency
+      offerCurrency: params.offerCurrency
+      offerPrice: params.offerPrice
+      offerAmount: params.offerAmount
+      bidPrice: params.bidPrice
+      bidAmount: params.bidAmount
     order = @orders[match.id]
     if typeof order == 'undefined'
       throw new Error('Order cannot be found')
@@ -209,6 +222,7 @@ module.exports = class CurrencyMarket extends EventEmitter
         delete @orders[order.id]
         @books[order.bidCurrency][order.offerCurrency].delete(order)
         @accounts[order.account].balances[order.offerCurrency].unlock(order.offerAmount)
+        @lastTransaction = params.id
         @emit 'cancellation', params
       else
         throw new Error('Order does not match')

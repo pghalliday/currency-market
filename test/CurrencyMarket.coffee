@@ -64,6 +64,7 @@ describe 'CurrencyMarket', ->
         id: '123456789'
         timestamp: '987654321'
         key: 'Peter'
+      @currencyMarket.lastTransaction.should.equal '123456789'
       account = @currencyMarket.accounts['Peter']
       account.should.be.an.instanceOf(Account)
       account.balances['EUR'].should.be.an.instanceOf(Balance)
@@ -143,6 +144,7 @@ describe 'CurrencyMarket', ->
         account: 'Peter'
         currency: 'BTC'
         amount: '50'
+      @currencyMarket.lastTransaction.should.equal '123456790'
       account.balances['EUR'].funds.compareTo(Amount.ZERO).should.equal(0)
       account.balances['USD'].funds.compareTo(Amount.ZERO).should.equal(0)
       account.balances['BTC'].funds.compareTo(new Amount('50')).should.equal(0)
@@ -212,8 +214,8 @@ describe 'CurrencyMarket', ->
 
     it 'should debit the correct account and currency and emit a withdrawal event', (done) ->
       checklist = new Checklist [
-          '123456790'
-          '987654322'
+          '123456791'
+          '987654323'
           'Peter'
           'BTC'
           '50'
@@ -242,11 +244,12 @@ describe 'CurrencyMarket', ->
         currency: 'BTC'
         amount: '200'
       @currencyMarket.withdraw
-        id: '123456790'
-        timestamp: '987654322'
+        id: '123456791'
+        timestamp: '987654323'
         account: 'Peter'
         currency: 'BTC'
         amount: '50'
+      @currencyMarket.lastTransaction.should.equal '123456791'
       account.balances['BTC'].funds.compareTo(new Amount('150')).should.equal(0)
 
     it 'should throw an error if the account does not exist', ->
@@ -306,7 +309,7 @@ describe 'CurrencyMarket', ->
 
     it 'should record an order, submit it to the correct book and emit an order event', (done) ->
       checklist = new Checklist [
-          '123456789'
+          '123456793'
           '987654321'
           'Peter'
           'BTC'
@@ -315,7 +318,7 @@ describe 'CurrencyMarket', ->
           '50'
           'undefined'
           'undefined'
-          '123456790'
+          '123456794'
           '987654322'
           'Paul'
           'EUR'
@@ -346,41 +349,43 @@ describe 'CurrencyMarket', ->
         timestamp: '987654321'
         key: 'Peter'
       @currencyMarket.register
-        id: '123456789'
+        id: '123456790'
         timestamp: '987654321'
         key: 'Paul'
       @currencyMarket.deposit
-        id: '123456790'
+        id: '123456791'
         timestamp: '987654322'
         account: 'Peter'
         currency: 'EUR'
         amount: '200'
       @currencyMarket.deposit
-        id: '123456790'
+        id: '123456792'
         timestamp: '987654322'
         account: 'Paul'
         currency: 'BTC'
         amount: '4950'
       @currencyMarket.submit
-        id: '123456789'
+        id: '123456793'
         timestamp: '987654321'
         account: 'Peter'
         bidCurrency: 'BTC'
         offerCurrency: 'EUR'
         offerPrice: '100'
         offerAmount: '50'
-      @currencyMarket.orders['123456789'].should.be.ok
-      @currencyMarket.books['BTC']['EUR'].highest.id.should.equal('123456789')
+      @currencyMarket.lastTransaction.should.equal '123456793'
+      @currencyMarket.orders['123456793'].should.be.ok
+      @currencyMarket.books['BTC']['EUR'].highest.id.should.equal('123456793')
       @currencyMarket.submit
-        id: '123456790'
+        id: '123456794'
         timestamp: '987654322'
         account: 'Paul'
         bidCurrency: 'EUR'
         offerCurrency: 'BTC'
         bidPrice: '99'
         bidAmount: '50'
-      @currencyMarket.orders['123456790'].should.be.ok
-      @currencyMarket.books['EUR']['BTC'].highest.id.should.equal('123456790')
+      @currencyMarket.lastTransaction.should.equal '123456794'
+      @currencyMarket.orders['123456794'].should.be.ok
+      @currencyMarket.books['EUR']['BTC'].highest.id.should.equal('123456794')
 
     describe 'while executing orders', ->
       beforeEach ->
@@ -1484,8 +1489,10 @@ describe 'CurrencyMarket', ->
         offerAmount: '100'        
       account.balances['EUR'].lockedFunds.compareTo(new Amount('150')).should.equal(0)
       @currencyMarket.cancel
-        id: '123456789'
-        timestamp: '987654321'
+        id: '123456791'
+        timestamp: '987654350'
+        orderId: '123456789'
+        orderTimestamp: '987654321'
         account: 'Peter'
         bidCurrency: 'BTC'
         offerCurrency: 'EUR'
@@ -1495,8 +1502,8 @@ describe 'CurrencyMarket', ->
 
     it 'should remove the order from the orders collection and from the correct book and emit an cancellation event', (done) ->
       checklist = new Checklist [
-          '123456789'
-          '987654321'
+          '123456795'
+          '987654349'
           'Peter'
           'BTC'
           'EUR'
@@ -1504,8 +1511,8 @@ describe 'CurrencyMarket', ->
           '50'
           'undefined'
           'undefined'
-          '123456790'
-          '987654322'
+          '123456796'
+          '987654350'
           'Paul'
           'EUR'
           'BTC'
@@ -1535,23 +1542,23 @@ describe 'CurrencyMarket', ->
         timestamp: '987654321'
         key: 'Peter'
       @currencyMarket.register
-        id: '123456789'
+        id: '123456790'
         timestamp: '987654321'
         key: 'Paul'
       @currencyMarket.deposit
-        id: '123456790'
+        id: '123456791'
         timestamp: '987654322'
         account: 'Peter'
         currency: 'EUR'
         amount: '200'
       @currencyMarket.deposit
-        id: '123456790'
+        id: '123456792'
         timestamp: '987654322'
         account: 'Paul'
         currency: 'BTC'
         amount: '4950'
       @currencyMarket.submit
-        id: '123456789'
+        id: '123456793'
         timestamp: '987654321'
         account: 'Peter'
         bidCurrency: 'BTC'
@@ -1559,7 +1566,7 @@ describe 'CurrencyMarket', ->
         offerPrice: '100'
         offerAmount: '50'
       @currencyMarket.submit
-        id: '123456790'
+        id: '123456794'
         timestamp: '987654322'
         account: 'Paul'
         bidCurrency: 'EUR'
@@ -1567,31 +1574,39 @@ describe 'CurrencyMarket', ->
         bidPrice: '99'
         bidAmount: '50'
       @currencyMarket.cancel
-        id: '123456789'
-        timestamp: '987654321'
+        id: '123456795'
+        timestamp: '987654349'
+        orderId: '123456793'
+        orderTimestamp: '987654321'
         account: 'Peter'
         bidCurrency: 'BTC'
         offerCurrency: 'EUR'
         offerPrice: '100'
         offerAmount: '50'
-      expect(@currencyMarket.orders['123456789']).to.not.be.ok
+      @currencyMarket.lastTransaction.should.equal '123456795'
+      expect(@currencyMarket.orders['123456793']).to.not.be.ok
       expect(@currencyMarket.books['BTC']['EUR'].highest).to.not.be.ok
       @currencyMarket.cancel
-        id: '123456790'
-        timestamp: '987654322'
+        id: '123456796'
+        timestamp: '987654350'
+        orderId: '123456794'
+        orderTimestamp: '987654322'
         account: 'Paul'
         bidCurrency: 'EUR'
         offerCurrency: 'BTC'
         bidPrice: '99'
         bidAmount: '50'
-      expect(@currencyMarket.orders['123456790']).to.not.be.ok
+      @currencyMarket.lastTransaction.should.equal '123456796'
+      expect(@currencyMarket.orders['123456794']).to.not.be.ok
       expect(@currencyMarket.books['EUR']['BTC'].highest).to.not.be.ok
 
     it 'should throw an error if the order cannot be found', ->
       expect =>
         @currencyMarket.cancel
-          id: '123456789'
-          timestamp: '987654321'
+          id: '123456795'
+          timestamp: '987654349'
+          orderId: '123456793'
+          orderTimestamp: '987654321'
           account: 'Peter'
           bidCurrency: 'BTC'
           offerCurrency: 'EUR'
@@ -1621,8 +1636,10 @@ describe 'CurrencyMarket', ->
         offerAmount: '50'        
       expect =>
         @currencyMarket.cancel
-          id: '123456789'
-          timestamp: '987654321'
+          id: '123456795'
+          timestamp: '987654349'
+          orderId: '123456789'
+          orderTimestamp: '987654321'
           account: 'Peter'
           bidCurrency: 'BTC'
           offerCurrency: 'EUR'

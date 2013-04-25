@@ -163,15 +163,8 @@ var anotherCurrencyMarket = new CurrencyMarket({
 ## Roadmap
 
 - require transaction id and timestamp with every state changing operation
-  - submit
-  - cancel
 - record the last transaction id
 - state changed events should include the associated transaction ID and timestamp
-  - account
-  - deposit
-  - withdrawal
-  - order
-  - cancellation
   - trade
 - Instant orders
   - Fill or Kill limit orders
