@@ -157,7 +157,8 @@ console.log(json);
 // initialise an identical market from the state
 var anotherCurrencyMarket = new CurrencyMarket({
   state: JSON.parse(json)
-});```
+});
+```
 
 ## Roadmap
 
