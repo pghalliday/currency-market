@@ -162,15 +162,13 @@ module.exports = class CurrencyMarket extends EventEmitter
           # emit a trade event
           @emit 'trade',
             left:
-              currency: leftBidCurrency
+              order: leftOrder
               amount: rightOfferAmount.toString()
               price: rightOrder.offerPrice.toString()
-              account: leftOrder.account
             right:
-              currency: leftOfferCurrency
+              order: rightOrder
               amount: rightBidAmount.toString()
               price: rightOrder.bidPrice.toString()
-              account: rightOrder.account
 
           # call execute again to see if any more orders can be satified
           @execute(leftBook, rightBook)
@@ -193,15 +191,13 @@ module.exports = class CurrencyMarket extends EventEmitter
             delete @orders[rightOrder.id]
           @emit 'trade',
             left:
-              currency: leftBidCurrency
+              order: leftOrder
               amount: leftBidAmount.toString()
               price: rightOrder.offerPrice.toString()
-              account: leftOrder.account
             right:
-              currency: leftOfferCurrency
+              order: rightOrder
               amount: leftOfferAmount.toString()
               price: rightOrder.bidPrice.toString()
-              account: rightOrder.account
 
   cancel: (params) =>
     match = new Order

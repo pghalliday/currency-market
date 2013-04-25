@@ -426,14 +426,12 @@ describe 'CurrencyMarket', ->
             describe 'and the right order is offering exactly the amount the left order is bidding', ->
                 it 'should trade the amount the right order is offering and emit a trade event', (done) ->
                   checklist = new Checklist [
-                      'EUR'
+                      '2'
                       '1000'
                       '0.2'
-                      'Paul'
-                      'BTC'
+                      '1'
                       '200.0'
                       '5'
-                      'Peter'
                     ],
                     ordered: true,
                     (error) =>
@@ -441,14 +439,12 @@ describe 'CurrencyMarket', ->
                       done error
 
                   @currencyMarket.on 'trade', (trade) ->
-                    checklist.check trade.left.currency
+                    checklist.check trade.left.order.id
                     checklist.check trade.left.amount
                     checklist.check trade.left.price
-                    checklist.check trade.left.account
-                    checklist.check trade.right.currency
+                    checklist.check trade.right.order.id
                     checklist.check trade.right.amount
                     checklist.check trade.right.price
-                    checklist.check trade.right.account
 
                   @currencyMarket.submit
                     id: '2'
@@ -470,14 +466,12 @@ describe 'CurrencyMarket', ->
             describe 'and the right order is offering more than the left order is bidding', ->
                 it 'should trade the amount the left order is offering and emit a trade event', (done) ->
                   checklist = new Checklist [
-                      'EUR'
+                      '2'
                       '500'
                       '0.2'
-                      'Paul'
-                      'BTC'
+                      '1'
                       '100.0'
                       '5'
-                      'Peter'
                     ],
                     ordered: true,
                     (error) =>
@@ -485,14 +479,12 @@ describe 'CurrencyMarket', ->
                       done error
 
                   @currencyMarket.on 'trade', (trade) ->
-                    checklist.check trade.left.currency
+                    checklist.check trade.left.order.id
                     checklist.check trade.left.amount
                     checklist.check trade.left.price
-                    checklist.check trade.left.account
-                    checklist.check trade.right.currency
+                    checklist.check trade.right.order.id
                     checklist.check trade.right.amount
                     checklist.check trade.right.price
-                    checklist.check trade.right.account
 
                   @currencyMarket.submit
                     id: '2'
@@ -514,14 +506,12 @@ describe 'CurrencyMarket', ->
             describe 'and the right order is offering less than the left order is bidding', ->
                 it 'should trade the amount the right order is offering and emit a trade event', (done) ->
                   checklist = new Checklist [
-                      'EUR'
+                      '2'
                       '1000'
                       '0.2'
-                      'Paul'
-                      'BTC'
+                      '1'
                       '200.0'
                       '5'
-                      'Peter'
                     ],
                     ordered: true,
                     (error) =>
@@ -529,14 +519,12 @@ describe 'CurrencyMarket', ->
                       done error
 
                   @currencyMarket.on 'trade', (trade) ->
-                    checklist.check trade.left.currency
+                    checklist.check trade.left.order.id
                     checklist.check trade.left.amount
                     checklist.check trade.left.price
-                    checklist.check trade.left.account
-                    checklist.check trade.right.currency
+                    checklist.check trade.right.order.id
                     checklist.check trade.right.amount
                     checklist.check trade.right.price
-                    checklist.check trade.right.account
 
                   @currencyMarket.submit
                     id: '2'
@@ -559,14 +547,12 @@ describe 'CurrencyMarket', ->
             describe 'and the right order is offering exactly the amount the left order is offering', ->
                 it 'should trade the amount the right order is offering and emit a trade event', (done) ->
                   checklist = new Checklist [
-                      'EUR'
+                      '2'
                       '1000'
                       '0.2'
-                      'Paul'
-                      'BTC'
+                      '1'
                       '200'
                       '5'
-                      'Peter'
                     ],
                     ordered: true,
                     (error) =>
@@ -574,14 +560,12 @@ describe 'CurrencyMarket', ->
                       done error
 
                   @currencyMarket.on 'trade', (trade) ->
-                    checklist.check trade.left.currency
+                    checklist.check trade.left.order.id
                     checklist.check trade.left.amount
                     checklist.check trade.left.price
-                    checklist.check trade.left.account
-                    checklist.check trade.right.currency
+                    checklist.check trade.right.order.id
                     checklist.check trade.right.amount
                     checklist.check trade.right.price
-                    checklist.check trade.right.account
 
                   @currencyMarket.submit
                     id: '2'
@@ -603,14 +587,12 @@ describe 'CurrencyMarket', ->
             describe 'and the right order is offering more than the left order is offering', ->
                 it 'should trade the amount the left order is offering and emit a trade event', (done) ->
                   checklist = new Checklist [
-                      'EUR'
+                      '2'
                       '500'
                       '0.2'
-                      'Paul'
-                      'BTC'
+                      '1'
                       '100'
                       '5'
-                      'Peter'
                     ],
                     ordered: true,
                     (error) =>
@@ -618,14 +600,12 @@ describe 'CurrencyMarket', ->
                       done error
 
                   @currencyMarket.on 'trade', (trade) ->
-                    checklist.check trade.left.currency
+                    checklist.check trade.left.order.id
                     checklist.check trade.left.amount
                     checklist.check trade.left.price
-                    checklist.check trade.left.account
-                    checklist.check trade.right.currency
+                    checklist.check trade.right.order.id
                     checklist.check trade.right.amount
                     checklist.check trade.right.price
-                    checklist.check trade.right.account
 
                   @currencyMarket.submit
                     id: '2'
@@ -647,14 +627,12 @@ describe 'CurrencyMarket', ->
             describe 'and the right order is offering less than the left order is offering', ->
                 it 'should trade the amount the right order is offering and emit a trade event', (done) ->
                   checklist = new Checklist [
-                      'EUR'
+                      '2'
                       '1000'
                       '0.2'
-                      'Paul'
-                      'BTC'
+                      '1'
                       '200.0'
                       '5'
-                      'Peter'
                     ],
                     ordered: true,
                     (error) =>
@@ -662,14 +640,12 @@ describe 'CurrencyMarket', ->
                       done error
 
                   @currencyMarket.on 'trade', (trade) ->
-                    checklist.check trade.left.currency
+                    checklist.check trade.left.order.id
                     checklist.check trade.left.amount
                     checklist.check trade.left.price
-                    checklist.check trade.left.account
-                    checklist.check trade.right.currency
+                    checklist.check trade.right.order.id
                     checklist.check trade.right.amount
                     checklist.check trade.right.price
-                    checklist.check trade.right.account
 
                   @currencyMarket.submit
                     id: '2'
@@ -693,14 +669,12 @@ describe 'CurrencyMarket', ->
             describe 'and the right order is offering exactly the amount that the left order is offering multiplied by the right order price', ->
               it 'should trade the amount the right order is offering at the right order price and emit a trade event', (done) ->
                 checklist = new Checklist [
-                    'EUR'
+                    '2'
                     '1000'
                     '0.2'
-                    'Paul'
-                    'BTC'
+                    '1'
                     '200'
                     '5'
-                    'Peter'
                   ],
                   ordered: true,
                   (error) =>
@@ -708,14 +682,12 @@ describe 'CurrencyMarket', ->
                     done error
 
                 @currencyMarket.on 'trade', (trade) ->
-                  checklist.check trade.left.currency
+                  checklist.check trade.left.order.id
                   checklist.check trade.left.amount
                   checklist.check trade.left.price
-                  checklist.check trade.left.account
-                  checklist.check trade.right.currency
+                  checklist.check trade.right.order.id
                   checklist.check trade.right.amount
                   checklist.check trade.right.price
-                  checklist.check trade.right.account
 
                 @currencyMarket.submit
                   id: '2'
@@ -737,14 +709,12 @@ describe 'CurrencyMarket', ->
             describe 'and the right order is offering more than the left order is offering multiplied by the right order price', ->
               it 'should trade the amount the left order is offering at the right order price and emit a trade event', (done) ->
                 checklist = new Checklist [
-                    'EUR'
+                    '2'
                     '500'
                     '0.2'
-                    'Paul'
-                    'BTC'
+                    '1'
                     '100'
                     '5'
-                    'Peter'
                   ],
                   ordered: true,
                   (error) =>
@@ -752,14 +722,12 @@ describe 'CurrencyMarket', ->
                     done error
 
                 @currencyMarket.on 'trade', (trade) ->
-                  checklist.check trade.left.currency
+                  checklist.check trade.left.order.id
                   checklist.check trade.left.amount
                   checklist.check trade.left.price
-                  checklist.check trade.left.account
-                  checklist.check trade.right.currency
+                  checklist.check trade.right.order.id
                   checklist.check trade.right.amount
                   checklist.check trade.right.price
-                  checklist.check trade.right.account
 
                 @currencyMarket.submit
                   id: '2'
@@ -781,14 +749,12 @@ describe 'CurrencyMarket', ->
             describe 'and the right order is offering less than the left order is offering multiplied by the right order price', ->
               it 'should trade the amount the right order is offering at the right order price and emit a trade event', (done) ->
                 checklist = new Checklist [
-                    'EUR'
+                    '2'
                     '1000'
                     '0.2'
-                    'Paul'
-                    'BTC'
+                    '1'
                     '200.0'
                     '5'
-                    'Peter'
                   ],
                   ordered: true,
                   (error) =>
@@ -796,14 +762,12 @@ describe 'CurrencyMarket', ->
                     done error
 
                 @currencyMarket.on 'trade', (trade) ->
-                  checklist.check trade.left.currency
+                  checklist.check trade.left.order.id
                   checklist.check trade.left.amount
                   checklist.check trade.left.price
-                  checklist.check trade.left.account
-                  checklist.check trade.right.currency
+                  checklist.check trade.right.order.id
                   checklist.check trade.right.amount
                   checklist.check trade.right.price
-                  checklist.check trade.right.account
 
                 @currencyMarket.submit
                   id: '2'
@@ -826,14 +790,12 @@ describe 'CurrencyMarket', ->
             describe 'and the right order is offering exactly the amount that the left order is bidding', ->
               it 'should trade the amount the right order is offering at the right order price and emit a trade event', (done) ->
                 checklist = new Checklist [
-                    'EUR'
+                    '2'
                     '1000'
                     '0.2'
-                    'Paul'
-                    'BTC'
+                    '1'
                     '200.0'
                     '5'
-                    'Peter'
                   ],
                   ordered: true,
                   (error) =>
@@ -841,14 +803,12 @@ describe 'CurrencyMarket', ->
                     done error
 
                 @currencyMarket.on 'trade', (trade) ->
-                  checklist.check trade.left.currency
+                  checklist.check trade.left.order.id
                   checklist.check trade.left.amount
                   checklist.check trade.left.price
-                  checklist.check trade.left.account
-                  checklist.check trade.right.currency
+                  checklist.check trade.right.order.id
                   checklist.check trade.right.amount
                   checklist.check trade.right.price
-                  checklist.check trade.right.account
 
                 @currencyMarket.submit
                   id: '2'
@@ -870,14 +830,12 @@ describe 'CurrencyMarket', ->
             describe 'and the right order is offering more than the left order is bidding', ->
               it 'should trade the amount the left order is bidding at the right order price and emit a trade event', (done) ->
                 checklist = new Checklist [
-                    'EUR'
+                    '2'
                     '500'
                     '0.2'
-                    'Paul'
-                    'BTC'
+                    '1'
                     '100.0'
                     '5'
-                    'Peter'
                   ],
                   ordered: true,
                   (error) =>
@@ -885,14 +843,12 @@ describe 'CurrencyMarket', ->
                     done error
 
                 @currencyMarket.on 'trade', (trade) ->
-                  checklist.check trade.left.currency
+                  checklist.check trade.left.order.id
                   checklist.check trade.left.amount
                   checklist.check trade.left.price
-                  checklist.check trade.left.account
-                  checklist.check trade.right.currency
+                  checklist.check trade.right.order.id
                   checklist.check trade.right.amount
                   checklist.check trade.right.price
-                  checklist.check trade.right.account
 
                 @currencyMarket.submit
                   id: '2'
@@ -914,14 +870,12 @@ describe 'CurrencyMarket', ->
             describe 'and the right order is offering less than the left order is bidding', ->
               it 'should trade the amount the right order is offering at the right order price and emit a trade event', (done) ->
                 checklist = new Checklist [
-                    'EUR'
+                    '2'
                     '1000'
                     '0.2'
-                    'Paul'
-                    'BTC'
+                    '1'
                     '200.0'
                     '5'
-                    'Peter'
                   ],
                   ordered: true,
                   (error) =>
@@ -929,14 +883,12 @@ describe 'CurrencyMarket', ->
                     done error
 
                 @currencyMarket.on 'trade', (trade) ->
-                  checklist.check trade.left.currency
+                  checklist.check trade.left.order.id
                   checklist.check trade.left.amount
                   checklist.check trade.left.price
-                  checklist.check trade.left.account
-                  checklist.check trade.right.currency
+                  checklist.check trade.right.order.id
                   checklist.check trade.right.amount
                   checklist.check trade.right.price
-                  checklist.check trade.right.account
 
                 @currencyMarket.submit
                   id: '2'
@@ -971,14 +923,12 @@ describe 'CurrencyMarket', ->
             describe 'and the right order is bidding exactly the amount that the left order is offering', ->
               it 'should trade the amount the right order is bidding at the right order price and emit a trade event', (done) ->
                 checklist = new Checklist [
-                    'EUR'
+                    '2'
                     '1000'
                     '0.2'
-                    'Paul'
-                    'BTC'
+                    '1'
                     '200'
                     '5'
-                    'Peter'
                   ],
                   ordered: true,
                   (error) =>
@@ -986,14 +936,12 @@ describe 'CurrencyMarket', ->
                     done error
 
                 @currencyMarket.on 'trade', (trade) ->
-                  checklist.check trade.left.currency
+                  checklist.check trade.left.order.id
                   checklist.check trade.left.amount
                   checklist.check trade.left.price
-                  checklist.check trade.left.account
-                  checklist.check trade.right.currency
+                  checklist.check trade.right.order.id
                   checklist.check trade.right.amount
                   checklist.check trade.right.price
-                  checklist.check trade.right.account
 
                 @currencyMarket.submit
                   id: '2'
@@ -1015,14 +963,12 @@ describe 'CurrencyMarket', ->
             describe 'and the right order is bidding more than the left order is offering', ->
               it 'should trade the amount the left order is offering at the right order price and emit a trade event', (done) ->
                 checklist = new Checklist [
-                    'EUR'
+                    '2'
                     '500'
                     '0.2'
-                    'Paul'
-                    'BTC'
+                    '1'
                     '100'
                     '5'
-                    'Peter'
                   ],
                   ordered: true,
                   (error) =>
@@ -1030,14 +976,12 @@ describe 'CurrencyMarket', ->
                     done error
 
                 @currencyMarket.on 'trade', (trade) ->
-                  checklist.check trade.left.currency
+                  checklist.check trade.left.order.id
                   checklist.check trade.left.amount
                   checklist.check trade.left.price
-                  checklist.check trade.left.account
-                  checklist.check trade.right.currency
+                  checklist.check trade.right.order.id
                   checklist.check trade.right.amount
                   checklist.check trade.right.price
-                  checklist.check trade.right.account
 
                 @currencyMarket.submit
                   id: '2'
@@ -1059,14 +1003,12 @@ describe 'CurrencyMarket', ->
             describe 'and the right order is bidding less than the left order is offering', ->
               it 'should trade the amount the right order is bidding at the right order price and emit a trade event', (done) ->
                 checklist = new Checklist [
-                    'EUR'
+                    '2'
                     '1000'
                     '0.2'
-                    'Paul'
-                    'BTC'
+                    '1'
                     '200'
                     '5'
-                    'Peter'
                   ],
                   ordered: true,
                   (error) =>
@@ -1074,14 +1016,12 @@ describe 'CurrencyMarket', ->
                     done error
 
                 @currencyMarket.on 'trade', (trade) ->
-                  checklist.check trade.left.currency
+                  checklist.check trade.left.order.id
                   checklist.check trade.left.amount
                   checklist.check trade.left.price
-                  checklist.check trade.left.account
-                  checklist.check trade.right.currency
+                  checklist.check trade.right.order.id
                   checklist.check trade.right.amount
                   checklist.check trade.right.price
-                  checklist.check trade.right.account
 
                 @currencyMarket.submit
                   id: '2'
@@ -1104,14 +1044,12 @@ describe 'CurrencyMarket', ->
             describe 'and the right order is bidding exactly the amount that the left order is bidding multiplied by the right order price', ->
               it 'should trade the amount the right order is bidding at the right order price and emit a trade event', (done) ->
                 checklist = new Checklist [
-                    'EUR'
+                    '2'
                     '1000'
                     '0.2'
-                    'Paul'
-                    'BTC'
+                    '1'
                     '200.0'
                     '5'
-                    'Peter'
                   ],
                   ordered: true,
                   (error) =>
@@ -1119,14 +1057,12 @@ describe 'CurrencyMarket', ->
                     done error
 
                 @currencyMarket.on 'trade', (trade) ->
-                  checklist.check trade.left.currency
+                  checklist.check trade.left.order.id
                   checklist.check trade.left.amount
                   checklist.check trade.left.price
-                  checklist.check trade.left.account
-                  checklist.check trade.right.currency
+                  checklist.check trade.right.order.id
                   checklist.check trade.right.amount
                   checklist.check trade.right.price
-                  checklist.check trade.right.account
 
                 @currencyMarket.submit
                   id: '2'
@@ -1148,14 +1084,12 @@ describe 'CurrencyMarket', ->
             describe 'and the right order is bidding more than the left order is bidding multiplied by the right order price', ->
               it 'should trade the amount the left order is bidding at the right order price and emit a trade event', (done) ->
                 checklist = new Checklist [
-                    'EUR'
+                    '2'
                     '500'
                     '0.2'
-                    'Paul'
-                    'BTC'
+                    '1'
                     '100.0'
                     '5'
-                    'Peter'
                   ],
                   ordered: true,
                   (error) =>
@@ -1163,14 +1097,12 @@ describe 'CurrencyMarket', ->
                     done error
 
                 @currencyMarket.on 'trade', (trade) ->
-                  checklist.check trade.left.currency
+                  checklist.check trade.left.order.id
                   checklist.check trade.left.amount
                   checklist.check trade.left.price
-                  checklist.check trade.left.account
-                  checklist.check trade.right.currency
+                  checklist.check trade.right.order.id
                   checklist.check trade.right.amount
                   checklist.check trade.right.price
-                  checklist.check trade.right.account
 
                 @currencyMarket.submit
                   id: '2'
@@ -1192,14 +1124,12 @@ describe 'CurrencyMarket', ->
             describe 'and the right order is bidding less than the left order is bidding multiplied by the right order price', ->
               it 'should trade the amount the right order is bidding at the right order price and emit a trade event', (done) ->
                 checklist = new Checklist [
-                    'EUR'
+                    '2'
                     '1000'
                     '0.2'
-                    'Paul'
-                    'BTC'
+                    '1'
                     '200'
                     '5'
-                    'Peter'
                   ],
                   ordered: true,
                   (error) =>
@@ -1207,14 +1137,12 @@ describe 'CurrencyMarket', ->
                     done error
 
                 @currencyMarket.on 'trade', (trade) ->
-                  checklist.check trade.left.currency
+                  checklist.check trade.left.order.id
                   checklist.check trade.left.amount
                   checklist.check trade.left.price
-                  checklist.check trade.left.account
-                  checklist.check trade.right.currency
+                  checklist.check trade.right.order.id
                   checklist.check trade.right.amount
                   checklist.check trade.right.price
-                  checklist.check trade.right.account
 
                 @currencyMarket.submit
                   id: '2'
@@ -1291,30 +1219,24 @@ describe 'CurrencyMarket', ->
       describe 'and the last order can be completely satisfied', ->
         it 'should correctly execute as many orders as it can and emit trade events', (done) ->
           checklist = new Checklist [
-              'EUR'
+              '5'
               '500'
               '0.2'
-              'Paul'
-              'BTC'
+              '1'
               '100.0'
               '5'
-              'Peter'
-              'EUR'
+              '5'
               '500'
               '0.25'
-              'Paul'
-              'BTC'
+              '2'
               '125.00'
               '4'
-              'Peter'
-              'EUR'
+              '5'
               '250.0'
               '0.5'
-              'Paul'
-              'BTC'
+              '3'
               '125.00'
               '2'
-              'Peter'
             ],
             ordered: true,
             (error) =>
@@ -1322,14 +1244,12 @@ describe 'CurrencyMarket', ->
               done error
 
           @currencyMarket.on 'trade', (trade) ->
-            checklist.check trade.left.currency
+            checklist.check trade.left.order.id
             checklist.check trade.left.amount
             checklist.check trade.left.price
-            checklist.check trade.left.account
-            checklist.check trade.right.currency
+            checklist.check trade.right.order.id
             checklist.check trade.right.amount
             checklist.check trade.right.price
-            checklist.check trade.right.account
 
           @currencyMarket.submit
             id: '5'
@@ -1354,30 +1274,24 @@ describe 'CurrencyMarket', ->
       describe 'and the last order can not be completely satisfied', ->    
         it 'should correctly execute as many orders as it can and emit trade events', (done) ->
           checklist = new Checklist [
-              'EUR'
+              '5'
               '500'
               '0.2'
-              'Paul'
-              'BTC'
+              '1'
               '100.0'
               '5'
-              'Peter'
-              'EUR'
+              '5'
               '500'
               '0.25'
-              'Paul'
-              'BTC'
+              '2'
               '125.00'
               '4'
-              'Peter'
-              'EUR'
+              '5'
               '500'
               '0.5'
-              'Paul'
-              'BTC'
+              '3'
               '250.0'
               '2'
-              'Peter'
             ],
             ordered: true,
             (error) =>
@@ -1385,14 +1299,12 @@ describe 'CurrencyMarket', ->
               done error
 
           @currencyMarket.on 'trade', (trade) ->
-            checklist.check trade.left.currency
+            checklist.check trade.left.order.id
             checklist.check trade.left.amount
             checklist.check trade.left.price
-            checklist.check trade.left.account
-            checklist.check trade.right.currency
+            checklist.check trade.right.order.id
             checklist.check trade.right.amount
             checklist.check trade.right.price
-            checklist.check trade.right.account
 
           @currencyMarket.submit
             id: '5'
