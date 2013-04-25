@@ -162,8 +162,6 @@ var anotherCurrencyMarket = new CurrencyMarket({
 
 ## Roadmap
 
-- require transaction id and timestamp with every state changing operation
-- record the last transaction id
 - state changed events should include the associated transaction ID and timestamp
   - trade
 - Instant orders

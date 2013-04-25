@@ -44,7 +44,7 @@ describe 'CurrencyMarket', ->
           key: 'Peter'
       .to.throw('Must supply timestamp')
 
-    it 'should submit an account to the currencyMarket with the supported currencies and emit an account event', (done) ->
+    it 'should submit an account to the currencyMarket with the supported currencies, record the last transaction ID and emit an account event', (done) ->
       checklist = new Checklist [
           '123456789'
           '987654321'
@@ -110,7 +110,7 @@ describe 'CurrencyMarket', ->
           amount: '50'
       .to.throw('Must supply timestamp')
 
-    it 'should credit the correct account and currency and emit a deposit event', (done) ->
+    it 'should credit the correct account and currency, record the last transaction ID and emit a deposit event', (done) ->
       checklist = new Checklist [
           '123456790'
           '987654322'
@@ -212,7 +212,7 @@ describe 'CurrencyMarket', ->
           amount: '50'
       .to.throw('Must supply timestamp')
 
-    it 'should debit the correct account and currency and emit a withdrawal event', (done) ->
+    it 'should debit the correct account and currency, record the last transaction ID and emit a withdrawal event', (done) ->
       checklist = new Checklist [
           '123456791'
           '987654323'
@@ -307,7 +307,7 @@ describe 'CurrencyMarket', ->
         offerAmount: '100'        
       account.balances['EUR'].lockedFunds.compareTo(new Amount('150')).should.equal(0)
 
-    it 'should record an order, submit it to the correct book and emit an order event', (done) ->
+    it 'should record an order, submit it to the correct book, record the last transaction ID and emit an order event', (done) ->
       checklist = new Checklist [
           '123456793'
           '987654321'
@@ -1500,7 +1500,7 @@ describe 'CurrencyMarket', ->
         offerAmount: '50'        
       account.balances['EUR'].lockedFunds.compareTo(new Amount('100')).should.equal(0)
 
-    it 'should remove the order from the orders collection and from the correct book and emit an cancellation event', (done) ->
+    it 'should remove the order from the orders collection and from the correct book, record the last transaction ID and emit an cancellation event', (done) ->
       checklist = new Checklist [
           '123456795'
           '987654349'
