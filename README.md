@@ -163,9 +163,6 @@ var anotherCurrencyMarket = new CurrencyMarket({
 ## Roadmap
 
 - require transaction id and timestamp with every state changing operation
-  - register
-  - deposit
-  - withdraw
   - submit
   - cancel
 - record the last transaction id

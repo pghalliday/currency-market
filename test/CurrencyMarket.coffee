@@ -313,6 +313,17 @@ describe 'CurrencyMarket', ->
           'EUR'
           '100'
           '50'
+          'undefined'
+          'undefined'
+          '123456790'
+          '987654322'
+          'Paul'
+          'EUR'
+          'BTC'
+          'undefined'
+          'undefined'
+          '99'
+          '50'
         ],
         ordered: true,
         (error) =>
@@ -325,19 +336,31 @@ describe 'CurrencyMarket', ->
         checklist.check order.account
         checklist.check order.bidCurrency
         checklist.check order.offerCurrency
-        checklist.check order.offerPrice.toString()
-        checklist.check order.offerAmount.toString()
+        checklist.check order.offerPrice + ''
+        checklist.check order.offerAmount + ''
+        checklist.check order.bidPrice + ''
+        checklist.check order.bidAmount + ''
 
       @currencyMarket.register
         id: '123456789'
         timestamp: '987654321'
         key: 'Peter'
+      @currencyMarket.register
+        id: '123456789'
+        timestamp: '987654321'
+        key: 'Paul'
       @currencyMarket.deposit
         id: '123456790'
         timestamp: '987654322'
         account: 'Peter'
         currency: 'EUR'
         amount: '200'
+      @currencyMarket.deposit
+        id: '123456790'
+        timestamp: '987654322'
+        account: 'Paul'
+        currency: 'BTC'
+        amount: '4950'
       @currencyMarket.submit
         id: '123456789'
         timestamp: '987654321'
@@ -348,6 +371,16 @@ describe 'CurrencyMarket', ->
         offerAmount: '50'
       @currencyMarket.orders['123456789'].should.be.ok
       @currencyMarket.books['BTC']['EUR'].highest.id.should.equal('123456789')
+      @currencyMarket.submit
+        id: '123456790'
+        timestamp: '987654322'
+        account: 'Paul'
+        bidCurrency: 'EUR'
+        offerCurrency: 'BTC'
+        bidPrice: '99'
+        bidAmount: '50'
+      @currencyMarket.orders['123456790'].should.be.ok
+      @currencyMarket.books['EUR']['BTC'].highest.id.should.equal('123456790')
 
     describe 'while executing orders', ->
       beforeEach ->

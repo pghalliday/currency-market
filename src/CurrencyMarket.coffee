@@ -113,7 +113,7 @@ module.exports = class CurrencyMarket extends EventEmitter
           book.add(order)
           @orders[order.id] = order
           # emit an order added event
-          @emit 'order', order
+          @emit 'order', params
           # check the books to see if any orders can be executed
           @execute(book, @books[order.offerCurrency][order.bidCurrency])
 
