@@ -83,8 +83,36 @@ describe 'CurrencyMarket', ->
       .to.throw('Account already exists')
 
   describe '#deposit', ->
+    it 'should throw an error if no transaction ID is given', ->
+      @currencyMarket.register
+        id: '123456789'
+        timestamp: '987654321'
+        key: 'Peter'
+      expect =>
+        @currencyMarket.deposit
+          timestamp: '987654322'
+          account: 'Peter'
+          currency: 'BTC'
+          amount: '50'
+      .to.throw('Must supply transaction ID')
+
+    it 'should throw an error if no timestamp is given', ->
+      @currencyMarket.register
+        id: '123456789'
+        timestamp: '987654321'
+        key: 'Peter'
+      expect =>
+        @currencyMarket.deposit
+          id: '123456790'
+          account: 'Peter'
+          currency: 'BTC'
+          amount: '50'
+      .to.throw('Must supply timestamp')
+
     it 'should credit the correct account and currency and emit a deposit event', (done) ->
       checklist = new Checklist [
+          '123456790'
+          '987654322'
           'Peter'
           'BTC'
           '50'
@@ -95,19 +123,23 @@ describe 'CurrencyMarket', ->
           done error
 
       @currencyMarket.on 'deposit', (deposit) ->
+        checklist.check deposit.id
+        checklist.check deposit.timestamp
         checklist.check deposit.account
         checklist.check deposit.currency
         checklist.check deposit.amount
 
       @currencyMarket.register
-        id: '123456790'
-        timestamp: '987654322'
+        id: '123456789'
+        timestamp: '987654321'
         key: 'Peter'
       account = @currencyMarket.accounts['Peter']
       account.balances['EUR'].funds.compareTo(Amount.ZERO).should.equal(0)
       account.balances['USD'].funds.compareTo(Amount.ZERO).should.equal(0)
       account.balances['BTC'].funds.compareTo(Amount.ZERO).should.equal(0)
       @currencyMarket.deposit
+        id: '123456790'
+        timestamp: '987654322'
         account: 'Peter'
         currency: 'BTC'
         amount: '50'
@@ -118,6 +150,8 @@ describe 'CurrencyMarket', ->
     it 'should throw an error if the account does not exist', ->
       expect =>
         @currencyMarket.deposit
+          id: '123456790'
+          timestamp: '987654322'
           account: 'Peter',
           currency: 'BTC',
           amount: '50'
@@ -125,11 +159,13 @@ describe 'CurrencyMarket', ->
 
     it 'should throw an error if the currency is not supported', ->
       @currencyMarket.register
-        id: '123456790'
-        timestamp: '987654322'
+        id: '123456789'
+        timestamp: '987654321'
         key: 'Peter'
       expect =>
         @currencyMarket.deposit
+          id: '123456790'
+          timestamp: '987654322'
           account: 'Peter'
           currency: 'CAD'
           amount: '50'
@@ -153,11 +189,13 @@ describe 'CurrencyMarket', ->
         checklist.check withdrawal.amount
 
       @currencyMarket.register
-        id: '123456790'
-        timestamp: '987654322'
+        id: '123456789'
+        timestamp: '987654321'
         key: 'Peter'
       account = @currencyMarket.accounts['Peter']
       @currencyMarket.deposit
+        id: '123456790'
+        timestamp: '987654322'
         account: 'Peter'
         currency: 'BTC'
         amount: '200'
@@ -190,11 +228,13 @@ describe 'CurrencyMarket', ->
   describe '#submit', ->
     it 'should lock the correct funds in the correct account', ->
       @currencyMarket.register
-        id: '123456790'
-        timestamp: '987654322'
+        id: '123456789'
+        timestamp: '987654321'
         key: 'Peter'
       account = @currencyMarket.accounts['Peter']
       @currencyMarket.deposit
+        id: '123456790'
+        timestamp: '987654322'
         account: 'Peter'
         currency: 'EUR'
         amount: '200'
@@ -241,10 +281,12 @@ describe 'CurrencyMarket', ->
         checklist.check order.offerAmount.toString()
 
       @currencyMarket.register
-        id: '123456790'
-        timestamp: '987654322'
+        id: '123456789'
+        timestamp: '987654321'
         key: 'Peter'
       @currencyMarket.deposit
+        id: '123456790'
+        timestamp: '987654322'
         account: 'Peter'
         currency: 'EUR'
         amount: '200'
@@ -270,10 +312,14 @@ describe 'CurrencyMarket', ->
           timestamp: '987654322'
           key: 'Paul'
         @currencyMarket.deposit
+          id: '123456790'
+          timestamp: '987654322'
           account: 'Peter'
           currency: 'EUR'
           amount: '2000'
         @currencyMarket.deposit
+          id: '123456790'
+          timestamp: '987654322'
           account: 'Paul'
           currency: 'BTC'
           amount: '400'
@@ -1112,10 +1158,14 @@ describe 'CurrencyMarket', ->
           timestamp: '987654322'
           key: 'Paul'
         @currencyMarket.deposit
+          id: '123456790'
+          timestamp: '987654322'
           account: 'Peter'
           currency: 'EUR'
           amount: '2000'
         @currencyMarket.deposit
+          id: '123456790'
+          timestamp: '987654322'
           account: 'Paul'
           currency: 'BTC'
           amount: '1000'
@@ -1330,6 +1380,8 @@ describe 'CurrencyMarket', ->
         key: 'Peter'
       account = @currencyMarket.accounts['Peter']
       @currencyMarket.deposit
+        id: '123456790'
+        timestamp: '987654322'
         account: 'Peter'
         currency: 'EUR'
         amount: '200'
@@ -1389,6 +1441,8 @@ describe 'CurrencyMarket', ->
         timestamp: '987654321'
         key: 'Peter'
       @currencyMarket.deposit
+        id: '123456790'
+        timestamp: '987654322'
         account: 'Peter'
         currency: 'EUR'
         amount: '200'
@@ -1430,6 +1484,8 @@ describe 'CurrencyMarket', ->
         key: 'Peter'
       account = @currencyMarket.accounts['Peter']
       @currencyMarket.deposit
+        id: '123456790'
+        timestamp: '987654322'
         account: 'Peter'
         currency: 'EUR'
         amount: '200'
@@ -1469,10 +1525,14 @@ describe 'CurrencyMarket', ->
         timestamp: '987654322'
         key: 'Paul'
       @currencyMarket1.deposit
+        id: '123456790'
+        timestamp: '987654322'
         account: 'Peter'
         currency: 'EUR'
         amount: '2000'
       @currencyMarket1.deposit
+        id: '123456790'
+        timestamp: '987654322'
         account: 'Paul'
         currency: 'BTC'
         amount: '1000'
@@ -1525,10 +1585,14 @@ describe 'CurrencyMarket', ->
         timestamp: '987654322'
         key: 'Paul'
       currencyMarket2.deposit
+        id: '123456790'
+        timestamp: '987654322'
         account: 'Peter'
         currency: 'EUR'
         amount: '2000'
       currencyMarket2.deposit
+        id: '123456790'
+        timestamp: '987654322'
         account: 'Paul'
         currency: 'BTC'
         amount: '1000'
@@ -1581,10 +1645,14 @@ describe 'CurrencyMarket', ->
         timestamp: '987654322'
         key: 'Paul'
       currencyMarket2.deposit
+        id: '123456790'
+        timestamp: '987654322'
         account: 'Peter'
         currency: 'EUR'
         amount: '2000'
       currencyMarket2.deposit
+        id: '123456790'
+        timestamp: '987654322'
         account: 'Paul'
         currency: 'BTC'
         amount: '1000'
@@ -1638,10 +1706,14 @@ describe 'CurrencyMarket', ->
         timestamp: '987654322'
         key: 'Paul'
       currencyMarket2.deposit
+        id: '123456790'
+        timestamp: '987654322'
         account: 'Peter'
         currency: 'EUR'
         amount: '2500' # different EUR balance
       currencyMarket2.deposit
+        id: '123456790'
+        timestamp: '987654322'
         account: 'Paul'
         currency: 'BTC'
         amount: '1000'
@@ -1695,10 +1767,14 @@ describe 'CurrencyMarket', ->
         timestamp: '987654322'
         key: 'Paul'
       currencyMarket2.deposit
+        id: '123456790'
+        timestamp: '987654322'
         account: 'Peter'
         currency: 'EUR'
         amount: '2000'
       currencyMarket2.deposit
+        id: '123456790'
+        timestamp: '987654322'
         account: 'Paul'
         currency: 'BTC'
         amount: '1000'
@@ -1740,10 +1816,14 @@ describe 'CurrencyMarket', ->
         timestamp: '987654322'
         key: 'Paul'
       @currencyMarket.deposit
+        id: '123456790'
+        timestamp: '987654322'
         account: 'Peter'
         currency: 'EUR'
         amount: '2000'
       @currencyMarket.deposit
+        id: '123456790'
+        timestamp: '987654322'
         account: 'Paul'
         currency: 'BTC'
         amount: '1000'

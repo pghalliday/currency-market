@@ -59,16 +59,22 @@ module.exports = class CurrencyMarket extends EventEmitter
       @emit 'account', params
 
   deposit: (deposit) =>
-    account = @accounts[deposit.account]
-    if typeof account == 'undefined'
-      throw new Error('Account does not exist')
+    if typeof deposit.id == 'undefined'
+      throw new Error 'Must supply transaction ID'
     else
-      balance = account.balances[deposit.currency]
-      if typeof balance == 'undefined'
-        throw new Error('Currency is not supported')
+      if typeof deposit.timestamp == 'undefined'
+        throw new Error 'Must supply timestamp'
       else
-        balance.deposit(new Amount(deposit.amount))
-        @emit 'deposit', deposit
+        account = @accounts[deposit.account]
+        if typeof account == 'undefined'
+          throw new Error 'Account does not exist'
+        else
+          balance = account.balances[deposit.currency]
+          if typeof balance == 'undefined'
+            throw new Error('Currency is not supported')
+          else
+            balance.deposit(new Amount(deposit.amount))
+            @emit 'deposit', deposit
 
   withdraw: (withdrawal) =>
     account = @accounts[withdrawal.account]
