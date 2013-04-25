@@ -149,9 +149,31 @@ console.log(currencyMarket.books['BTC']['EUR'].highest);
 
 ## Roadmap
 
-- Instant orders (execute or cancel)
-- Pluggable rounding policies
+- Export current state
+- Initialise from known state
+- require transaction id and timestamp with every state changing operation
+  - register
+  - deposit
+  - withdraw
+  - submit
+  - cancel
+- record the last transaction id
+- state changed events should include the associated transaction ID and timestamp
+  - account
+  - deposit
+  - withdrawal
+  - order
+  - cancellation
+  - trade
+- Instant orders
+  - Fill or Kill limit orders
+  - Market orders
 - Pluggable commission schemes
+  - fixed rate
+  - calculated through callback
+- Pluggable rounding policies
+  - Amount factory required?
+  - Divide at last possible moment?
 
 ## Contributing
 
