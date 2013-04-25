@@ -481,4 +481,20 @@ describe 'Order', ->
         order.reduceBid(new Amount('101'))
       .to.throw('bid amount cannot be negative')
 
+  describe '#export', ->
+    it 'should export the state of the order as a JSON stringifiable object that can be used to initialise a new order in the exact same state', ->
+      order = new Order
+        id: '123456789'
+        timestamp: '987654321'
+        account: 'name'
+        bidCurrency: 'BTC'
+        offerCurrency: 'EUR'
+        bidPrice: '100'
+        bidAmount: '100'
+      state = order.export()
+      json = JSON.stringify state
+      newOrder = new Order
+        state: JSON.parse(json)
+      newOrder.equals(order).should.be.true
+
 

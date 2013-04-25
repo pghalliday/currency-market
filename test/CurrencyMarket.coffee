@@ -1397,3 +1397,312 @@ describe 'CurrencyMarket', ->
           offerPrice: '100'
           offerAmount: '20'        
       .to.throw('Order does not match')
+
+  describe '#equals', ->
+    beforeEach ->
+      @currencyMarket1 = new CurrencyMarket
+        currencies: [
+          'EUR'
+          'USD'
+          'BTC'
+        ]
+      @currencyMarket1.register
+        id: 'Peter'
+      @currencyMarket1.register
+        id: 'Paul'
+      @currencyMarket1.deposit
+        account: 'Peter'
+        currency: 'EUR'
+        amount: '2000'
+      @currencyMarket1.deposit
+        account: 'Paul'
+        currency: 'BTC'
+        amount: '1000'
+      @currencyMarket1.submit
+        id: '1'
+        timestamp: '1'
+        account: 'Peter'
+        bidCurrency: 'BTC'
+        offerCurrency: 'EUR'
+        offerPrice: '0.2'
+        offerAmount: '500'
+      @currencyMarket1.submit
+        id: '2'
+        timestamp: '2'
+        account: 'Peter'
+        bidCurrency: 'BTC'
+        offerCurrency: 'EUR'
+        offerPrice: '0.25'
+        offerAmount: '500'
+      @currencyMarket1.submit
+        id: '3'
+        timestamp: '3'
+        account: 'Peter'
+        bidCurrency: 'BTC'
+        offerCurrency: 'EUR'
+        offerPrice: '0.5'
+        offerAmount: '500'
+      @currencyMarket1.submit
+        id: '4'
+        timestamp: '4'
+        account: 'Peter'
+        bidCurrency: 'BTC'
+        offerCurrency: 'EUR'
+        offerPrice: '1.0'
+        offerAmount: '500'
+
+    it 'should return true if 2 markets are equal', ->
+      currencyMarket2 = new CurrencyMarket
+        currencies: [
+          'EUR'
+          'USD'
+          'BTC'
+        ]
+      currencyMarket2.register
+        id: 'Peter'
+      currencyMarket2.register
+        id: 'Paul'
+      currencyMarket2.deposit
+        account: 'Peter'
+        currency: 'EUR'
+        amount: '2000'
+      currencyMarket2.deposit
+        account: 'Paul'
+        currency: 'BTC'
+        amount: '1000'
+      currencyMarket2.submit
+        id: '1'
+        timestamp: '1'
+        account: 'Peter'
+        bidCurrency: 'BTC'
+        offerCurrency: 'EUR'
+        offerPrice: '0.2'
+        offerAmount: '500'
+      currencyMarket2.submit
+        id: '2'
+        timestamp: '2'
+        account: 'Peter'
+        bidCurrency: 'BTC'
+        offerCurrency: 'EUR'
+        offerPrice: '0.25'
+        offerAmount: '500'
+      currencyMarket2.submit
+        id: '3'
+        timestamp: '3'
+        account: 'Peter'
+        bidCurrency: 'BTC'
+        offerCurrency: 'EUR'
+        offerPrice: '0.5'
+        offerAmount: '500'
+      currencyMarket2.submit
+        id: '4'
+        timestamp: '4'
+        account: 'Peter'
+        bidCurrency: 'BTC'
+        offerCurrency: 'EUR'
+        offerPrice: '1.0'
+        offerAmount: '500'
+      currencyMarket2.equals(@currencyMarket1).should.be.true
+
+    it 'should return false if the currencies list is different', ->
+      currencyMarket2 = new CurrencyMarket
+        currencies: [
+          'EUR'
+          'BTC'
+        ]
+      currencyMarket2.register
+        id: 'Peter'
+      currencyMarket2.register
+        id: 'Paul'
+      currencyMarket2.deposit
+        account: 'Peter'
+        currency: 'EUR'
+        amount: '2000'
+      currencyMarket2.deposit
+        account: 'Paul'
+        currency: 'BTC'
+        amount: '1000'
+      currencyMarket2.submit
+        id: '1'
+        timestamp: '1'
+        account: 'Peter'
+        bidCurrency: 'BTC'
+        offerCurrency: 'EUR'
+        offerPrice: '0.2'
+        offerAmount: '500'
+      currencyMarket2.submit
+        id: '2'
+        timestamp: '2'
+        account: 'Peter'
+        bidCurrency: 'BTC'
+        offerCurrency: 'EUR'
+        offerPrice: '0.25'
+        offerAmount: '500'
+      currencyMarket2.submit
+        id: '3'
+        timestamp: '3'
+        account: 'Peter'
+        bidCurrency: 'BTC'
+        offerCurrency: 'EUR'
+        offerPrice: '0.5'
+        offerAmount: '500'
+      currencyMarket2.submit
+        id: '4'
+        timestamp: '4'
+        account: 'Peter'
+        bidCurrency: 'BTC'
+        offerCurrency: 'EUR'
+        offerPrice: '1.0'
+        offerAmount: '500'
+      currencyMarket2.equals(@currencyMarket1).should.be.false
+
+    it 'should return false if the accounts are different', ->
+      currencyMarket2 = new CurrencyMarket
+        currencies: [
+          'EUR'
+          'USD'
+          'BTC'
+        ]
+      currencyMarket2.register
+        id: 'Peter'
+      currencyMarket2.register
+        id: 'Paul'
+      currencyMarket2.deposit
+        account: 'Peter'
+        currency: 'EUR'
+        amount: '2500' # different EUR balance
+      currencyMarket2.deposit
+        account: 'Paul'
+        currency: 'BTC'
+        amount: '1000'
+      currencyMarket2.submit
+        id: '1'
+        timestamp: '1'
+        account: 'Peter'
+        bidCurrency: 'BTC'
+        offerCurrency: 'EUR'
+        offerPrice: '0.2'
+        offerAmount: '500'
+      currencyMarket2.submit
+        id: '2'
+        timestamp: '2'
+        account: 'Peter'
+        bidCurrency: 'BTC'
+        offerCurrency: 'EUR'
+        offerPrice: '0.25'
+        offerAmount: '500'
+      currencyMarket2.submit
+        id: '3'
+        timestamp: '3'
+        account: 'Peter'
+        bidCurrency: 'BTC'
+        offerCurrency: 'EUR'
+        offerPrice: '0.5'
+        offerAmount: '500'
+      currencyMarket2.submit
+        id: '4'
+        timestamp: '4'
+        account: 'Peter'
+        bidCurrency: 'BTC'
+        offerCurrency: 'EUR'
+        offerPrice: '1.0'
+        offerAmount: '500'
+      currencyMarket2.equals(@currencyMarket1).should.be.false
+
+    it 'should return false if the orders or books are different', ->
+      currencyMarket2 = new CurrencyMarket
+        currencies: [
+          'EUR'
+          'USD'
+          'BTC'
+        ]
+      currencyMarket2.register
+        id: 'Peter'
+      currencyMarket2.register
+        id: 'Paul'
+      currencyMarket2.deposit
+        account: 'Peter'
+        currency: 'EUR'
+        amount: '2000'
+      currencyMarket2.deposit
+        account: 'Paul'
+        currency: 'BTC'
+        amount: '1000'
+      currencyMarket2.submit
+        id: '1'
+        timestamp: '1'
+        account: 'Peter'
+        bidCurrency: 'BTC'
+        offerCurrency: 'EUR'
+        offerPrice: '0.2'
+        offerAmount: '500'
+      currencyMarket2.submit
+        id: '2'
+        timestamp: '2'
+        account: 'Peter'
+        bidCurrency: 'BTC'
+        offerCurrency: 'EUR'
+        offerPrice: '0.25'
+        offerAmount: '500'
+      currencyMarket2.submit
+        id: '3'
+        timestamp: '3'
+        account: 'Peter'
+        bidCurrency: 'BTC'
+        offerCurrency: 'EUR'
+        offerPrice: '0.5'
+        offerAmount: '500'
+      # one less order
+      currencyMarket2.equals(@currencyMarket1).should.be.false
+
+  describe '#export', ->
+    it 'should export the state of the market as a JSON stringifiable object that can be used to initialise a new CurrencyMarket in the exact same state', ->
+      @currencyMarket.register
+        id: 'Peter'
+      @currencyMarket.register
+        id: 'Paul'
+      @currencyMarket.deposit
+        account: 'Peter'
+        currency: 'EUR'
+        amount: '2000'
+      @currencyMarket.deposit
+        account: 'Paul'
+        currency: 'BTC'
+        amount: '1000'
+      @currencyMarket.submit
+        id: '1'
+        timestamp: '1'
+        account: 'Peter'
+        bidCurrency: 'BTC'
+        offerCurrency: 'EUR'
+        offerPrice: '0.2'
+        offerAmount: '500'
+      @currencyMarket.submit
+        id: '2'
+        timestamp: '2'
+        account: 'Peter'
+        bidCurrency: 'BTC'
+        offerCurrency: 'EUR'
+        offerPrice: '0.25'
+        offerAmount: '500'
+      @currencyMarket.submit
+        id: '3'
+        timestamp: '3'
+        account: 'Peter'
+        bidCurrency: 'BTC'
+        offerCurrency: 'EUR'
+        offerPrice: '0.5'
+        offerAmount: '500'
+      @currencyMarket.submit
+        id: '4'
+        timestamp: '4'
+        account: 'Peter'
+        bidCurrency: 'BTC'
+        offerCurrency: 'EUR'
+        offerPrice: '1.0'
+        offerAmount: '500'
+      state = @currencyMarket.export()
+      json = JSON.stringify state
+      newCurrencyMarket = new CurrencyMarket
+        state: JSON.parse(json)
+      newCurrencyMarket.equals(@currencyMarket).should.be.true

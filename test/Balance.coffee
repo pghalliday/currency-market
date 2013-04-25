@@ -78,3 +78,39 @@ describe 'Balance', ->
       expect ->
         balance.withdraw(new Amount('100'))
       .to.throw('Cannot withdraw funds that are not available')
+
+  describe '#equals', ->
+    beforeEach ->
+      @balance = new Balance()
+      @balance.deposit new Amount '200'
+      @balance.lock new Amount '50'
+
+    it 'should return true if 2 balances are equal', ->
+      balance = new Balance()
+      balance.deposit new Amount '200'
+      balance.lock new Amount '50'
+      @balance.equals(balance).should.be.true
+
+    it 'should return false if the locked funds are different', ->
+      balance = new Balance()
+      balance.deposit new Amount '200'
+      balance.lock new Amount '100'
+      @balance.equals(balance).should.be.false
+
+    it 'should return false if the funds are different', ->
+      balance = new Balance()
+      balance.deposit new Amount '100'
+      balance.lock new Amount '50'
+      @balance.equals(balance).should.be.false
+
+
+  describe '#export', ->
+    it 'should export the state of the balance as a JSON stringifiable object that can be used to initialise a new Account in the exact same state', ->
+      balance = new Balance()
+      balance.deposit new Amount '200'
+      balance.lock new Amount '50'
+      state = balance.export()
+      json = JSON.stringify state
+      newBalance = new Balance
+        state: JSON.parse(json)
+      newBalance.equals(balance).should.be.true

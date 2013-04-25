@@ -1,9 +1,19 @@
 Amount = require('./Amount')
 
 module.exports = class Balance
-  constructor: () ->
-    @funds = Amount.ZERO
-    @lockedFunds = Amount.ZERO
+  constructor: (params) ->
+    if typeof params == 'undefined'
+      @funds = Amount.ZERO
+      @lockedFunds = Amount.ZERO
+    else
+      @funds = new Amount params.state.funds
+      @lockedFunds = new Amount params.state.lockedFunds
+
+  export: =>
+    state = Object.create null
+    state.funds = @funds.toString()
+    state.lockedFunds = @lockedFunds.toString()
+    return state
 
   deposit: (amount) =>
     @funds = @funds.add(amount)
@@ -28,3 +38,6 @@ module.exports = class Balance
       throw new Error('Cannot withdraw funds that are not available')
     else
       @funds = newFunds
+
+  equals: (balance) =>
+    return @funds.compareTo(balance.funds) == 0 && @lockedFunds.compareTo(balance.lockedFunds) == 0

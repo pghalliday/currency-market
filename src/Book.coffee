@@ -21,11 +21,93 @@ findHighest = (order) ->
 insertLowest = (head, order) ->
   if typeof head.lower == 'undefined'
     head.lower = order
+    order.parent = head
   else
     insertLowest(head.lower, order)
 
+exportOrders = (head) ->
+  state = Object.create null
+  state.order = head.id
+  if typeof head.higher != 'undefined'
+    state.higher = exportOrders head.higher
+  if typeof head.lower != 'undefined'
+    state.lower = exportOrders head.lower
+  return state
+
+unexportOrders = (head, orders) ->
+  order = orders[head.order]
+  if typeof head.higher != 'undefined'
+    order.higher = unexportOrders head.higher, orders
+    order.higher.parent = order
+  if typeof head.lower != 'undefined'
+    order.lower = unexportOrders head.lower, orders
+    order.lower.parent = order
+  return order
+
+parentEquals = (left, right) ->
+  if typeof left.parent == 'undefined'
+    if typeof right.parent == 'undefined'
+      return true
+    else
+      return false
+  else
+    if typeof right.parent == 'undefined'
+      return false
+    else
+      return left.parent.equals right.parent
+
+lowerEquals = (left, right) ->
+  if typeof left.lower == 'undefined'
+    if typeof right.lower == 'undefined'
+      return true
+    else
+      return false
+  else
+    if typeof right.lower == 'undefined'
+      return false
+    else
+      return equals left.lower, right.lower
+
+higherEquals = (left, right) ->
+  if typeof left.higher == 'undefined'
+    if typeof right.higher == 'undefined'
+      return true
+    else
+      return false
+  else
+    if typeof right.higher == 'undefined'
+      return false
+    else
+      return equals left.higher, right.higher
+
+equals = (left, right) ->
+  if parentEquals left, right
+    if lowerEquals left, right
+      if higherEquals left, right
+        if left.equals right
+          return true
+        else
+          return false
+      else
+        return false
+    else
+      return false
+  else
+    return false
+
+
 module.exports = class Book
-  constructor: ->
+  constructor: (params) ->
+    if typeof params != 'undefined'
+      if typeof params.state.head != 'undefined'
+        @head = unexportOrders params.state.head, params.orders
+        @highest = findHighest @head
+
+  export: =>
+    state = Object.create null
+    if typeof @head != 'undefined'
+      state.head = exportOrders @head
+    return state
 
   add: (order) =>
     if typeof @head == 'undefined'
@@ -87,3 +169,37 @@ module.exports = class Book
             insertLowest(parent.higher, order.lower)
       else
         throw new Error('Binary tree seems to be broken!')
+
+  equals: (book) =>
+    if typeof @highest == 'undefined'
+      if typeof book.highest == 'undefined'
+        if typeof @head == 'undefined'
+          if typeof book.head == 'undefined'
+            return true
+          else
+            return false
+        else
+          if typeof book.head == 'undefined'
+            return false
+          else
+            return equals @head, book.head
+      else
+        return false
+    else
+      if typeof book.highest == 'undefined'
+        return false
+      else
+        if @highest.equals book.highest
+          if typeof @head == 'undefined'
+            if typeof book.head == 'undefined'
+              return true
+            else
+              return false
+          else
+            if typeof book.head == 'undefined'
+              return false
+            else
+              return equals @head, book.head
+        else
+          return false
+

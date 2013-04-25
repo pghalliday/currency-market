@@ -233,3 +233,113 @@ describe 'Book', ->
       @book.highest.should.equal(@order7)
       @book.delete(@order7)
       expect(@book.highest).to.not.be.ok
+
+  describe '#equals', ->
+    it 'should return true if 2 books are the same', ->
+      book1 = new Book()
+      book2 = new Book()
+      book1.equals(book2).should.be.true
+      book1.add(newOrder('1', '50'))
+      book2.add(newOrder('1', '50'))
+      book1.equals(book2).should.be.true
+      book1.add(newOrder('2', '49'))
+      book2.add(newOrder('2', '49'))
+      book1.equals(book2).should.be.true
+      book1.add(newOrder('3', '51'))
+      book2.add(newOrder('3', '51'))
+      book1.equals(book2).should.be.true
+
+    it 'should return false if the books are different', ->
+      book1 = new Book()
+      book2 = new Book()
+      book1.add(newOrder('1', '50'))
+      book1.equals(book2).should.be.false
+      book2.add(newOrder('1', '51'))
+      book1.equals(book2).should.be.false
+
+    it 'should return false if the highest orders are different', ->
+      book1 = new Book()
+      book2 = new Book()
+      book1.add(newOrder('1', '50'))
+      book2.add(newOrder('1', '50'))
+      book1.add(newOrder('2', '49'))
+      book2.add(newOrder('2', '49'))
+      book1.add(newOrder('3', '51'))
+      book2.add(newOrder('3', '51'))
+      book2.highest = newOrder('4', '100')
+      book1.equals(book2).should.be.false
+      delete book2.highest
+      book1.equals(book2).should.be.false
+
+  describe '#export', ->
+    it 'should export the state of the book as a JSON stringifiable object that can be used to initialise a new Book in the exact same state', ->
+      book = new Book()
+      #
+      #                       1
+      #                      / \
+      #                     /   \
+      #                    /     \
+      #                   /       \
+      #                  /         \
+      #                 3           2
+      #                / \         / \
+      #               /   \       /   \
+      #              7     6     5     4
+      #             / \   / \   / \   / \
+      #            8   9 10 11 12 13 14 15
+      #
+      orders1 = Object.create null
+      orders1['1'] = newOrder('1', '50')
+      orders1['2'] = newOrder('2', '51')
+      orders1['3'] = newOrder('3', '49')
+      orders1['4'] = newOrder('4', '52')
+      orders1['5'] = newOrder('5', '50.5')
+      orders1['6'] = newOrder('6', '49.5')
+      orders1['7'] = newOrder('7', '48.5')
+      orders1['8'] = newOrder('8', '48.5') # is equal to but should be placed lower than order 7
+      orders1['9'] = newOrder('9', '48.75')
+      orders1['10'] = newOrder('10', '49.5') # is equal to but should be placed lower than order 6
+      orders1['11'] = newOrder('11', '49.75')
+      orders1['12'] = newOrder('12', '50.5') # is equal to but should be placed lower than order 5
+      orders1['13'] = newOrder('13', '50.75')
+      orders1['14'] = newOrder('14', '52') # is equal to but should be placed lower than order 4
+      orders1['15'] = newOrder('15', '53')
+      book.add(orders1['1'])
+      book.add(orders1['2'])
+      book.add(orders1['3'])
+      book.add(orders1['4'])
+      book.add(orders1['5'])
+      book.add(orders1['6'])
+      book.add(orders1['7'])
+      book.add(orders1['8'])
+      book.add(orders1['9'])
+      book.add(orders1['10'])
+      book.add(orders1['11'])
+      book.add(orders1['12'])
+      book.add(orders1['13'])
+      book.add(orders1['14'])
+      book.add(orders1['15'])
+      state = book.export()
+      json = JSON.stringify state
+      orders2 = Object.create null
+
+      # as book.add modifies the order objects to maintain the tree structure we'll create an identical set to test again
+      orders2['1'] = newOrder('1', '50')
+      orders2['2'] = newOrder('2', '51')
+      orders2['3'] = newOrder('3', '49')
+      orders2['4'] = newOrder('4', '52')
+      orders2['5'] = newOrder('5', '50.5')
+      orders2['6'] = newOrder('6', '49.5')
+      orders2['7'] = newOrder('7', '48.5')
+      orders2['8'] = newOrder('8', '48.5') # is equal to but should be placed lower than order 7
+      orders2['9'] = newOrder('9', '48.75')
+      orders2['10'] = newOrder('10', '49.5') # is equal to but should be placed lower than order 6
+      orders2['11'] = newOrder('11', '49.75')
+      orders2['12'] = newOrder('12', '50.5') # is equal to but should be placed lower than order 5
+      orders2['13'] = newOrder('13', '50.75')
+      orders2['14'] = newOrder('14', '52') # is equal to but should be placed lower than order 4
+      orders2['15'] = newOrder('15', '53')
+      newBook = new Book
+        state: JSON.parse(json)
+        orders: orders2
+      newBook.equals(book).should.be.true
