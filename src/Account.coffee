@@ -4,33 +4,56 @@ module.exports = class Account
   constructor: (params) ->
     @balances = Object.create null
     if typeof params.state == 'undefined'
-      @id = params.id
-      params.currencies.forEach (currency) =>
-        @balances[currency] = new Balance()
+      if typeof params.id == 'undefined'
+        throw new Error 'Must supply transaction ID'
+      else
+        if typeof params.timestamp == 'undefined'
+          throw new Error 'Must supply timestamp'
+        else
+          if typeof params.key == 'undefined'
+            throw new Error 'Must supply key'
+          else
+            if typeof params.currencies == 'undefined'
+              throw new Error 'Must supply currencies'
+            else
+              @id = params.id
+              @timestamp = params.timestamp
+              @key = params.key
+              params.currencies.forEach (currency) =>
+                @balances[currency] = new Balance()
     else
       @id = params.state.id
+      @timestamp = params.state.timestamp
+      @key = params.state.key
       Object.keys(params.state.balances).forEach (currency) =>
         @balances[currency] = new Balance
           state: params.state.balances[currency]
 
-  equals: (account) =>
-    equal = true
-    if @id == account.id
-      Object.keys(@balances).forEach (currency) =>
-        if typeof account.balances[currency] == 'undefined'
-            equal = false
-        else
-          if !account.balances[currency].equals @balances[currency]
-            equal = false
-    else
-      equal = false
-    return equal
-
   export: =>
     state = Object.create null
     state.id = @id
+    state.timestamp = @timestamp
+    state.key = @key
     state.balances = Object.create null
     Object.keys(@balances).forEach (currency) =>
       state.balances[currency] = @balances[currency].export()
     return state
 
+  equals: (account) =>
+    equal = true
+    if @id == account.id
+      if @timestamp == account.timestamp
+        if @key == account.key
+          Object.keys(@balances).forEach (currency) =>
+            if typeof account.balances[currency] == 'undefined'
+                equal = false
+            else
+              if !account.balances[currency].equals @balances[currency]
+                equal = false
+        else
+          equal = false
+      else
+        equal = false
+    else
+      equal = false
+    return equal

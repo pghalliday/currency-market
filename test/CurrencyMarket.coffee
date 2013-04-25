@@ -30,8 +30,24 @@ describe 'CurrencyMarket', ->
     @currencyMarket.books['EUR']['USD'].should.be.an.instanceOf(Book)
 
   describe '#register', ->
+    it 'should throw an error if no transaction ID is given', ->
+      expect =>
+        @currencyMarket.register
+          timestamp: '987654321'
+          key: 'Peter'
+      .to.throw('Must supply transaction ID')
+
+    it 'should throw an error if no timestamp is given', ->
+      expect =>
+        @currencyMarket.register
+          id: '123456789'
+          key: 'Peter'
+      .to.throw('Must supply timestamp')
+
     it 'should submit an account to the currencyMarket with the supported currencies and emit an account event', (done) ->
       checklist = new Checklist [
+          '123456789'
+          '987654321'
           'Peter'
         ],
         ordered: true,
@@ -41,9 +57,13 @@ describe 'CurrencyMarket', ->
 
       @currencyMarket.on 'account', (account) ->
         checklist.check account.id
+        checklist.check account.timestamp
+        checklist.check account.key
 
       @currencyMarket.register
-        id: 'Peter'
+        id: '123456789'
+        timestamp: '987654321'
+        key: 'Peter'
       account = @currencyMarket.accounts['Peter']
       account.should.be.an.instanceOf(Account)
       account.balances['EUR'].should.be.an.instanceOf(Balance)
@@ -52,10 +72,14 @@ describe 'CurrencyMarket', ->
 
     it 'should throw an error if the account already exists', ->
       @currencyMarket.register
-        id: 'Peter'
+        id: '123456789'
+        timestamp: '987654321'
+        key: 'Peter'
       expect =>
         @currencyMarket.register
-          id: 'Peter'
+          id: '123456790'
+          timestamp: '987654322'
+          key: 'Peter'
       .to.throw('Account already exists')
 
   describe '#deposit', ->
@@ -76,7 +100,9 @@ describe 'CurrencyMarket', ->
         checklist.check deposit.amount
 
       @currencyMarket.register
-        id: 'Peter'
+        id: '123456790'
+        timestamp: '987654322'
+        key: 'Peter'
       account = @currencyMarket.accounts['Peter']
       account.balances['EUR'].funds.compareTo(Amount.ZERO).should.equal(0)
       account.balances['USD'].funds.compareTo(Amount.ZERO).should.equal(0)
@@ -99,7 +125,9 @@ describe 'CurrencyMarket', ->
 
     it 'should throw an error if the currency is not supported', ->
       @currencyMarket.register
-        id: 'Peter'
+        id: '123456790'
+        timestamp: '987654322'
+        key: 'Peter'
       expect =>
         @currencyMarket.deposit
           account: 'Peter'
@@ -125,7 +153,9 @@ describe 'CurrencyMarket', ->
         checklist.check withdrawal.amount
 
       @currencyMarket.register
-        id: 'Peter'
+        id: '123456790'
+        timestamp: '987654322'
+        key: 'Peter'
       account = @currencyMarket.accounts['Peter']
       @currencyMarket.deposit
         account: 'Peter'
@@ -147,7 +177,9 @@ describe 'CurrencyMarket', ->
 
     it 'should throw an error if the currency is not supported', ->
       @currencyMarket.register
-        id: 'Peter'
+        id: '123456790'
+        timestamp: '987654322'
+        key: 'Peter'
       expect =>
         @currencyMarket.withdraw
           account: 'Peter'
@@ -158,7 +190,9 @@ describe 'CurrencyMarket', ->
   describe '#submit', ->
     it 'should lock the correct funds in the correct account', ->
       @currencyMarket.register
-        id: 'Peter'
+        id: '123456790'
+        timestamp: '987654322'
+        key: 'Peter'
       account = @currencyMarket.accounts['Peter']
       @currencyMarket.deposit
         account: 'Peter'
@@ -207,7 +241,9 @@ describe 'CurrencyMarket', ->
         checklist.check order.offerAmount.toString()
 
       @currencyMarket.register
-        id: 'Peter'
+        id: '123456790'
+        timestamp: '987654322'
+        key: 'Peter'
       @currencyMarket.deposit
         account: 'Peter'
         currency: 'EUR'
@@ -226,9 +262,13 @@ describe 'CurrencyMarket', ->
     describe 'while executing orders', ->
       beforeEach ->
         @currencyMarket.register
-          id: 'Peter'
+          id: '123456789'
+          timestamp: '987654321'
+          key: 'Peter'
         @currencyMarket.register
-          id: 'Paul'
+          id: '123456790'
+          timestamp: '987654322'
+          key: 'Paul'
         @currencyMarket.deposit
           account: 'Peter'
           currency: 'EUR'
@@ -1064,9 +1104,13 @@ describe 'CurrencyMarket', ->
     describe 'when multiple orders can be matched', ->
       beforeEach ->
         @currencyMarket.register
-          id: 'Peter'
+          id: '123456789'
+          timestamp: '987654321'
+          key: 'Peter'
         @currencyMarket.register
-          id: 'Paul'
+          id: '123456790'
+          timestamp: '987654322'
+          key: 'Paul'
         @currencyMarket.deposit
           account: 'Peter'
           currency: 'EUR'
@@ -1248,7 +1292,9 @@ describe 'CurrencyMarket', ->
 
     it 'should throw an error if the offer currency is not supported', ->
       @currencyMarket.register
-        id: 'Peter'
+        id: '123456789'
+        timestamp: '987654321'
+        key: 'Peter'
       expect =>
         @currencyMarket.submit
           id: '123456789'
@@ -1262,7 +1308,9 @@ describe 'CurrencyMarket', ->
 
     it 'should throw an error if the bid currency is not supported', ->
       @currencyMarket.register
-        id: 'Peter'
+        id: '123456789'
+        timestamp: '987654321'
+        key: 'Peter'
       expect =>
         @currencyMarket.submit
           id: '123456789'
@@ -1277,7 +1325,9 @@ describe 'CurrencyMarket', ->
   describe '#cancel', ->
     it 'should unlock the correct funds in the correct account', ->
       @currencyMarket.register
-        id: 'Peter'
+        id: '123456789'
+        timestamp: '987654321'
+        key: 'Peter'
       account = @currencyMarket.accounts['Peter']
       @currencyMarket.deposit
         account: 'Peter'
@@ -1335,7 +1385,9 @@ describe 'CurrencyMarket', ->
         checklist.check order.offerAmount.toString()
 
       @currencyMarket.register
-        id: 'Peter'
+        id: '123456789'
+        timestamp: '987654321'
+        key: 'Peter'
       @currencyMarket.deposit
         account: 'Peter'
         currency: 'EUR'
@@ -1373,7 +1425,9 @@ describe 'CurrencyMarket', ->
 
     it 'should throw an error if the order does not match', ->
       @currencyMarket.register
-        id: 'Peter'
+        id: '123456789'
+        timestamp: '987654321'
+        key: 'Peter'
       account = @currencyMarket.accounts['Peter']
       @currencyMarket.deposit
         account: 'Peter'
@@ -1407,9 +1461,13 @@ describe 'CurrencyMarket', ->
           'BTC'
         ]
       @currencyMarket1.register
-        id: 'Peter'
+        id: '123456789'
+        timestamp: '987654321'
+        key: 'Peter'
       @currencyMarket1.register
-        id: 'Paul'
+        id: '123456790'
+        timestamp: '987654322'
+        key: 'Paul'
       @currencyMarket1.deposit
         account: 'Peter'
         currency: 'EUR'
@@ -1459,9 +1517,13 @@ describe 'CurrencyMarket', ->
           'BTC'
         ]
       currencyMarket2.register
-        id: 'Peter'
+        id: '123456789'
+        timestamp: '987654321'
+        key: 'Peter'
       currencyMarket2.register
-        id: 'Paul'
+        id: '123456790'
+        timestamp: '987654322'
+        key: 'Paul'
       currencyMarket2.deposit
         account: 'Peter'
         currency: 'EUR'
@@ -1511,9 +1573,13 @@ describe 'CurrencyMarket', ->
           'BTC'
         ]
       currencyMarket2.register
-        id: 'Peter'
+        id: '123456789'
+        timestamp: '987654321'
+        key: 'Peter'
       currencyMarket2.register
-        id: 'Paul'
+        id: '123456790'
+        timestamp: '987654322'
+        key: 'Paul'
       currencyMarket2.deposit
         account: 'Peter'
         currency: 'EUR'
@@ -1564,9 +1630,13 @@ describe 'CurrencyMarket', ->
           'BTC'
         ]
       currencyMarket2.register
-        id: 'Peter'
+        id: '123456789'
+        timestamp: '987654321'
+        key: 'Peter'
       currencyMarket2.register
-        id: 'Paul'
+        id: '123456790'
+        timestamp: '987654322'
+        key: 'Paul'
       currencyMarket2.deposit
         account: 'Peter'
         currency: 'EUR'
@@ -1617,9 +1687,13 @@ describe 'CurrencyMarket', ->
           'BTC'
         ]
       currencyMarket2.register
-        id: 'Peter'
+        id: '123456789'
+        timestamp: '987654321'
+        key: 'Peter'
       currencyMarket2.register
-        id: 'Paul'
+        id: '123456790'
+        timestamp: '987654322'
+        key: 'Paul'
       currencyMarket2.deposit
         account: 'Peter'
         currency: 'EUR'
@@ -1658,9 +1732,13 @@ describe 'CurrencyMarket', ->
   describe '#export', ->
     it 'should export the state of the market as a JSON stringifiable object that can be used to initialise a new CurrencyMarket in the exact same state', ->
       @currencyMarket.register
-        id: 'Peter'
+        id: '123456789'
+        timestamp: '987654321'
+        key: 'Peter'
       @currencyMarket.register
-        id: 'Paul'
+        id: '123456790'
+        timestamp: '987654322'
+        key: 'Paul'
       @currencyMarket.deposit
         account: 'Peter'
         currency: 'EUR'

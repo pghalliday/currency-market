@@ -48,13 +48,15 @@ module.exports = class CurrencyMarket extends EventEmitter
     return state
 
   register: (params) =>
-    if @accounts[params.id]
+    if @accounts[params.key]
       throw new Error('Account already exists')
     else
-      @accounts[params.id] = new Account
+      @accounts[params.key] = new Account
         id: params.id
+        key: params.key
+        timestamp: params.timestamp
         currencies: @currencies
-      @emit 'account', @accounts[params.id]
+      @emit 'account', params
 
   deposit: (deposit) =>
     account = @accounts[deposit.account]
