@@ -172,8 +172,48 @@ describe 'CurrencyMarket', ->
       .to.throw('Currency is not supported')
 
   describe '#withdraw', ->
+    it 'should throw an error if no transaction ID is given', ->
+      @currencyMarket.register
+        id: '123456789'
+        timestamp: '987654321'
+        key: 'Peter'
+      @currencyMarket.deposit
+        id: '123456790'
+        timestamp: '987654322'
+        account: 'Peter'
+        currency: 'BTC'
+        amount: '200'
+      expect =>
+        @currencyMarket.withdraw
+          timestamp: '987654322'
+          account: 'Peter'
+          currency: 'BTC'
+          amount: '50'
+      .to.throw('Must supply transaction ID')
+
+    it 'should throw an error if no timestamp is given', ->
+      @currencyMarket.register
+        id: '123456789'
+        timestamp: '987654321'
+        key: 'Peter'
+      @currencyMarket.deposit
+        id: '123456790'
+        timestamp: '987654322'
+        account: 'Peter'
+        currency: 'BTC'
+        amount: '200'
+      expect =>
+        @currencyMarket.withdraw
+          id: '123456790'
+          account: 'Peter'
+          currency: 'BTC'
+          amount: '50'
+      .to.throw('Must supply timestamp')
+
     it 'should debit the correct account and currency and emit a withdrawal event', (done) ->
       checklist = new Checklist [
+          '123456790'
+          '987654322'
           'Peter'
           'BTC'
           '50'
@@ -184,6 +224,8 @@ describe 'CurrencyMarket', ->
           done error
 
       @currencyMarket.on 'withdrawal', (withdrawal) ->
+        checklist.check withdrawal.id
+        checklist.check withdrawal.timestamp
         checklist.check withdrawal.account
         checklist.check withdrawal.currency
         checklist.check withdrawal.amount
@@ -200,6 +242,8 @@ describe 'CurrencyMarket', ->
         currency: 'BTC'
         amount: '200'
       @currencyMarket.withdraw
+        id: '123456790'
+        timestamp: '987654322'
         account: 'Peter'
         currency: 'BTC'
         amount: '50'
@@ -208,6 +252,8 @@ describe 'CurrencyMarket', ->
     it 'should throw an error if the account does not exist', ->
       expect =>
         @currencyMarket.withdraw
+          id: '123456790'
+          timestamp: '987654322'
           account: 'Peter'
           currency: 'BTC'
           amount: '50'
@@ -220,6 +266,8 @@ describe 'CurrencyMarket', ->
         key: 'Peter'
       expect =>
         @currencyMarket.withdraw
+          id: '123456790'
+          timestamp: '987654322'
           account: 'Peter'
           currency: 'CAD'
           amount: '50'
