@@ -19,9 +19,8 @@ describe 'CurrencyMarket', ->
         'BTC'
       ]
 
-  it 'should instantiate with a collection of accounts, orders and books matching the supported currencies', ->
+  it 'should instantiate with a collection of accounts and books matching the supported currencies', ->
     Object.keys(@currencyMarket.accounts).should.be.empty
-    Object.keys(@currencyMarket.orders).should.be.empty
     @currencyMarket.books['EUR']['BTC'].should.be.an.instanceOf(Book)
     @currencyMarket.books['EUR']['USD'].should.be.an.instanceOf(Book)
     @currencyMarket.books['USD']['EUR'].should.be.an.instanceOf(Book)
@@ -373,7 +372,6 @@ describe 'CurrencyMarket', ->
         offerPrice: '100'
         offerAmount: '50'
       @currencyMarket.lastTransaction.should.equal '123456793'
-      @currencyMarket.orders['123456793'].should.be.ok
       @currencyMarket.books['BTC']['EUR'].highest.id.should.equal('123456793')
       @currencyMarket.submit
         id: '123456794'
@@ -384,7 +382,6 @@ describe 'CurrencyMarket', ->
         bidPrice: '99'
         bidAmount: '50'
       @currencyMarket.lastTransaction.should.equal '123456794'
-      @currencyMarket.orders['123456794'].should.be.ok
       @currencyMarket.books['EUR']['BTC'].highest.id.should.equal('123456794')
 
     describe 'while executing orders', ->
@@ -454,8 +451,8 @@ describe 'CurrencyMarket', ->
                     offerCurrency: 'BTC'
                     bidPrice: '0.2'
                     bidAmount: '1000'
-                  expect(@currencyMarket.orders['1']).to.not.be.ok
-                  expect(@currencyMarket.orders['2']).to.not.be.ok
+                  expect(@currencyMarket.books['BTC']['EUR'].entries['1']).to.not.be.ok
+                  expect(@currencyMarket.books['EUR']['BTC'].entries['2']).to.not.be.ok
                   @currencyMarket.accounts['Peter'].balances['EUR'].funds.compareTo(new Amount('1000')).should.equal 0
                   @currencyMarket.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
                   @currencyMarket.accounts['Peter'].balances['BTC'].funds.compareTo(new Amount('200')).should.equal 0
@@ -494,8 +491,8 @@ describe 'CurrencyMarket', ->
                     offerCurrency: 'BTC'
                     bidPrice: '0.2'
                     bidAmount: '500'
-                  @currencyMarket.orders['1'].offerAmount.compareTo(new Amount('500')).should.equal 0
-                  expect(@currencyMarket.orders['2']).to.not.be.ok
+                  @currencyMarket.books['BTC']['EUR'].entries['1'].order.offerAmount.compareTo(new Amount('500')).should.equal 0
+                  expect(@currencyMarket.books['EUR']['BTC'].entries['2']).to.not.be.ok
                   @currencyMarket.accounts['Peter'].balances['EUR'].funds.compareTo(new Amount('1500')).should.equal 0
                   @currencyMarket.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(new Amount('500')).should.equal 0
                   @currencyMarket.accounts['Peter'].balances['BTC'].funds.compareTo(new Amount('100')).should.equal 0
@@ -534,8 +531,8 @@ describe 'CurrencyMarket', ->
                     offerCurrency: 'BTC'
                     bidPrice: '0.2'
                     bidAmount: '1500'
-                  expect(@currencyMarket.orders['1']).to.not.be.ok
-                  @currencyMarket.orders['2'].bidAmount.compareTo(new Amount('500')).should.equal 0
+                  expect(@currencyMarket.books['BTC']['EUR'].entries['1']).to.not.be.ok
+                  @currencyMarket.books['EUR']['BTC'].entries['2'].order.bidAmount.compareTo(new Amount('500')).should.equal 0
                   @currencyMarket.accounts['Peter'].balances['EUR'].funds.compareTo(new Amount('1000')).should.equal 0
                   @currencyMarket.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
                   @currencyMarket.accounts['Peter'].balances['BTC'].funds.compareTo(new Amount('200')).should.equal 0
@@ -575,8 +572,8 @@ describe 'CurrencyMarket', ->
                     offerCurrency: 'BTC'
                     offerPrice: '5'
                     offerAmount: '200'
-                  expect(@currencyMarket.orders['1']).to.not.be.ok
-                  expect(@currencyMarket.orders['2']).to.not.be.ok
+                  expect(@currencyMarket.books['BTC']['EUR'].entries['1']).to.not.be.ok
+                  expect(@currencyMarket.books['EUR']['BTC'].entries['2']).to.not.be.ok
                   @currencyMarket.accounts['Peter'].balances['EUR'].funds.compareTo(new Amount('1000')).should.equal 0
                   @currencyMarket.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
                   @currencyMarket.accounts['Peter'].balances['BTC'].funds.compareTo(new Amount('200')).should.equal 0
@@ -615,8 +612,8 @@ describe 'CurrencyMarket', ->
                     offerCurrency: 'BTC'
                     offerPrice: '5'
                     offerAmount: '100'
-                  @currencyMarket.orders['1'].offerAmount.compareTo(new Amount('500')).should.equal 0
-                  expect(@currencyMarket.orders['2']).to.not.be.ok
+                  @currencyMarket.books['BTC']['EUR'].entries['1'].order.offerAmount.compareTo(new Amount('500')).should.equal 0
+                  expect(@currencyMarket.books['EUR']['BTC'].entries['2']).to.not.be.ok
                   @currencyMarket.accounts['Peter'].balances['EUR'].funds.compareTo(new Amount('1500')).should.equal 0
                   @currencyMarket.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(new Amount('500')).should.equal 0
                   @currencyMarket.accounts['Peter'].balances['BTC'].funds.compareTo(new Amount('100')).should.equal 0
@@ -655,8 +652,8 @@ describe 'CurrencyMarket', ->
                     offerCurrency: 'BTC'
                     offerPrice: '5'
                     offerAmount: '300'
-                  expect(@currencyMarket.orders['1']).to.not.be.ok
-                  @currencyMarket.orders['2'].offerAmount.compareTo(new Amount('100')).should.equal 0
+                  expect(@currencyMarket.books['BTC']['EUR'].entries['1']).to.not.be.ok
+                  @currencyMarket.books['EUR']['BTC'].entries['2'].order.offerAmount.compareTo(new Amount('100')).should.equal 0
                   @currencyMarket.accounts['Peter'].balances['EUR'].funds.compareTo(new Amount('1000')).should.equal 0
                   @currencyMarket.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
                   @currencyMarket.accounts['Peter'].balances['BTC'].funds.compareTo(new Amount('200')).should.equal 0
@@ -697,8 +694,8 @@ describe 'CurrencyMarket', ->
                   offerCurrency: 'BTC'
                   offerPrice: '4'
                   offerAmount: '200'
-                expect(@currencyMarket.orders['1']).to.not.be.ok
-                expect(@currencyMarket.orders['2']).to.not.be.ok
+                expect(@currencyMarket.books['BTC']['EUR'].entries['1']).to.not.be.ok
+                expect(@currencyMarket.books['EUR']['BTC'].entries['2']).to.not.be.ok
                 @currencyMarket.accounts['Peter'].balances['EUR'].funds.compareTo(new Amount('1000')).should.equal 0
                 @currencyMarket.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
                 @currencyMarket.accounts['Peter'].balances['BTC'].funds.compareTo(new Amount('200')).should.equal 0
@@ -737,8 +734,8 @@ describe 'CurrencyMarket', ->
                   offerCurrency: 'BTC'
                   offerPrice: '4'
                   offerAmount: '100'
-                @currencyMarket.orders['1'].offerAmount.compareTo(new Amount('500')).should.equal 0
-                expect(@currencyMarket.orders['2']).to.not.be.ok
+                @currencyMarket.books['BTC']['EUR'].entries['1'].order.offerAmount.compareTo(new Amount('500')).should.equal 0
+                expect(@currencyMarket.books['EUR']['BTC'].entries['2']).to.not.be.ok
                 @currencyMarket.accounts['Peter'].balances['EUR'].funds.compareTo(new Amount('1500')).should.equal 0
                 @currencyMarket.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(new Amount('500')).should.equal 0
                 @currencyMarket.accounts['Peter'].balances['BTC'].funds.compareTo(new Amount('100')).should.equal 0
@@ -777,8 +774,8 @@ describe 'CurrencyMarket', ->
                   offerCurrency: 'BTC'
                   offerPrice: '4'
                   offerAmount: '300'
-                expect(@currencyMarket.orders['1']).to.not.be.ok
-                @currencyMarket.orders['2'].offerAmount.compareTo(new Amount('100')).should.equal 0
+                expect(@currencyMarket.books['BTC']['EUR'].entries['1']).to.not.be.ok
+                @currencyMarket.books['EUR']['BTC'].entries['2'].order.offerAmount.compareTo(new Amount('100')).should.equal 0
                 @currencyMarket.accounts['Peter'].balances['EUR'].funds.compareTo(new Amount('1000')).should.equal 0
                 @currencyMarket.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
                 @currencyMarket.accounts['Peter'].balances['BTC'].funds.compareTo(new Amount('200')).should.equal 0
@@ -818,8 +815,8 @@ describe 'CurrencyMarket', ->
                   offerCurrency: 'BTC'
                   bidPrice: '0.25'
                   bidAmount: '1000'
-                expect(@currencyMarket.orders['1']).to.not.be.ok
-                expect(@currencyMarket.orders['2']).to.not.be.ok
+                expect(@currencyMarket.books['BTC']['EUR'].entries['1']).to.not.be.ok
+                expect(@currencyMarket.books['EUR']['BTC'].entries['2']).to.not.be.ok
                 @currencyMarket.accounts['Peter'].balances['EUR'].funds.compareTo(new Amount('1000')).should.equal 0
                 @currencyMarket.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
                 @currencyMarket.accounts['Peter'].balances['BTC'].funds.compareTo(new Amount('200')).should.equal 0
@@ -858,8 +855,8 @@ describe 'CurrencyMarket', ->
                   offerCurrency: 'BTC'
                   bidPrice: '0.25'
                   bidAmount: '500'
-                @currencyMarket.orders['1'].offerAmount.compareTo(new Amount('500')).should.equal 0
-                expect(@currencyMarket.orders['2']).to.not.be.ok
+                @currencyMarket.books['BTC']['EUR'].entries['1'].order.offerAmount.compareTo(new Amount('500')).should.equal 0
+                expect(@currencyMarket.books['EUR']['BTC'].entries['2']).to.not.be.ok
                 @currencyMarket.accounts['Peter'].balances['EUR'].funds.compareTo(new Amount('1500')).should.equal 0
                 @currencyMarket.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(new Amount('500')).should.equal 0
                 @currencyMarket.accounts['Peter'].balances['BTC'].funds.compareTo(new Amount('100')).should.equal 0
@@ -898,8 +895,8 @@ describe 'CurrencyMarket', ->
                   offerCurrency: 'BTC'
                   bidPrice: '0.25'
                   bidAmount: '1500'
-                expect(@currencyMarket.orders['1']).to.not.be.ok
-                @currencyMarket.orders['2'].bidAmount.compareTo(new Amount('500')).should.equal 0
+                expect(@currencyMarket.books['BTC']['EUR'].entries['1']).to.not.be.ok
+                @currencyMarket.books['EUR']['BTC'].entries['2'].order.bidAmount.compareTo(new Amount('500')).should.equal 0
                 @currencyMarket.accounts['Peter'].balances['EUR'].funds.compareTo(new Amount('1000')).should.equal 0
                 @currencyMarket.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
                 @currencyMarket.accounts['Peter'].balances['BTC'].funds.compareTo(new Amount('200')).should.equal 0
@@ -951,8 +948,8 @@ describe 'CurrencyMarket', ->
                   offerCurrency: 'BTC'
                   offerPrice: '4'
                   offerAmount: '200'
-                expect(@currencyMarket.orders['1']).to.not.be.ok
-                expect(@currencyMarket.orders['2']).to.not.be.ok
+                expect(@currencyMarket.books['BTC']['EUR'].entries['1']).to.not.be.ok
+                expect(@currencyMarket.books['EUR']['BTC'].entries['2']).to.not.be.ok
                 @currencyMarket.accounts['Peter'].balances['EUR'].funds.compareTo(new Amount('1000')).should.equal 0
                 @currencyMarket.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
                 @currencyMarket.accounts['Peter'].balances['BTC'].funds.compareTo(new Amount('200')).should.equal 0
@@ -991,8 +988,8 @@ describe 'CurrencyMarket', ->
                   offerCurrency: 'BTC'
                   offerPrice: '4'
                   offerAmount: '100'
-                @currencyMarket.orders['1'].bidAmount.compareTo(new Amount('100')).should.equal 0
-                expect(@currencyMarket.orders['2']).to.not.be.ok
+                @currencyMarket.books['BTC']['EUR'].entries['1'].order.bidAmount.compareTo(new Amount('100')).should.equal 0
+                expect(@currencyMarket.books['EUR']['BTC'].entries['2']).to.not.be.ok
                 @currencyMarket.accounts['Peter'].balances['EUR'].funds.compareTo(new Amount('1500')).should.equal 0
                 @currencyMarket.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(new Amount('500')).should.equal 0
                 @currencyMarket.accounts['Peter'].balances['BTC'].funds.compareTo(new Amount('100')).should.equal 0
@@ -1031,8 +1028,8 @@ describe 'CurrencyMarket', ->
                   offerCurrency: 'BTC'
                   offerPrice: '4'
                   offerAmount: '300'
-                expect(@currencyMarket.orders['1']).to.not.be.ok
-                @currencyMarket.orders['2'].offerAmount.compareTo(new Amount('100')).should.equal 0
+                expect(@currencyMarket.books['BTC']['EUR'].entries['1']).to.not.be.ok
+                @currencyMarket.books['EUR']['BTC'].entries['2'].order.offerAmount.compareTo(new Amount('100')).should.equal 0
                 @currencyMarket.accounts['Peter'].balances['EUR'].funds.compareTo(new Amount('1000')).should.equal 0
                 @currencyMarket.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
                 @currencyMarket.accounts['Peter'].balances['BTC'].funds.compareTo(new Amount('200')).should.equal 0
@@ -1072,8 +1069,8 @@ describe 'CurrencyMarket', ->
                   offerCurrency: 'BTC'
                   bidPrice: '0.25'
                   bidAmount: '1000'
-                expect(@currencyMarket.orders['1']).to.not.be.ok
-                expect(@currencyMarket.orders['2']).to.not.be.ok
+                expect(@currencyMarket.books['BTC']['EUR'].entries['1']).to.not.be.ok
+                expect(@currencyMarket.books['EUR']['BTC'].entries['2']).to.not.be.ok
                 @currencyMarket.accounts['Peter'].balances['EUR'].funds.compareTo(new Amount('1000')).should.equal 0
                 @currencyMarket.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
                 @currencyMarket.accounts['Peter'].balances['BTC'].funds.compareTo(new Amount('200')).should.equal 0
@@ -1112,8 +1109,8 @@ describe 'CurrencyMarket', ->
                   offerCurrency: 'BTC'
                   bidPrice: '0.25'
                   bidAmount: '500'
-                @currencyMarket.orders['1'].bidAmount.compareTo(new Amount('100')).should.equal 0
-                expect(@currencyMarket.orders['2']).to.not.be.ok
+                @currencyMarket.books['BTC']['EUR'].entries['1'].order.bidAmount.compareTo(new Amount('100')).should.equal 0
+                expect(@currencyMarket.books['EUR']['BTC'].entries['2']).to.not.be.ok
                 @currencyMarket.accounts['Peter'].balances['EUR'].funds.compareTo(new Amount('1500')).should.equal 0
                 @currencyMarket.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(new Amount('500')).should.equal 0
                 @currencyMarket.accounts['Peter'].balances['BTC'].funds.compareTo(new Amount('100')).should.equal 0
@@ -1152,8 +1149,8 @@ describe 'CurrencyMarket', ->
                   offerCurrency: 'BTC'
                   bidPrice: '0.25'
                   bidAmount: '1500'
-                expect(@currencyMarket.orders['1']).to.not.be.ok
-                @currencyMarket.orders['2'].bidAmount.compareTo(new Amount('500')).should.equal 0
+                expect(@currencyMarket.books['BTC']['EUR'].entries['1']).to.not.be.ok
+                @currencyMarket.books['EUR']['BTC'].entries['2'].order.bidAmount.compareTo(new Amount('500')).should.equal 0
                 @currencyMarket.accounts['Peter'].balances['EUR'].funds.compareTo(new Amount('1000')).should.equal 0
                 @currencyMarket.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
                 @currencyMarket.accounts['Peter'].balances['BTC'].funds.compareTo(new Amount('200')).should.equal 0
@@ -1259,11 +1256,11 @@ describe 'CurrencyMarket', ->
             offerCurrency: 'BTC'
             bidPrice: '0.5'
             bidAmount: '1250'
-          expect(@currencyMarket.orders['1']).to.not.be.ok
-          expect(@currencyMarket.orders['2']).to.not.be.ok
-          @currencyMarket.orders['3'].offerAmount.compareTo(new Amount('250')).should.equal 0
-          @currencyMarket.orders['4'].offerAmount.compareTo(new Amount('500')).should.equal 0
-          expect(@currencyMarket.orders['5']).to.not.be.ok
+          expect(@currencyMarket.books['BTC']['EUR'].entries['1']).to.not.be.ok
+          expect(@currencyMarket.books['BTC']['EUR'].entries['2']).to.not.be.ok
+          @currencyMarket.books['BTC']['EUR'].entries['3'].order.offerAmount.compareTo(new Amount('250')).should.equal 0
+          @currencyMarket.books['BTC']['EUR'].entries['4'].order.offerAmount.compareTo(new Amount('500')).should.equal 0
+          expect(@currencyMarket.books['EUR']['BTC'].entries['5']).to.not.be.ok
           @currencyMarket.accounts['Peter'].balances['EUR'].funds.compareTo(new Amount('750')).should.equal 0
           @currencyMarket.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(new Amount('750')).should.equal 0
           @currencyMarket.accounts['Peter'].balances['BTC'].funds.compareTo(new Amount('350')).should.equal 0
@@ -1314,11 +1311,11 @@ describe 'CurrencyMarket', ->
             offerCurrency: 'BTC'
             bidPrice: '0.5'
             bidAmount: '1750'
-          expect(@currencyMarket.orders['1']).to.not.be.ok
-          expect(@currencyMarket.orders['2']).to.not.be.ok
-          expect(@currencyMarket.orders['3']).to.not.be.ok
-          @currencyMarket.orders['4'].offerAmount.compareTo(new Amount('500')).should.equal 0
-          @currencyMarket.orders['5'].bidAmount.compareTo(new Amount('250')).should.equal 0
+          expect(@currencyMarket.books['BTC']['EUR'].entries['1']).to.not.be.ok
+          expect(@currencyMarket.books['BTC']['EUR'].entries['2']).to.not.be.ok
+          expect(@currencyMarket.books['BTC']['EUR'].entries['3']).to.not.be.ok
+          @currencyMarket.books['BTC']['EUR'].entries['4'].order.offerAmount.compareTo(new Amount('500')).should.equal 0
+          @currencyMarket.books['EUR']['BTC'].entries['5'].order.bidAmount.compareTo(new Amount('250')).should.equal 0
           @currencyMarket.accounts['Peter'].balances['EUR'].funds.compareTo(new Amount('500')).should.equal 0
           @currencyMarket.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(new Amount('500')).should.equal 0
           @currencyMarket.accounts['Peter'].balances['BTC'].funds.compareTo(new Amount('475')).should.equal 0
@@ -1496,7 +1493,7 @@ describe 'CurrencyMarket', ->
         offerPrice: '100'
         offerAmount: '50'
       @currencyMarket.lastTransaction.should.equal '123456795'
-      expect(@currencyMarket.orders['123456793']).to.not.be.ok
+      expect(@currencyMarket.books['BTC']['EUR'].entries['123456793']).to.not.be.ok
       expect(@currencyMarket.books['BTC']['EUR'].highest).to.not.be.ok
       @currencyMarket.cancel
         id: '123456796'
@@ -1509,7 +1506,7 @@ describe 'CurrencyMarket', ->
         bidPrice: '99'
         bidAmount: '50'
       @currencyMarket.lastTransaction.should.equal '123456796'
-      expect(@currencyMarket.orders['123456794']).to.not.be.ok
+      expect(@currencyMarket.books['BTC']['EUR'].entries['123456794']).to.not.be.ok
       expect(@currencyMarket.books['EUR']['BTC'].highest).to.not.be.ok
 
     it 'should throw an error if the order cannot be found', ->

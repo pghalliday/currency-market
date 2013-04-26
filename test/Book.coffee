@@ -321,25 +321,7 @@ describe 'Book', ->
       book.add(orders1['15'])
       state = book.export()
       json = JSON.stringify state
-      orders2 = Object.create null
 
-      # as book.add modifies the order objects to maintain the tree structure we'll create an identical set to test again
-      orders2['1'] = newOrder('1', '50')
-      orders2['2'] = newOrder('2', '51')
-      orders2['3'] = newOrder('3', '49')
-      orders2['4'] = newOrder('4', '52')
-      orders2['5'] = newOrder('5', '50.5')
-      orders2['6'] = newOrder('6', '49.5')
-      orders2['7'] = newOrder('7', '48.5')
-      orders2['8'] = newOrder('8', '48.5') # is equal to but should be placed lower than order 7
-      orders2['9'] = newOrder('9', '48.75')
-      orders2['10'] = newOrder('10', '49.5') # is equal to but should be placed lower than order 6
-      orders2['11'] = newOrder('11', '49.75')
-      orders2['12'] = newOrder('12', '50.5') # is equal to but should be placed lower than order 5
-      orders2['13'] = newOrder('13', '50.75')
-      orders2['14'] = newOrder('14', '52') # is equal to but should be placed lower than order 4
-      orders2['15'] = newOrder('15', '53')
       newBook = new Book
         state: JSON.parse(json)
-        orders: orders2
       newBook.equals(book).should.be.true
