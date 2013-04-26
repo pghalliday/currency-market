@@ -244,7 +244,7 @@ describe 'Order', ->
     order.bidCurrency.should.equal('BTC')
     order.offerCurrency.should.equal('EUR')    
 
-  it 'should instantiate with a bid price and bid amount calculating the offer amount and the offer price and set fillOffer to false', ->
+  it 'should instantiate with a bid price and bid amount calculating the offer amount and the offer price and set the type to BID', ->
     order = new Order
       id: '123456789'
       timestamp: '987654321'
@@ -257,9 +257,9 @@ describe 'Order', ->
     order.offerPrice.compareTo(new Amount('0.01')).should.equal(0)
     order.bidAmount.compareTo(new Amount('50')).should.equal(0)
     order.offerAmount.compareTo(new Amount('5000')).should.equal(0)
-    order.fillOffer.should.be.false
+    order.type.should.equal Order.BID
 
-  it 'should instantiate with an offer price and offer amount calculating the bid amount and the bid price and set fillOffer to true', ->
+  it 'should instantiate with an offer price and offer amount calculating the bid amount and the bid price and set type to OFFER', ->
     order = new Order
       id: '123456789'
       timestamp: '987654321'
@@ -272,7 +272,7 @@ describe 'Order', ->
     order.offerPrice.compareTo(new Amount('100')).should.equal(0)
     order.bidAmount.compareTo(new Amount('5000')).should.equal(0)
     order.offerAmount.compareTo(new Amount('50')).should.equal(0)
-    order.fillOffer.should.be.true
+    order.type.should.equal Order.OFFER
 
   describe '#equals', ->
     it 'should return true if the orders are identical', ->

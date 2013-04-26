@@ -130,7 +130,7 @@ module.exports = class CurrencyMarket extends EventEmitter
 
         rightBidAmount = rightOrder.bidAmount
         rightOfferAmount = rightOrder.offerAmount
-        if leftOrder.fillOffer
+        if leftOrder.type == Order.OFFER
           leftOfferAmount = leftOrder.offerAmount
           leftBidAmount = leftOrder.offerAmount.multiply(rightOrder.bidPrice)
           leftOfferReduction = rightOfferAmount.multiply(rightOrder.offerPrice)
