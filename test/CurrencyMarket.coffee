@@ -2,13 +2,14 @@ chai = require 'chai'
 chai.should()
 expect = chai.expect
 assert = chai.assert
-Checklist = require('checklist')
+Checklist = require 'checklist'
 
-CurrencyMarket = require('../src/CurrencyMarket')
-Book = require('../src/Book')
-Account = require('../src/Account')
-Balance = require('../src/Balance')
-Amount = require('../src/Amount')
+CurrencyMarket = require '../src/CurrencyMarket'
+Book = require '../src/Book'
+Account = require '../src/Account'
+Balance = require '../src/Balance'
+Amount = require '../src/Amount'
+Order = require '../src/Order'
 
 amountPoint2 = new Amount '0.2'
 amountPoint25 = new Amount '0.25'
@@ -318,7 +319,7 @@ describe 'CurrencyMarket', ->
         account: 'Peter'
         currency: 'EUR'
         amount: amount200
-      @currencyMarket.submit
+      @currencyMarket.submit new Order
         id: '123456789'
         timestamp: '987654321'
         account: 'Peter'
@@ -326,7 +327,7 @@ describe 'CurrencyMarket', ->
         offerCurrency: 'EUR'
         offerPrice: amount100
         offerAmount: amount50        
-      @currencyMarket.submit
+      @currencyMarket.submit new Order
         id: '123456790'
         timestamp: '987654322'
         account: 'Peter'
@@ -345,15 +346,15 @@ describe 'CurrencyMarket', ->
           'EUR'
           '100'
           '50'
-          'undefined'
-          'undefined'
+          '0.01'
+          '5000'
           '123456794'
           '987654322'
           'Paul'
           'EUR'
           'BTC'
-          'undefined'
-          'undefined'
+          '0.010101010101010101010101'
+          '4950'
           '99'
           '50'
         ],
@@ -393,7 +394,7 @@ describe 'CurrencyMarket', ->
         account: 'Paul'
         currency: 'BTC'
         amount: amount4950
-      @currencyMarket.submit
+      @currencyMarket.submit new Order
         id: '123456793'
         timestamp: '987654321'
         account: 'Peter'
@@ -403,7 +404,7 @@ describe 'CurrencyMarket', ->
         offerAmount: amount50
       @currencyMarket.lastTransaction.should.equal '123456793'
       @currencyMarket.books['BTC']['EUR'].highest.id.should.equal('123456793')
-      @currencyMarket.submit
+      @currencyMarket.submit new Order
         id: '123456794'
         timestamp: '987654322'
         account: 'Paul'
@@ -439,7 +440,7 @@ describe 'CurrencyMarket', ->
 
       describe 'where the existing (right) order is an offer', ->
         beforeEach ->
-          @currencyMarket.submit
+          @currencyMarket.submit new Order
             id: '1'
             timestamp: '1'
             account: 'Peter'
@@ -473,7 +474,7 @@ describe 'CurrencyMarket', ->
                     checklist.check trade.right.amount.toString()
                     checklist.check trade.right.price.toString()
 
-                  @currencyMarket.submit
+                  @currencyMarket.submit new Order
                     id: '2'
                     timestamp: '2'
                     account: 'Paul'
@@ -513,7 +514,7 @@ describe 'CurrencyMarket', ->
                     checklist.check trade.right.amount.toString()
                     checklist.check trade.right.price.toString()
 
-                  @currencyMarket.submit
+                  @currencyMarket.submit new Order
                     id: '2'
                     timestamp: '2'
                     account: 'Paul'
@@ -553,7 +554,7 @@ describe 'CurrencyMarket', ->
                     checklist.check trade.right.amount.toString()
                     checklist.check trade.right.price.toString()
 
-                  @currencyMarket.submit
+                  @currencyMarket.submit new Order
                     id: '2'
                     timestamp: '2'
                     account: 'Paul'
@@ -594,7 +595,7 @@ describe 'CurrencyMarket', ->
                     checklist.check trade.right.amount.toString()
                     checklist.check trade.right.price.toString()
 
-                  @currencyMarket.submit
+                  @currencyMarket.submit new Order
                     id: '2'
                     timestamp: '2'
                     account: 'Paul'
@@ -634,7 +635,7 @@ describe 'CurrencyMarket', ->
                     checklist.check trade.right.amount.toString()
                     checklist.check trade.right.price.toString()
 
-                  @currencyMarket.submit
+                  @currencyMarket.submit new Order
                     id: '2'
                     timestamp: '2'
                     account: 'Paul'
@@ -674,7 +675,7 @@ describe 'CurrencyMarket', ->
                     checklist.check trade.right.amount.toString()
                     checklist.check trade.right.price.toString()
 
-                  @currencyMarket.submit
+                  @currencyMarket.submit new Order
                     id: '2'
                     timestamp: '2'
                     account: 'Paul'
@@ -716,7 +717,7 @@ describe 'CurrencyMarket', ->
                   checklist.check trade.right.amount.toString()
                   checklist.check trade.right.price.toString()
 
-                @currencyMarket.submit
+                @currencyMarket.submit new Order
                   id: '2'
                   timestamp: '2'
                   account: 'Paul'
@@ -756,7 +757,7 @@ describe 'CurrencyMarket', ->
                   checklist.check trade.right.amount.toString()
                   checklist.check trade.right.price.toString()
 
-                @currencyMarket.submit
+                @currencyMarket.submit new Order
                   id: '2'
                   timestamp: '2'
                   account: 'Paul'
@@ -796,7 +797,7 @@ describe 'CurrencyMarket', ->
                   checklist.check trade.right.amount.toString()
                   checklist.check trade.right.price.toString()
 
-                @currencyMarket.submit
+                @currencyMarket.submit new Order
                   id: '2'
                   timestamp: '2'
                   account: 'Paul'
@@ -837,7 +838,7 @@ describe 'CurrencyMarket', ->
                   checklist.check trade.right.amount.toString()
                   checklist.check trade.right.price.toString()
 
-                @currencyMarket.submit
+                @currencyMarket.submit new Order
                   id: '2'
                   timestamp: '2'
                   account: 'Paul'
@@ -877,7 +878,7 @@ describe 'CurrencyMarket', ->
                   checklist.check trade.right.amount.toString()
                   checklist.check trade.right.price.toString()
 
-                @currencyMarket.submit
+                @currencyMarket.submit new Order
                   id: '2'
                   timestamp: '2'
                   account: 'Paul'
@@ -917,7 +918,7 @@ describe 'CurrencyMarket', ->
                   checklist.check trade.right.amount.toString()
                   checklist.check trade.right.price.toString()
 
-                @currencyMarket.submit
+                @currencyMarket.submit new Order
                   id: '2'
                   timestamp: '2'
                   account: 'Paul'
@@ -936,7 +937,7 @@ describe 'CurrencyMarket', ->
               
       describe 'where the existing (right) order is a bid', ->
         beforeEach ->
-          @currencyMarket.submit
+          @currencyMarket.submit new Order
             id: '1'
             timestamp: '1'
             account: 'Peter'
@@ -970,7 +971,7 @@ describe 'CurrencyMarket', ->
                   checklist.check trade.right.amount.toString()
                   checklist.check trade.right.price.toString()
 
-                @currencyMarket.submit
+                @currencyMarket.submit new Order
                   id: '2'
                   timestamp: '2'
                   account: 'Paul'
@@ -1010,7 +1011,7 @@ describe 'CurrencyMarket', ->
                   checklist.check trade.right.amount.toString()
                   checklist.check trade.right.price.toString()
 
-                @currencyMarket.submit
+                @currencyMarket.submit new Order
                   id: '2'
                   timestamp: '2'
                   account: 'Paul'
@@ -1050,7 +1051,7 @@ describe 'CurrencyMarket', ->
                   checklist.check trade.right.amount.toString()
                   checklist.check trade.right.price.toString()
 
-                @currencyMarket.submit
+                @currencyMarket.submit new Order
                   id: '2'
                   timestamp: '2'
                   account: 'Paul'
@@ -1091,7 +1092,7 @@ describe 'CurrencyMarket', ->
                   checklist.check trade.right.amount.toString()
                   checklist.check trade.right.price.toString()
 
-                @currencyMarket.submit
+                @currencyMarket.submit new Order
                   id: '2'
                   timestamp: '2'
                   account: 'Paul'
@@ -1131,7 +1132,7 @@ describe 'CurrencyMarket', ->
                   checklist.check trade.right.amount.toString()
                   checklist.check trade.right.price.toString()
 
-                @currencyMarket.submit
+                @currencyMarket.submit new Order
                   id: '2'
                   timestamp: '2'
                   account: 'Paul'
@@ -1171,7 +1172,7 @@ describe 'CurrencyMarket', ->
                   checklist.check trade.right.amount.toString()
                   checklist.check trade.right.price.toString()
 
-                @currencyMarket.submit
+                @currencyMarket.submit new Order
                   id: '2'
                   timestamp: '2'
                   account: 'Paul'
@@ -1210,7 +1211,7 @@ describe 'CurrencyMarket', ->
           account: 'Paul'
           currency: 'BTC'
           amount: amount1000
-        @currencyMarket.submit
+        @currencyMarket.submit new Order
           id: '1'
           timestamp: '1'
           account: 'Peter'
@@ -1218,7 +1219,7 @@ describe 'CurrencyMarket', ->
           offerCurrency: 'EUR'
           offerPrice: amountPoint2
           offerAmount: amount500
-        @currencyMarket.submit
+        @currencyMarket.submit new Order
           id: '2'
           timestamp: '2'
           account: 'Peter'
@@ -1226,7 +1227,7 @@ describe 'CurrencyMarket', ->
           offerCurrency: 'EUR'
           offerPrice: amountPoint25
           offerAmount: amount500
-        @currencyMarket.submit
+        @currencyMarket.submit new Order
           id: '3'
           timestamp: '3'
           account: 'Peter'
@@ -1234,7 +1235,7 @@ describe 'CurrencyMarket', ->
           offerCurrency: 'EUR'
           offerPrice: amountPoint5
           offerAmount: amount500
-        @currencyMarket.submit
+        @currencyMarket.submit new Order
           id: '4'
           timestamp: '4'
           account: 'Peter'
@@ -1278,7 +1279,7 @@ describe 'CurrencyMarket', ->
             checklist.check trade.right.amount.toString()
             checklist.check trade.right.price.toString()
 
-          @currencyMarket.submit
+          @currencyMarket.submit new Order
             id: '5'
             timestamp: '5'
             account: 'Paul'
@@ -1333,7 +1334,7 @@ describe 'CurrencyMarket', ->
             checklist.check trade.right.amount.toString()
             checklist.check trade.right.price.toString()
 
-          @currencyMarket.submit
+          @currencyMarket.submit new Order
             id: '5'
             timestamp: '5'
             account: 'Paul'
@@ -1355,7 +1356,7 @@ describe 'CurrencyMarket', ->
               
     it 'should throw an error if the account does not exist', ->
       expect =>
-        @currencyMarket.submit
+        @currencyMarket.submit new Order
           id: '123456789'
           timestamp: '987654321'
           account: 'Peter'
@@ -1371,7 +1372,7 @@ describe 'CurrencyMarket', ->
         timestamp: '987654321'
         key: 'Peter'
       expect =>
-        @currencyMarket.submit
+        @currencyMarket.submit new Order
           id: '123456789'
           timestamp: '987654321'
           account: 'Peter'
@@ -1387,7 +1388,7 @@ describe 'CurrencyMarket', ->
         timestamp: '987654321'
         key: 'Peter'
       expect =>
-        @currencyMarket.submit
+        @currencyMarket.submit new Order
           id: '123456789'
           timestamp: '987654321'
           account: 'Peter'
@@ -1410,7 +1411,7 @@ describe 'CurrencyMarket', ->
         account: 'Peter'
         currency: 'EUR'
         amount: amount200
-      @currencyMarket.submit
+      @currencyMarket.submit new Order
         id: '123456789'
         timestamp: '987654321'
         account: 'Peter'
@@ -1418,7 +1419,7 @@ describe 'CurrencyMarket', ->
         offerCurrency: 'EUR'
         offerPrice: amount100
         offerAmount: amount50        
-      @currencyMarket.submit
+      @currencyMarket.submit new Order
         id: '123456790'
         timestamp: '987654322'
         account: 'Peter'
@@ -1496,7 +1497,7 @@ describe 'CurrencyMarket', ->
         account: 'Paul'
         currency: 'BTC'
         amount: amount4950
-      @currencyMarket.submit
+      @currencyMarket.submit new Order
         id: '123456793'
         timestamp: '987654321'
         account: 'Peter'
@@ -1504,7 +1505,7 @@ describe 'CurrencyMarket', ->
         offerCurrency: 'EUR'
         offerPrice: amount100
         offerAmount: amount50
-      @currencyMarket.submit
+      @currencyMarket.submit new Order
         id: '123456794'
         timestamp: '987654322'
         account: 'Paul'
@@ -1565,7 +1566,7 @@ describe 'CurrencyMarket', ->
         account: 'Peter'
         currency: 'EUR'
         amount: amount200
-      @currencyMarket.submit
+      @currencyMarket.submit new Order
         id: '123456789'
         timestamp: '987654321'
         account: 'Peter'
@@ -1614,7 +1615,7 @@ describe 'CurrencyMarket', ->
         account: 'Paul'
         currency: 'BTC'
         amount: amount1000
-      @currencyMarket1.submit
+      @currencyMarket1.submit new Order
         id: '1'
         timestamp: '1'
         account: 'Peter'
@@ -1622,7 +1623,7 @@ describe 'CurrencyMarket', ->
         offerCurrency: 'EUR'
         offerPrice: amountPoint2
         offerAmount: amount500
-      @currencyMarket1.submit
+      @currencyMarket1.submit new Order
         id: '2'
         timestamp: '2'
         account: 'Peter'
@@ -1630,7 +1631,7 @@ describe 'CurrencyMarket', ->
         offerCurrency: 'EUR'
         offerPrice: amountPoint25
         offerAmount: amount500
-      @currencyMarket1.submit
+      @currencyMarket1.submit new Order
         id: '3'
         timestamp: '3'
         account: 'Peter'
@@ -1638,7 +1639,7 @@ describe 'CurrencyMarket', ->
         offerCurrency: 'EUR'
         offerPrice: amountPoint5
         offerAmount: amount500
-      @currencyMarket1.submit
+      @currencyMarket1.submit new Order
         id: '4'
         timestamp: '4'
         account: 'Peter'
@@ -1674,7 +1675,7 @@ describe 'CurrencyMarket', ->
         account: 'Paul'
         currency: 'BTC'
         amount: amount1000
-      currencyMarket2.submit
+      currencyMarket2.submit new Order
         id: '1'
         timestamp: '1'
         account: 'Peter'
@@ -1682,7 +1683,7 @@ describe 'CurrencyMarket', ->
         offerCurrency: 'EUR'
         offerPrice: amountPoint2
         offerAmount: amount500
-      currencyMarket2.submit
+      currencyMarket2.submit new Order
         id: '2'
         timestamp: '2'
         account: 'Peter'
@@ -1690,7 +1691,7 @@ describe 'CurrencyMarket', ->
         offerCurrency: 'EUR'
         offerPrice: amountPoint25
         offerAmount: amount500
-      currencyMarket2.submit
+      currencyMarket2.submit new Order
         id: '3'
         timestamp: '3'
         account: 'Peter'
@@ -1698,7 +1699,7 @@ describe 'CurrencyMarket', ->
         offerCurrency: 'EUR'
         offerPrice: amountPoint5
         offerAmount: amount500
-      currencyMarket2.submit
+      currencyMarket2.submit new Order
         id: '4'
         timestamp: '4'
         account: 'Peter'
@@ -1735,7 +1736,7 @@ describe 'CurrencyMarket', ->
         account: 'Paul'
         currency: 'BTC'
         amount: amount1000
-      currencyMarket2.submit
+      currencyMarket2.submit new Order
         id: '1'
         timestamp: '1'
         account: 'Peter'
@@ -1743,7 +1744,7 @@ describe 'CurrencyMarket', ->
         offerCurrency: 'EUR'
         offerPrice: amountPoint2
         offerAmount: amount500
-      currencyMarket2.submit
+      currencyMarket2.submit new Order
         id: '2'
         timestamp: '2'
         account: 'Peter'
@@ -1751,7 +1752,7 @@ describe 'CurrencyMarket', ->
         offerCurrency: 'EUR'
         offerPrice: amountPoint25
         offerAmount: amount500
-      currencyMarket2.submit
+      currencyMarket2.submit new Order
         id: '3'
         timestamp: '3'
         account: 'Peter'
@@ -1759,7 +1760,7 @@ describe 'CurrencyMarket', ->
         offerCurrency: 'EUR'
         offerPrice: amountPoint5
         offerAmount: amount500
-      currencyMarket2.submit
+      currencyMarket2.submit new Order
         id: '4'
         timestamp: '4'
         account: 'Peter'
@@ -1798,7 +1799,7 @@ describe 'CurrencyMarket', ->
         account: 'Paul'
         currency: 'BTC'
         amount: amount1000
-      currencyMarket2.submit
+      currencyMarket2.submit new Order
         id: '1'
         timestamp: '1'
         account: 'Peter'
@@ -1806,7 +1807,7 @@ describe 'CurrencyMarket', ->
         offerCurrency: 'EUR'
         offerPrice: amountPoint2
         offerAmount: amount500
-      currencyMarket2.submit
+      currencyMarket2.submit new Order
         id: '2'
         timestamp: '2'
         account: 'Peter'
@@ -1814,7 +1815,7 @@ describe 'CurrencyMarket', ->
         offerCurrency: 'EUR'
         offerPrice: amountPoint25
         offerAmount: amount500
-      currencyMarket2.submit
+      currencyMarket2.submit new Order
         id: '3'
         timestamp: '3'
         account: 'Peter'
@@ -1822,7 +1823,7 @@ describe 'CurrencyMarket', ->
         offerCurrency: 'EUR'
         offerPrice: amountPoint5
         offerAmount: amount500
-      currencyMarket2.submit
+      currencyMarket2.submit new Order
         id: '4'
         timestamp: '4'
         account: 'Peter'
@@ -1859,7 +1860,7 @@ describe 'CurrencyMarket', ->
         account: 'Paul'
         currency: 'BTC'
         amount: amount1000
-      currencyMarket2.submit
+      currencyMarket2.submit new Order
         id: '1'
         timestamp: '1'
         account: 'Peter'
@@ -1867,7 +1868,7 @@ describe 'CurrencyMarket', ->
         offerCurrency: 'EUR'
         offerPrice: amountPoint2
         offerAmount: amount500
-      currencyMarket2.submit
+      currencyMarket2.submit new Order
         id: '2'
         timestamp: '2'
         account: 'Peter'
@@ -1875,7 +1876,7 @@ describe 'CurrencyMarket', ->
         offerCurrency: 'EUR'
         offerPrice: amountPoint25
         offerAmount: amount500
-      currencyMarket2.submit
+      currencyMarket2.submit new Order
         id: '3'
         timestamp: '3'
         account: 'Peter'
@@ -1883,7 +1884,7 @@ describe 'CurrencyMarket', ->
         offerCurrency: 'EUR'
         offerPrice: amountPoint5
         offerAmount: amount500
-      currencyMarket2.submit
+      currencyMarket2.submit new Order
         id: '4'
         timestamp: '4'
         account: 'Peter'
@@ -1920,7 +1921,7 @@ describe 'CurrencyMarket', ->
         account: 'Paul'
         currency: 'BTC'
         amount: amount1000
-      currencyMarket2.submit
+      currencyMarket2.submit new Order
         id: '1'
         timestamp: '1'
         account: 'Peter'
@@ -1928,7 +1929,7 @@ describe 'CurrencyMarket', ->
         offerCurrency: 'EUR'
         offerPrice: amountPoint2
         offerAmount: amount500
-      currencyMarket2.submit
+      currencyMarket2.submit new Order
         id: '2'
         timestamp: '2'
         account: 'Peter'
@@ -1936,7 +1937,7 @@ describe 'CurrencyMarket', ->
         offerCurrency: 'EUR'
         offerPrice: amountPoint25
         offerAmount: amount500
-      currencyMarket2.submit
+      currencyMarket2.submit new Order
         id: '3'
         timestamp: '3'
         account: 'Peter'
@@ -1969,7 +1970,7 @@ describe 'CurrencyMarket', ->
         account: 'Paul'
         currency: 'BTC'
         amount: amount1000
-      @currencyMarket.submit
+      @currencyMarket.submit new Order
         id: '1'
         timestamp: '1'
         account: 'Peter'
@@ -1977,7 +1978,7 @@ describe 'CurrencyMarket', ->
         offerCurrency: 'EUR'
         offerPrice: amountPoint2
         offerAmount: amount500
-      @currencyMarket.submit
+      @currencyMarket.submit new Order
         id: '2'
         timestamp: '2'
         account: 'Peter'
@@ -1985,7 +1986,7 @@ describe 'CurrencyMarket', ->
         offerCurrency: 'EUR'
         offerPrice: amountPoint25
         offerAmount: amount500
-      @currencyMarket.submit
+      @currencyMarket.submit new Order
         id: '3'
         timestamp: '3'
         account: 'Peter'
@@ -1993,7 +1994,7 @@ describe 'CurrencyMarket', ->
         offerCurrency: 'EUR'
         offerPrice: amountPoint5
         offerAmount: amount500
-      @currencyMarket.submit
+      @currencyMarket.submit new Order
         id: '4'
         timestamp: '4'
         account: 'Peter'

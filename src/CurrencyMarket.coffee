@@ -91,8 +91,7 @@ module.exports = class CurrencyMarket extends EventEmitter
             @lastTransaction = withdrawal.id
             @emit 'withdrawal', withdrawal
 
-  submit: (params) =>
-    order = new Order(params)
+  submit: (order) =>
     account = @accounts[order.account]
     if typeof account == 'undefined'
       throw new Error('Account does not exist')
@@ -109,8 +108,8 @@ module.exports = class CurrencyMarket extends EventEmitter
           balance.lock order.offerAmount
           book.add order
           # emit an order added event
-          @lastTransaction = params.id
-          @emit 'order', params
+          @lastTransaction = order.id
+          @emit 'order', order
           # check the books to see if any orders can be executed
           @execute(book, @books[order.offerCurrency][order.bidCurrency])
 
