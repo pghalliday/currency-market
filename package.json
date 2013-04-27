@@ -21,7 +21,7 @@
       "url": "https://github.com/pghalliday/currency-market/blob/master/LICENSE-MIT"
     }
   ],
-  "main": "lib/src/CurrencyMarket",
+  "main": "lib/src/",
   "engines": {
     "node": ">= 0.10.4"
   },
