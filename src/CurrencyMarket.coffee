@@ -188,21 +188,12 @@ module.exports = class CurrencyMarket extends EventEmitter
               amount: leftOfferAmount.toString()
               price: rightOrder.bidPrice.toString()
 
-  cancel: (params) =>
-    order = new Order
-      id: params.orderId
-      timestamp: params.orderTimestamp
-      account: params.account
-      bidCurrency: params.bidCurrency
-      offerCurrency: params.offerCurrency
-      offerPrice: params.offerPrice
-      offerAmount: params.offerAmount
-      bidPrice: params.bidPrice
-      bidAmount: params.bidAmount
+  cancel: (cancellation) =>
+    order = cancellation.order
     @books[order.bidCurrency][order.offerCurrency].delete(order)
     @accounts[order.account].balances[order.offerCurrency].unlock(order.offerAmount)
-    @lastTransaction = params.id
-    @emit 'cancellation', params
+    @lastTransaction = cancellation.id
+    @emit 'cancellation', cancellation
 
   equals: (currencyMarket) =>
     equal = true

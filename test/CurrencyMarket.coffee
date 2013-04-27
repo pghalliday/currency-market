@@ -369,10 +369,10 @@ describe 'CurrencyMarket', ->
         checklist.check order.account
         checklist.check order.bidCurrency
         checklist.check order.offerCurrency
-        checklist.check order.offerPrice + ''
-        checklist.check order.offerAmount + ''
-        checklist.check order.bidPrice + ''
-        checklist.check order.bidAmount + ''
+        checklist.check order.offerPrice.toString()
+        checklist.check order.offerAmount.toString()
+        checklist.check order.bidPrice.toString()
+        checklist.check order.bidAmount.toString()
 
       @currencyMarket.register
         id: '123456789'
@@ -1431,33 +1431,38 @@ describe 'CurrencyMarket', ->
       @currencyMarket.cancel
         id: '123456791'
         timestamp: '987654350'
-        orderId: '123456789'
-        orderTimestamp: '987654321'
-        account: 'Peter'
-        bidCurrency: 'BTC'
-        offerCurrency: 'EUR'
-        offerPrice: amount100
-        offerAmount: amount50        
+        order: new Order
+          id: '123456789'
+          timestamp: '987654321'
+          account: 'Peter'
+          bidCurrency: 'BTC'
+          offerCurrency: 'EUR'
+          offerPrice: amount100
+          offerAmount: amount50        
       account.balances['EUR'].lockedFunds.compareTo(amount100).should.equal 0
 
     it 'should remove the order from the orders collection and from the correct book, record the last transaction ID and emit an cancellation event', (done) ->
       checklist = new Checklist [
           '123456795'
           '987654349'
+          '123456793'
+          '987654321'
           'Peter'
           'BTC'
           'EUR'
           '100'
           '50'
-          'undefined'
-          'undefined'
+          '0.01'
+          '5000'
           '123456796'
           '987654350'
+          '123456794'
+          '987654322'
           'Paul'
           'EUR'
           'BTC'
-          'undefined'
-          'undefined'
+          '0.010101010101010101010101'
+          '4950'
           '99'
           '50'
         ],
@@ -1466,16 +1471,18 @@ describe 'CurrencyMarket', ->
           @currencyMarket.removeAllListeners()
           done error
 
-      @currencyMarket.on 'cancellation', (order) ->
-        checklist.check order.id
-        checklist.check order.timestamp
-        checklist.check order.account
-        checklist.check order.bidCurrency
-        checklist.check order.offerCurrency
-        checklist.check order.offerPrice + ''
-        checklist.check order.offerAmount + ''
-        checklist.check order.bidPrice + ''
-        checklist.check order.bidAmount + ''
+      @currencyMarket.on 'cancellation', (cancellation) ->
+        checklist.check cancellation.id
+        checklist.check cancellation.timestamp
+        checklist.check cancellation.order.id
+        checklist.check cancellation.order.timestamp
+        checklist.check cancellation.order.account
+        checklist.check cancellation.order.bidCurrency
+        checklist.check cancellation.order.offerCurrency
+        checklist.check cancellation.order.offerPrice.toString()
+        checklist.check cancellation.order.offerAmount.toString()
+        checklist.check cancellation.order.bidPrice.toString()
+        checklist.check cancellation.order.bidAmount.toString()
 
       @currencyMarket.register
         id: '123456789'
@@ -1516,26 +1523,28 @@ describe 'CurrencyMarket', ->
       @currencyMarket.cancel
         id: '123456795'
         timestamp: '987654349'
-        orderId: '123456793'
-        orderTimestamp: '987654321'
-        account: 'Peter'
-        bidCurrency: 'BTC'
-        offerCurrency: 'EUR'
-        offerPrice: amount100
-        offerAmount: amount50
+        order: new Order
+          id: '123456793'
+          timestamp: '987654321'
+          account: 'Peter'
+          bidCurrency: 'BTC'
+          offerCurrency: 'EUR'
+          offerPrice: amount100
+          offerAmount: amount50
       @currencyMarket.lastTransaction.should.equal '123456795'
       expect(@currencyMarket.books['BTC']['EUR'].entries['123456793']).to.not.be.ok
       expect(@currencyMarket.books['BTC']['EUR'].highest).to.not.be.ok
       @currencyMarket.cancel
         id: '123456796'
         timestamp: '987654350'
-        orderId: '123456794'
-        orderTimestamp: '987654322'
-        account: 'Paul'
-        bidCurrency: 'EUR'
-        offerCurrency: 'BTC'
-        bidPrice: amount99
-        bidAmount: amount50
+        order: new Order
+          id: '123456794'
+          timestamp: '987654322'
+          account: 'Paul'
+          bidCurrency: 'EUR'
+          offerCurrency: 'BTC'
+          bidPrice: amount99
+          bidAmount: amount50
       @currencyMarket.lastTransaction.should.equal '123456796'
       expect(@currencyMarket.books['BTC']['EUR'].entries['123456794']).to.not.be.ok
       expect(@currencyMarket.books['EUR']['BTC'].highest).to.not.be.ok
@@ -1545,13 +1554,14 @@ describe 'CurrencyMarket', ->
         @currencyMarket.cancel
           id: '123456795'
           timestamp: '987654349'
-          orderId: '123456793'
-          orderTimestamp: '987654321'
-          account: 'Peter'
-          bidCurrency: 'BTC'
-          offerCurrency: 'EUR'
-          offerPrice: amount100
-          offerAmount: amount50        
+          order: new Order
+            id: '123456793'
+            timestamp: '987654321'
+            account: 'Peter'
+            bidCurrency: 'BTC'
+            offerCurrency: 'EUR'
+            offerPrice: amount100
+            offerAmount: amount50        
       .to.throw('Order cannot be found')
 
     it 'should throw an error if the order does not match', ->
@@ -1578,13 +1588,14 @@ describe 'CurrencyMarket', ->
         @currencyMarket.cancel
           id: '123456795'
           timestamp: '987654349'
-          orderId: '123456789'
-          orderTimestamp: '987654321'
-          account: 'Peter'
-          bidCurrency: 'BTC'
-          offerCurrency: 'EUR'
-          offerPrice: amount100
-          offerAmount: amount20        
+          order: new Order
+            id: '123456789'
+            timestamp: '987654321'
+            account: 'Peter'
+            bidCurrency: 'BTC'
+            offerCurrency: 'EUR'
+            offerPrice: amount100
+            offerAmount: amount20        
       .to.throw('Order does not match')
 
   describe '#equals', ->
