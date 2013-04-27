@@ -1330,7 +1330,7 @@ describe 'Market', ->
           offerAmount: amount50        
       .to.throw('Bid currency is not supported')
 
-    it 'should execute orders correctly and not throw a withdraw error when ? (captured from a failing performance test)', ->
+    it 'should execute orders correctly and not throw a withdraw error when ? (captured from a failing random performance test)', ->
       @market.register newAccount '100000'
       @market.register newAccount '100001'
       @market.register newAccount '100002'
@@ -1377,7 +1377,7 @@ describe 'Market', ->
         offerPrice: new Amount '110'
         offerAmount: new Amount '52'
 
-    it 'should execute orders correctly and not throw an unlock funds error when ? (captured from a failing performance test)', ->
+    it 'should execute orders correctly and not throw an unlock funds error when ? (captured from a failing random performance test)', ->
       @market.register newAccount '100000'
       @market.register newAccount '100001'
       @market.register newAccount '100002'
