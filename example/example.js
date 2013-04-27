@@ -257,3 +257,13 @@ console.log(json);
 var anotherMarket = new Market({
   state: JSON.parse(json)
 });
+
+// Retrieve the last transaction ID processed 
+console.log('');
+console.log('********************');
+console.log('********************');
+console.log('');
+console.log('Last transaction ID from new Market: ' + anotherMarket.lastTransaction);
+console.log('');
+console.log('********************');
+console.log('********************');
