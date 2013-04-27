@@ -295,6 +295,8 @@ console.log('********************');
 
 ## Roadmap
 
+- List orders by account
+- List orders by book (in order)
 - Instant orders
   - Fill or Kill limit orders
   - Market orders
