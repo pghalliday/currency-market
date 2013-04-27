@@ -150,12 +150,12 @@ module.exports = class Market extends EventEmitter
           @emit 'trade',
             left:
               order: leftOrder
-              amount: rightOfferAmount.toString()
-              price: rightOrder.offerPrice.toString()
+              amount: rightOfferAmount
+              price: rightOrder.offerPrice
             right:
               order: rightOrder
-              amount: rightBidAmount.toString()
-              price: rightOrder.bidPrice.toString()
+              amount: rightBidAmount
+              price: rightOrder.bidPrice
 
           # call execute again to see if any more orders can be satified
           @execute(leftBook, rightBook)
@@ -177,12 +177,12 @@ module.exports = class Market extends EventEmitter
           @emit 'trade',
             left:
               order: leftOrder
-              amount: leftBidAmount.toString()
-              price: rightOrder.offerPrice.toString()
+              amount: leftBidAmount
+              price: rightOrder.offerPrice
             right:
               order: rightOrder
-              amount: leftOfferAmount.toString()
-              price: rightOrder.bidPrice.toString()
+              amount: leftOfferAmount
+              price: rightOrder.bidPrice
 
   cancel: (cancellation) =>
     order = cancellation.order
