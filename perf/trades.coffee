@@ -1,4 +1,4 @@
-# This tests does trades in pairs to push funds back and forth between accounts
+# This test does trades in pairs to push funds back and forth between accounts
 # 2 trades will be made in each iteration
 ITERATIONS = 10000
 
