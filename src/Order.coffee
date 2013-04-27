@@ -28,14 +28,14 @@ module.exports = class Order
             throw new Error('Must specify either bid amount and price or offer amount and price')
         else
           @type = Order.BID
-          @bidPrice = new Amount(params.bidPrice)
+          @bidPrice = params.bidPrice
           if @bidPrice.compareTo(Amount.ZERO) < 0
             throw new Error('bid price cannot be negative')
           else
             if typeof params.bidAmount == 'undefined'
               throw new Error('Must specify either bid amount and price or offer amount and price')
             else
-              @bidAmount = new Amount(params.bidAmount)
+              @bidAmount = params.bidAmount
               if @bidAmount.compareTo(Amount.ZERO) < 0
                 throw new Error('bid amount cannot be negative')
               else
@@ -49,14 +49,14 @@ module.exports = class Order
                   throw new Error('Must specify either bid amount and price or offer amount and price')
       else
         @type = Order.OFFER
-        @offerPrice = new Amount(params.offerPrice)
+        @offerPrice = params.offerPrice
         if @offerPrice.compareTo(Amount.ZERO) < 0
           throw new Error('offer price cannot be negative')
         else
           if typeof params.offerAmount == 'undefined'
             throw new Error('Must specify either bid amount and price or offer amount and price')
           else
-            @offerAmount = new Amount(params.offerAmount)
+            @offerAmount = params.offerAmount
             if @offerAmount.compareTo(Amount.ZERO) < 0
               throw new Error('offer amount cannot be negative')
             else

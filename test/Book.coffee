@@ -3,17 +3,31 @@ chai.should()
 expect = chai.expect
 assert = chai.assert
 
-Book = require('../src/Book')
-Order = require('../src/Order')
+Book = require '../src/Book'
+Order = require '../src/Order'
+Amount = require '../src/Amount'
+
+amount48Point5 = new Amount '48.5'
+amount48Point75 = new Amount '48.75'
+amount49 = new Amount '49'
+amount49Point5 = new Amount '49.5'
+amount49Point75 = new Amount '49.75'
+amount50 = new Amount '50'
+amount50Point5 = new Amount '50.5'
+amount50Point75 = new Amount '50.75'
+amount51 = new Amount '51'
+amount52 = new Amount '52'
+amount53 = new Amount '53'
+amount100 = new Amount '100'
 
 newOrder = (id, price) ->
   new Order
     id: id
     timestamp: '987654321'
-    account: 'name',
-    bidCurrency: 'BTC',
-    offerCurrency: 'EUR',
-    bidAmount: '100',
+    account: 'name'
+    bidCurrency: 'BTC'
+    offerCurrency: 'EUR'
+    bidAmount: amount100
     bidPrice: price
 
 describe 'Book', ->
@@ -34,63 +48,63 @@ describe 'Book', ->
       #            8   9 10 11 12 13 14 15
       #
       book = new Book()
-      order1 = newOrder('1', '50')
+      order1 = newOrder('1', amount50)
       book.add(order1)
       book.highest.should.equal(order1)
 
-      order2 = newOrder('2', '51')
+      order2 = newOrder('2', amount51)
       book.add(order2)
       book.highest.should.equal(order2)
 
-      order3 = newOrder('3', '49')
+      order3 = newOrder('3', amount49)
       book.add(order3)
       book.highest.should.equal(order2)
 
-      order4 = newOrder('4', '52')
+      order4 = newOrder('4', amount52)
       book.add(order4)
       book.highest.should.equal(order4)
 
-      order5 = newOrder('5', '50.5')
+      order5 = newOrder('5', amount50Point5)
       book.add(order5)
       book.highest.should.equal(order4)
 
-      order6 = newOrder('6', '49.5')
+      order6 = newOrder('6', amount49Point5)
       book.add(order6)
       book.highest.should.equal(order4)
 
-      order7 = newOrder('7', '48.5')
+      order7 = newOrder('7', amount48Point5)
       book.add(order7)
       book.highest.should.equal(order4)
 
-      order8 = newOrder('8', '48.5') # is equal to but should be placed lower than order 7
+      order8 = newOrder('8', amount48Point5) # is equal to but should be placed lower than order 7
       book.add(order8)
       book.highest.should.equal(order4)
 
-      order9 = newOrder('9', '48.75')
+      order9 = newOrder('9', amount48Point75)
       book.add(order9)
       book.highest.should.equal(order4)
 
-      order10 = newOrder('10', '49.5') # is equal to but should be placed lower than order 6
+      order10 = newOrder('10', amount49Point5) # is equal to but should be placed lower than order 6
       book.add(order10)
       book.highest.should.equal(order4)
 
-      order11 = newOrder('11', '49.75')
+      order11 = newOrder('11', amount49Point75)
       book.add(order11)
       book.highest.should.equal(order4)
 
-      order12 = newOrder('12', '50.5') # is equal to but should be placed lower than order 5
+      order12 = newOrder('12', amount50Point5) # is equal to but should be placed lower than order 5
       book.add(order12)
       book.highest.should.equal(order4)
 
-      order13 = newOrder('13', '50.75')
+      order13 = newOrder('13', amount50Point75)
       book.add(order13)
       book.highest.should.equal(order4)
 
-      order14 = newOrder('14', '52') # is equal to but should be placed lower than order 4
+      order14 = newOrder('14', amount52) # is equal to but should be placed lower than order 4
       book.add(order14)
       book.highest.should.equal(order4)
 
-      order15 = newOrder('15', '53')
+      order15 = newOrder('15', amount53)
       book.add(order15)
       book.highest.should.equal(order15)
 
@@ -111,35 +125,35 @@ describe 'Book', ->
       #             / \   / \   / \   / \
       #            8   9 10 11 12 13 14 15
       #
-      @order1 = newOrder('1', '50')
+      @order1 = newOrder('1', amount50)
       @book.add(@order1)
-      @order2 = newOrder('2', '51')
+      @order2 = newOrder('2', amount51)
       @book.add(@order2)
-      @order3 = newOrder('3', '49')
+      @order3 = newOrder('3', amount49)
       @book.add(@order3)
-      @order4 = newOrder('4', '52')
+      @order4 = newOrder('4', amount52)
       @book.add(@order4)
-      @order5 = newOrder('5', '50.5')
+      @order5 = newOrder('5', amount50Point5)
       @book.add(@order5)
-      @order6 = newOrder('6', '49.5')
+      @order6 = newOrder('6', amount49Point5)
       @book.add(@order6)
-      @order7 = newOrder('7', '48.5')
+      @order7 = newOrder('7', amount48Point5)
       @book.add(@order7)
-      @order8 = newOrder('8', '48.5') # is equal to but should be placed lower than order 7
+      @order8 = newOrder('8', amount48Point5) # is equal to but should be placed lower than order 7
       @book.add(@order8)
-      @order9 = newOrder('9', '48.75')
+      @order9 = newOrder('9', amount48Point75)
       @book.add(@order9)
-      @order10 = newOrder('10', '49.5') # is equal to but should be placed lower than order 6
+      @order10 = newOrder('10', amount49Point5) # is equal to but should be placed lower than order 6
       @book.add(@order10)
-      @order11 = newOrder('11', '49.75')
+      @order11 = newOrder('11', amount49Point75)
       @book.add(@order11)
-      @order12 = newOrder('12', '50.5') # is equal to but should be placed lower than order 5
+      @order12 = newOrder('12', amount50Point5) # is equal to but should be placed lower than order 5
       @book.add(@order12)
-      @order13 = newOrder('13', '50.75')
+      @order13 = newOrder('13', amount50Point75)
       @book.add(@order13)
-      @order14 = newOrder('14', '52') # is equal to but should be placed lower than order 4
+      @order14 = newOrder('14', amount52) # is equal to but should be placed lower than order 4
       @book.add(@order14)
-      @order15 = newOrder('15', '53')
+      @order15 = newOrder('15', amount53)
       @book.add(@order15)
 
     it 'should keep track of the order with the highest bid price', ->
@@ -239,34 +253,34 @@ describe 'Book', ->
       book1 = new Book()
       book2 = new Book()
       book1.equals(book2).should.be.true
-      book1.add(newOrder('1', '50'))
-      book2.add(newOrder('1', '50'))
+      book1.add(newOrder('1', amount50))
+      book2.add(newOrder('1', amount50))
       book1.equals(book2).should.be.true
-      book1.add(newOrder('2', '49'))
-      book2.add(newOrder('2', '49'))
+      book1.add(newOrder('2', amount49))
+      book2.add(newOrder('2', amount49))
       book1.equals(book2).should.be.true
-      book1.add(newOrder('3', '51'))
-      book2.add(newOrder('3', '51'))
+      book1.add(newOrder('3', amount51))
+      book2.add(newOrder('3', amount51))
       book1.equals(book2).should.be.true
 
     it 'should return false if the books are different', ->
       book1 = new Book()
       book2 = new Book()
-      book1.add(newOrder('1', '50'))
+      book1.add(newOrder('1', amount50))
       book1.equals(book2).should.be.false
-      book2.add(newOrder('1', '51'))
+      book2.add(newOrder('1', amount51))
       book1.equals(book2).should.be.false
 
     it 'should return false if the highest orders are different', ->
       book1 = new Book()
       book2 = new Book()
-      book1.add(newOrder('1', '50'))
-      book2.add(newOrder('1', '50'))
-      book1.add(newOrder('2', '49'))
-      book2.add(newOrder('2', '49'))
-      book1.add(newOrder('3', '51'))
-      book2.add(newOrder('3', '51'))
-      book2.highest = newOrder('4', '100')
+      book1.add(newOrder('1', amount50))
+      book2.add(newOrder('1', amount50))
+      book1.add(newOrder('2', amount49))
+      book2.add(newOrder('2', amount49))
+      book1.add(newOrder('3', amount51))
+      book2.add(newOrder('3', amount51))
+      book2.highest = newOrder('4', amount100)
       book1.equals(book2).should.be.false
       delete book2.highest
       book1.equals(book2).should.be.false
@@ -289,21 +303,21 @@ describe 'Book', ->
       #            8   9 10 11 12 13 14 15
       #
       orders1 = Object.create null
-      orders1['1'] = newOrder('1', '50')
-      orders1['2'] = newOrder('2', '51')
-      orders1['3'] = newOrder('3', '49')
-      orders1['4'] = newOrder('4', '52')
-      orders1['5'] = newOrder('5', '50.5')
-      orders1['6'] = newOrder('6', '49.5')
-      orders1['7'] = newOrder('7', '48.5')
-      orders1['8'] = newOrder('8', '48.5') # is equal to but should be placed lower than order 7
-      orders1['9'] = newOrder('9', '48.75')
-      orders1['10'] = newOrder('10', '49.5') # is equal to but should be placed lower than order 6
-      orders1['11'] = newOrder('11', '49.75')
-      orders1['12'] = newOrder('12', '50.5') # is equal to but should be placed lower than order 5
-      orders1['13'] = newOrder('13', '50.75')
-      orders1['14'] = newOrder('14', '52') # is equal to but should be placed lower than order 4
-      orders1['15'] = newOrder('15', '53')
+      orders1['1'] = newOrder('1', amount50)
+      orders1['2'] = newOrder('2', amount51)
+      orders1['3'] = newOrder('3', amount49)
+      orders1['4'] = newOrder('4', amount52)
+      orders1['5'] = newOrder('5', amount50Point5)
+      orders1['6'] = newOrder('6', amount49Point5)
+      orders1['7'] = newOrder('7', amount48Point5)
+      orders1['8'] = newOrder('8', amount48Point5) # is equal to but should be placed lower than order 7
+      orders1['9'] = newOrder('9', amount48Point75)
+      orders1['10'] = newOrder('10', amount49Point5) # is equal to but should be placed lower than order 6
+      orders1['11'] = newOrder('11', amount49Point75)
+      orders1['12'] = newOrder('12', amount50Point5) # is equal to but should be placed lower than order 5
+      orders1['13'] = newOrder('13', amount50Point75)
+      orders1['14'] = newOrder('14', amount52) # is equal to but should be placed lower than order 4
+      orders1['15'] = newOrder('15', amount53)
       book.add(orders1['1'])
       book.add(orders1['2'])
       book.add(orders1['3'])

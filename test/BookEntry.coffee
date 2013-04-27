@@ -8,6 +8,18 @@ chai.use sinonChai
 
 BookEntry = require '../src/BookEntry'
 Order = require '../src/Order'
+Amount = require '../src/Amount'
+
+amountPoint2 = new Amount '0.2'
+amount1 = new Amount '1'
+amount2 = new Amount '2'
+amount3 = new Amount '3'
+amount4 = new Amount '4'
+amount5 = new Amount '5'
+amount6 = new Amount '6'
+amount7 = new Amount '7'
+amount8 = new Amount '8'
+amount200 = new Amount '200'
 
 newBookEntry = (bidPrice, id) ->
   new BookEntry
@@ -18,7 +30,7 @@ newBookEntry = (bidPrice, id) ->
       bidCurrency: 'EUR'
       offerCurrency: 'BTC'
       bidPrice: bidPrice
-      bidAmount: '200'
+      bidAmount: amount200
 
 describe 'BookEntry', ->
 
@@ -29,8 +41,8 @@ describe 'BookEntry', ->
       account: 'Peter'
       bidCurrency: 'EUR'
       offerCurrency: 'BTC'
-      bidPrice: '0.2'
-      bidAmount: '200'
+      bidPrice: amountPoint2
+      bidAmount: amount200
     bookEntry = new BookEntry
       order: order
     bookEntry.order.should.equal order
@@ -46,11 +58,11 @@ describe 'BookEntry', ->
 
   describe '#add', ->
     beforeEach ->
-      @bookEntry = newBookEntry '0.2'
-      @higherBookEntry = newBookEntry '1'
-      @evenHigherBookEntry = newBookEntry '2'
-      @equalBookEntry = newBookEntry '0.2'
-      @secondEqualBookEntry = newBookEntry '0.2'
+      @bookEntry = newBookEntry amountPoint2
+      @higherBookEntry = newBookEntry amount1
+      @evenHigherBookEntry = newBookEntry amount2
+      @equalBookEntry = newBookEntry amountPoint2
+      @secondEqualBookEntry = newBookEntry amountPoint2
 
     describe 'on a book entry with no lower or higher entries', ->
       describe 'an entry with a higher bid price', ->
@@ -98,17 +110,17 @@ describe 'BookEntry', ->
   describe '#addLowest', ->
     describe 'with no lower BookEntry', ->
       it 'should set the lower BookEntry to the given BookEntry regardless of the bidPrice', ->
-        bookEntry1 = newBookEntry '1'
-        bookEntry2 = newBookEntry '2'
+        bookEntry1 = newBookEntry amount1
+        bookEntry2 = newBookEntry amount2
         bookEntry1.addLowest bookEntry2
         bookEntry1.lower.should.equal bookEntry2
         bookEntry2.parent.should.equal bookEntry1
 
     describe 'with a lower BookEntry', ->
       it 'should call addLowest with the given BookEntry regardless of the bidPrice', ->
-        bookEntry1 = newBookEntry '1'
-        bookEntry2 = newBookEntry '2'
-        bookEntry3 = newBookEntry '3'
+        bookEntry1 = newBookEntry amount1
+        bookEntry2 = newBookEntry amount2
+        bookEntry3 = newBookEntry amount3
         bookEntry2.add bookEntry1
         addLowestSpy = sinon.spy()
         bookEntry1.addLowest = addLowestSpy
@@ -117,14 +129,14 @@ describe 'BookEntry', ->
 
   describe '#delete', ->
     beforeEach ->
-      @bookEntry1 = newBookEntry '1'
-      @bookEntry2 = newBookEntry '2'
-      @bookEntry3 = newBookEntry '3'
-      @bookEntry4 = newBookEntry '4'
-      @bookEntry5 = newBookEntry '5'
-      @bookEntry6 = newBookEntry '6'
-      @bookEntry7 = newBookEntry '7'
-      @bookEntry8 = newBookEntry '8'
+      @bookEntry1 = newBookEntry amount1
+      @bookEntry2 = newBookEntry amount2
+      @bookEntry3 = newBookEntry amount3
+      @bookEntry4 = newBookEntry amount4
+      @bookEntry5 = newBookEntry amount5
+      @bookEntry6 = newBookEntry amount6
+      @bookEntry7 = newBookEntry amount7
+      @bookEntry8 = newBookEntry amount8
 
     describe 'a BookEntry with a lower parent but no lower or higher', ->
       it 'should delete the parent higher BookEntry', ->
@@ -244,35 +256,35 @@ describe 'BookEntry', ->
   describe '#getHighest', ->
     describe 'with no higher BookEntry', ->
       it 'should return itself', ->
-        bookEntry = newBookEntry '1'
+        bookEntry = newBookEntry amount1
         bookEntry.getHighest().should.equal bookEntry
 
     describe 'with a higher BookEntry', ->
       it 'should call getHighest on the higher entry and return the result', ->
-        bookEntry1 = newBookEntry '1'
-        bookEntry2 = newBookEntry '2'
+        bookEntry1 = newBookEntry amount1
+        bookEntry2 = newBookEntry amount2
         bookEntry1.add bookEntry2
         bookEntry2.getHighest = sinon.stub().returns 'stub'
         bookEntry1.getHighest().should.equal 'stub'
 
   describe '#equals', ->
     beforeEach ->
-      @bookEntry1a = newBookEntry '1'
-      @bookEntry1b = newBookEntry '1'
-      @bookEntry2a = newBookEntry '2'
-      @bookEntry2b = newBookEntry '2'
-      @bookEntry3a = newBookEntry '3'
-      @bookEntry3b = newBookEntry '3'
-      @bookEntry4a = newBookEntry '4'
-      @bookEntry4b = newBookEntry '4'
-      @bookEntry5a = newBookEntry '5'
-      @bookEntry5b = newBookEntry '5'
-      @bookEntry6a = newBookEntry '6'
-      @bookEntry6b = newBookEntry '6'
-      @bookEntry7a = newBookEntry '7'
-      @bookEntry7b = newBookEntry '7'
-      @bookEntry8a = newBookEntry '8'
-      @bookEntry8b = newBookEntry '8'
+      @bookEntry1a = newBookEntry amount1
+      @bookEntry1b = newBookEntry amount1
+      @bookEntry2a = newBookEntry amount2
+      @bookEntry2b = newBookEntry amount2
+      @bookEntry3a = newBookEntry amount3
+      @bookEntry3b = newBookEntry amount3
+      @bookEntry4a = newBookEntry amount4
+      @bookEntry4b = newBookEntry amount4
+      @bookEntry5a = newBookEntry amount5
+      @bookEntry5b = newBookEntry amount5
+      @bookEntry6a = newBookEntry amount6
+      @bookEntry6b = newBookEntry amount6
+      @bookEntry7a = newBookEntry amount7
+      @bookEntry7b = newBookEntry amount7
+      @bookEntry8a = newBookEntry amount8
+      @bookEntry8b = newBookEntry amount8
 
     it 'should return true if 2 trees are the same', ->
       @bookEntry4a.equals(@bookEntry4b).should.be.true
@@ -326,14 +338,14 @@ describe 'BookEntry', ->
 
   describe '#export', ->
     it 'should export the tree as a JSON stringifiable object that can be used to initialise a new tree in the exact same state and populate a new entries collection keyed by order ID', ->
-      bookEntry1 = newBookEntry '1', '1'
-      bookEntry2 = newBookEntry '2', '2'
-      bookEntry3 = newBookEntry '3', '3'
-      bookEntry4 = newBookEntry '4', '4'
-      bookEntry5 = newBookEntry '5', '5'
-      bookEntry6 = newBookEntry '6', '6'
-      bookEntry7 = newBookEntry '7', '7'
-      bookEntry8 = newBookEntry '8', '8'
+      bookEntry1 = newBookEntry amount1, '1'
+      bookEntry2 = newBookEntry amount2, '2'
+      bookEntry3 = newBookEntry amount3, '3'
+      bookEntry4 = newBookEntry amount4, '4'
+      bookEntry5 = newBookEntry amount5, '5'
+      bookEntry6 = newBookEntry amount6, '6'
+      bookEntry7 = newBookEntry amount7, '7'
+      bookEntry8 = newBookEntry amount8, '8'
 
       bookEntry4.add bookEntry2
       bookEntry4.add bookEntry6

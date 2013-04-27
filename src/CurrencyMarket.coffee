@@ -68,7 +68,7 @@ module.exports = class CurrencyMarket extends EventEmitter
           if typeof balance == 'undefined'
             throw new Error('Currency is not supported')
           else
-            balance.deposit(new Amount(deposit.amount))
+            balance.deposit(deposit.amount)
             @lastTransaction = deposit.id
             @emit 'deposit', deposit
 
@@ -87,7 +87,7 @@ module.exports = class CurrencyMarket extends EventEmitter
           if typeof balance == 'undefined'
             throw new Error('Currency is not supported')
           else
-            balance.withdraw(new Amount(withdrawal.amount))
+            balance.withdraw(withdrawal.amount)
             @lastTransaction = withdrawal.id
             @emit 'withdrawal', withdrawal
 
