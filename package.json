@@ -1,7 +1,7 @@
 {
   "name": "currency-market",
   "description": "A synchronous implementation of a limit order based currency market",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "homepage": "https://github.com/pghalliday/currency-market",
   "author": {
     "name": "Peter Halliday",
