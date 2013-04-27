@@ -1330,6 +1330,53 @@ describe 'Market', ->
           offerAmount: amount50        
       .to.throw('Bid currency is not supported')
 
+    it 'should execute orders correctly when ? (captured from a failing performance test)', ->
+      @market.register newAccount '100000'
+      @market.register newAccount '100001'
+      @market.register newAccount '100002'
+      @market.deposit
+        id: '100010'
+        timestamp: '1366758222'
+        account: '100000'
+        currency: 'EUR'
+        amount: new Amount '8236'
+      @market.submit new Order
+        id: '100012'
+        timestamp: '1366758222'
+        account: '100000'
+        bidCurrency: 'BTC'
+        offerCurrency: 'EUR'
+        bidPrice: new Amount '116'
+        bidAmount: new Amount '71'
+      @market.deposit
+        id: '100021'
+        timestamp: '1366758222'
+        account: '100001'
+        currency: 'BTC'
+        amount: new Amount '34'
+      @market.submit new Order
+        id: '100023'
+        timestamp: '1366758222'
+        account: '100001'
+        bidCurrency: 'EUR'
+        offerCurrency: 'BTC'
+        offerPrice: new Amount '114'
+        offerAmount: new Amount '34'
+      @market.deposit
+        id: '100031'
+        timestamp: '1366758222'
+        account: '100002'
+        currency: 'BTC'
+        amount: new Amount '52'
+      @market.submit new Order
+        id: '100033'
+        timestamp: '1366758222'
+        account: '100002'
+        bidCurrency: 'EUR'
+        offerCurrency: 'BTC'
+        offerPrice: new Amount '110'
+        offerAmount: new Amount '52'
+
   describe '#cancel', ->
     it 'should unlock the correct funds in the correct account', ->
       @market.register newAccount 'Peter'
