@@ -1330,7 +1330,7 @@ describe 'Market', ->
           offerAmount: amount50        
       .to.throw('Bid currency is not supported')
 
-    it 'should execute orders correctly when ? (captured from a failing performance test)', ->
+    it 'should execute orders correctly and not throw a withdraw error when ? (captured from a failing performance test)', ->
       @market.register newAccount '100000'
       @market.register newAccount '100001'
       @market.register newAccount '100002'
@@ -1376,6 +1376,53 @@ describe 'Market', ->
         offerCurrency: 'BTC'
         offerPrice: new Amount '110'
         offerAmount: new Amount '52'
+
+    it 'should execute orders correctly and not throw an unlock funds error when ? (captured from a failing performance test)', ->
+      @market.register newAccount '100000'
+      @market.register newAccount '100001'
+      @market.register newAccount '100002'
+      @market.deposit
+        id: '100011'
+        timestamp: '1366758222'
+        account: '100000'
+        currency: 'BTC'
+        amount: new Amount '54'
+      @market.submit new Order
+        id: '100013'
+        timestamp: '1366758222'
+        account: '100000'
+        bidCurrency: 'EUR'
+        offerCurrency: 'BTC'
+        offerPrice: new Amount '89'
+        offerAmount: new Amount '54'
+      @market.deposit
+        id: '100020'
+        timestamp: '1366758222'
+        account: '100001'
+        currency: 'EUR'
+        amount: new Amount '5252'
+      @market.submit new Order
+        id: '100022'
+        timestamp: '1366758222'
+        account: '100001'
+        bidCurrency: 'BTC'
+        offerCurrency: 'EUR'
+        bidPrice: new Amount '101'
+        bidAmount: new Amount '52'
+      @market.deposit
+        id: '100030'
+        timestamp: '1366758222'
+        account: '100002'
+        currency: 'EUR'
+        amount: new Amount '4815'
+      @market.submit new Order
+        id: '100032'
+        timestamp: '1366758222'
+        account: '100002'
+        bidCurrency: 'BTC'
+        offerCurrency: 'EUR'
+        bidPrice: new Amount '107'
+        bidAmount: new Amount '45'
 
   describe '#cancel', ->
     it 'should unlock the correct funds in the correct account', ->
