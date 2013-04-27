@@ -295,6 +295,7 @@ console.log('********************');
 
 ## Roadmap
 
+- Performance tests
 - List orders by account
 - List orders by book (in order)
 - Instant orders
