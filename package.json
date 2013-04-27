@@ -42,7 +42,8 @@
     "grunt-mocha-test": "~0.2.2",
     "grunt-contrib-clean": "~0.4.1",
     "sinon": "~1.6.0",
-    "sinon-chai": "~2.4.0"
+    "sinon-chai": "~2.4.0",
+    "randgen": "0.0.2"
   },
   "keywords": [
     "currency",
