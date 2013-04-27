@@ -12,7 +12,6 @@ describe 'Account', ->
     account = new Account
       id: '123456789'
       timestamp: '987654321'
-      key: 'Peter'
       currencies: [
         'EUR'
         'USD'
@@ -20,7 +19,6 @@ describe 'Account', ->
       ]
     account.id.should.equal '123456789'
     account.timestamp.should.equal '987654321'
-    account.key.should.equal 'Peter'
     account.balances['EUR'].should.be.an.instanceOf(Balance)
     account.balances['USD'].should.be.an.instanceOf(Balance)
     account.balances['BTC'].should.be.an.instanceOf(Balance)
@@ -29,7 +27,6 @@ describe 'Account', ->
     expect =>
       account = new Account
         timestamp: '987654321'
-        key: 'Peter'
         currencies: [
           'EUR'
           'USD'
@@ -41,7 +38,6 @@ describe 'Account', ->
     expect =>
       account = new Account
         id: '123456789'
-        key: 'Peter'
         currencies: [
           'EUR'
           'USD'
@@ -49,24 +45,11 @@ describe 'Account', ->
         ]
     .to.throw('Must supply timestamp')   
 
-  it 'should throw an error if no key is present', ->
-    expect =>
-      account = new Account
-        id: '123456789'
-        timestamp: '987654321'
-        currencies: [
-          'EUR'
-          'USD'
-          'BTC'
-        ]
-    .to.throw('Must supply key')   
-
   it 'should throw an error if no currencies are present', ->
     expect =>
       account = new Account
         id: '123456789'
         timestamp: '987654321'
-        key: 'Peter'
     .to.throw('Must supply currencies')   
 
   describe '#equals', ->
@@ -91,7 +74,6 @@ describe 'Account', ->
       account = new Account
         id: '123456789'
         timestamp: '987654321'
-        key: 'Peter'
         currencies: [
           'EUR'
           'USD'
@@ -105,29 +87,10 @@ describe 'Account', ->
       account.balances['BTC'].lock new Amount '25'
       @account.equals(account).should.be.true
 
-    it 'should return false if the keys are different', ->
-      account = new Account
-        id: '123456789'
-        timestamp: '987654321'
-        key: 'Paul'
-        currencies: [
-          'EUR'
-          'USD'
-          'BTC'
-        ]      
-      account.balances['EUR'].deposit new Amount '300'
-      account.balances['EUR'].lock new Amount '100'
-      account.balances['USD'].deposit new Amount '200'
-      account.balances['USD'].lock new Amount '50'
-      account.balances['BTC'].deposit new Amount '50'
-      account.balances['BTC'].lock new Amount '25'
-      @account.equals(account).should.be.false
-
     it 'should return false if the ids are different', ->
       account = new Account
         id: '123456790'
         timestamp: '987654321'
-        key: 'Peter'
         currencies: [
           'EUR'
           'USD'
@@ -145,7 +108,6 @@ describe 'Account', ->
       account = new Account
         id: '123456789'
         timestamp: '987654322'
-        key: 'Peter'
         currencies: [
           'EUR'
           'USD'
@@ -163,7 +125,6 @@ describe 'Account', ->
       account = new Account
         id: '123456789'
         timestamp: '987654322'
-        key: 'Peter'
         currencies: [
           'EUR'
           'USD'
@@ -179,7 +140,6 @@ describe 'Account', ->
       account = new Account
         id: '123456789'
         timestamp: '987654322'
-        key: 'Peter'
         currencies: [
           'EUR'
           'USD'
@@ -195,7 +155,6 @@ describe 'Account', ->
       account = new Account
         id: '123456789'
         timestamp: '987654322'
-        key: 'Peter'
         currencies: [
           'EUR'
           'USD'
@@ -214,7 +173,6 @@ describe 'Account', ->
       account = new Account
         id: '123456789'
         timestamp: '987654322'
-        key: 'Peter'
         currencies: [
           'EUR'
           'USD'

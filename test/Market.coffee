@@ -41,6 +41,16 @@ amount2000 = new Amount '2000'
 amount2500 = new Amount '2500'
 amount4950 = new Amount '4950'
 
+newAccount = (id) ->
+  new Account
+    id: id
+    timestamp: '987654321'
+    currencies: [
+      'EUR'
+      'USD'
+      'BTC'
+    ]
+
 describe 'Market', ->
   beforeEach ->
     @market = new Market
@@ -60,25 +70,10 @@ describe 'Market', ->
     @market.books['EUR']['USD'].should.be.an.instanceOf(Book)
 
   describe '#register', ->
-    it 'should throw an error if no transaction ID is given', ->
-      expect =>
-        @market.register
-          timestamp: '987654321'
-          key: 'Peter'
-      .to.throw('Must supply transaction ID')
-
-    it 'should throw an error if no timestamp is given', ->
-      expect =>
-        @market.register
-          id: '123456789'
-          key: 'Peter'
-      .to.throw('Must supply timestamp')
-
-    it 'should submit an account to the market with the supported currencies, record the last transaction ID and emit an account event', (done) ->
+    it 'should submit an account to the market, record the last transaction ID and emit an account event', (done) ->
       checklist = new Checklist [
           '123456789'
           '987654321'
-          'Peter'
         ],
         ordered: true,
         (error) =>
@@ -88,37 +83,22 @@ describe 'Market', ->
       @market.on 'account', (account) ->
         checklist.check account.id
         checklist.check account.timestamp
-        checklist.check account.key
 
-      @market.register
-        id: '123456789'
-        timestamp: '987654321'
-        key: 'Peter'
+      account = newAccount '123456789'
+      @market.register account
       @market.lastTransaction.should.equal '123456789'
-      account = @market.accounts['Peter']
-      account.should.be.an.instanceOf(Account)
-      account.balances['EUR'].should.be.an.instanceOf(Balance)
-      account.balances['USD'].should.be.an.instanceOf(Balance)
-      account.balances['BTC'].should.be.an.instanceOf(Balance)
+      account = @market.accounts['123456789']
+      account.should.equal account
 
     it 'should throw an error if the account already exists', ->
-      @market.register
-        id: '123456789'
-        timestamp: '987654321'
-        key: 'Peter'
+      @market.register newAccount '123456789'
       expect =>
-        @market.register
-          id: '123456790'
-          timestamp: '987654322'
-          key: 'Peter'
+        @market.register newAccount '123456789'
       .to.throw('Account already exists')
 
   describe '#deposit', ->
     it 'should throw an error if no transaction ID is given', ->
-      @market.register
-        id: '123456789'
-        timestamp: '987654321'
-        key: 'Peter'
+      @market.register newAccount 'Peter'
       expect =>
         @market.deposit
           timestamp: '987654322'
@@ -128,10 +108,7 @@ describe 'Market', ->
       .to.throw('Must supply transaction ID')
 
     it 'should throw an error if no timestamp is given', ->
-      @market.register
-        id: '123456789'
-        timestamp: '987654321'
-        key: 'Peter'
+      @market.register newAccount 'Peter'
       expect =>
         @market.deposit
           id: '123456790'
@@ -160,10 +137,7 @@ describe 'Market', ->
         checklist.check deposit.currency
         checklist.check deposit.amount.toString()
 
-      @market.register
-        id: '123456789'
-        timestamp: '987654321'
-        key: 'Peter'
+      @market.register newAccount 'Peter'
       account = @market.accounts['Peter']
       account.balances['EUR'].funds.compareTo(Amount.ZERO).should.equal(0)
       account.balances['USD'].funds.compareTo(Amount.ZERO).should.equal(0)
@@ -190,10 +164,7 @@ describe 'Market', ->
       .to.throw('Account does not exist')
 
     it 'should throw an error if the currency is not supported', ->
-      @market.register
-        id: '123456789'
-        timestamp: '987654321'
-        key: 'Peter'
+      @market.register newAccount 'Peter'
       expect =>
         @market.deposit
           id: '123456790'
@@ -205,10 +176,7 @@ describe 'Market', ->
 
   describe '#withdraw', ->
     it 'should throw an error if no transaction ID is given', ->
-      @market.register
-        id: '123456789'
-        timestamp: '987654321'
-        key: 'Peter'
+      @market.register newAccount 'Peter'
       @market.deposit
         id: '123456790'
         timestamp: '987654322'
@@ -224,10 +192,7 @@ describe 'Market', ->
       .to.throw('Must supply transaction ID')
 
     it 'should throw an error if no timestamp is given', ->
-      @market.register
-        id: '123456789'
-        timestamp: '987654321'
-        key: 'Peter'
+      @market.register newAccount 'Peter'
       @market.deposit
         id: '123456790'
         timestamp: '987654322'
@@ -262,10 +227,7 @@ describe 'Market', ->
         checklist.check withdrawal.currency
         checklist.check withdrawal.amount.toString()
 
-      @market.register
-        id: '123456789'
-        timestamp: '987654321'
-        key: 'Peter'
+      @market.register newAccount 'Peter'
       account = @market.accounts['Peter']
       @market.deposit
         id: '123456790'
@@ -293,10 +255,7 @@ describe 'Market', ->
       .to.throw('Account does not exist')
 
     it 'should throw an error if the currency is not supported', ->
-      @market.register
-        id: '123456790'
-        timestamp: '987654322'
-        key: 'Peter'
+      @market.register newAccount 'Peter'
       expect =>
         @market.withdraw
           id: '123456790'
@@ -308,10 +267,7 @@ describe 'Market', ->
 
   describe '#submit', ->
     it 'should lock the correct funds in the correct account', ->
-      @market.register
-        id: '123456789'
-        timestamp: '987654321'
-        key: 'Peter'
+      @market.register newAccount 'Peter'
       account = @market.accounts['Peter']
       @market.deposit
         id: '123456790'
@@ -374,14 +330,8 @@ describe 'Market', ->
         checklist.check order.bidPrice.toString()
         checklist.check order.bidAmount.toString()
 
-      @market.register
-        id: '123456789'
-        timestamp: '987654321'
-        key: 'Peter'
-      @market.register
-        id: '123456790'
-        timestamp: '987654321'
-        key: 'Paul'
+      @market.register newAccount 'Peter'
+      @market.register newAccount 'Paul'
       @market.deposit
         id: '123456791'
         timestamp: '987654322'
@@ -417,14 +367,8 @@ describe 'Market', ->
 
     describe 'while executing orders', ->
       beforeEach ->
-        @market.register
-          id: '123456789'
-          timestamp: '987654321'
-          key: 'Peter'
-        @market.register
-          id: '123456790'
-          timestamp: '987654322'
-          key: 'Paul'
+        @market.register newAccount 'Peter'
+        @market.register newAccount 'Paul'
         @market.deposit
           id: '123456790'
           timestamp: '987654322'
@@ -1191,14 +1135,8 @@ describe 'Market', ->
     
     describe 'when multiple orders can be matched', ->
       beforeEach ->
-        @market.register
-          id: '123456789'
-          timestamp: '987654321'
-          key: 'Peter'
-        @market.register
-          id: '123456790'
-          timestamp: '987654322'
-          key: 'Paul'
+        @market.register newAccount 'Peter'
+        @market.register newAccount 'Paul'
         @market.deposit
           id: '123456790'
           timestamp: '987654322'
@@ -1367,10 +1305,7 @@ describe 'Market', ->
       .to.throw('Account does not exist')
 
     it 'should throw an error if the offer currency is not supported', ->
-      @market.register
-        id: '123456789'
-        timestamp: '987654321'
-        key: 'Peter'
+      @market.register newAccount 'Peter'
       expect =>
         @market.submit new Order
           id: '123456789'
@@ -1383,10 +1318,7 @@ describe 'Market', ->
       .to.throw('Offer currency is not supported')
 
     it 'should throw an error if the bid currency is not supported', ->
-      @market.register
-        id: '123456789'
-        timestamp: '987654321'
-        key: 'Peter'
+      @market.register newAccount 'Peter'
       expect =>
         @market.submit new Order
           id: '123456789'
@@ -1400,10 +1332,7 @@ describe 'Market', ->
 
   describe '#cancel', ->
     it 'should unlock the correct funds in the correct account', ->
-      @market.register
-        id: '123456789'
-        timestamp: '987654321'
-        key: 'Peter'
+      @market.register newAccount 'Peter'
       account = @market.accounts['Peter']
       @market.deposit
         id: '123456790'
@@ -1484,14 +1413,8 @@ describe 'Market', ->
         checklist.check cancellation.order.bidPrice.toString()
         checklist.check cancellation.order.bidAmount.toString()
 
-      @market.register
-        id: '123456789'
-        timestamp: '987654321'
-        key: 'Peter'
-      @market.register
-        id: '123456790'
-        timestamp: '987654321'
-        key: 'Paul'
+      @market.register newAccount 'Peter'
+      @market.register newAccount 'Paul'
       @market.deposit
         id: '123456791'
         timestamp: '987654322'
@@ -1565,10 +1488,7 @@ describe 'Market', ->
       .to.throw('Order cannot be found')
 
     it 'should throw an error if the order does not match', ->
-      @market.register
-        id: '123456789'
-        timestamp: '987654321'
-        key: 'Peter'
+      @market.register newAccount 'Peter'
       account = @market.accounts['Peter']
       @market.deposit
         id: '123456790'
@@ -1606,14 +1526,8 @@ describe 'Market', ->
           'USD'
           'BTC'
         ]
-      @market1.register
-        id: '123456789'
-        timestamp: '987654321'
-        key: 'Peter'
-      @market1.register
-        id: '123456790'
-        timestamp: '987654322'
-        key: 'Paul'
+      @market1.register newAccount 'Peter'
+      @market1.register newAccount 'Paul'
       @market1.deposit
         id: '123456790'
         timestamp: '987654322'
@@ -1666,14 +1580,8 @@ describe 'Market', ->
           'USD'
           'BTC'
         ]
-      market2.register
-        id: '123456789'
-        timestamp: '987654321'
-        key: 'Peter'
-      market2.register
-        id: '123456790'
-        timestamp: '987654322'
-        key: 'Paul'
+      market2.register newAccount 'Peter'
+      market2.register newAccount 'Paul'
       market2.deposit
         id: '123456790'
         timestamp: '987654322'
@@ -1727,14 +1635,8 @@ describe 'Market', ->
           'USD'
           'BTC'
         ]
-      market2.register
-        id: '123456789'
-        timestamp: '987654321'
-        key: 'Peter'
-      market2.register
-        id: '123456790'
-        timestamp: '987654322'
-        key: 'Paul'
+      market2.register newAccount 'Peter'
+      market2.register newAccount 'Paul'
       market2.deposit
         id: '123456790'
         timestamp: '987654322'
@@ -1790,14 +1692,8 @@ describe 'Market', ->
           'EUR'
           'BTC'
         ]
-      market2.register
-        id: '123456789'
-        timestamp: '987654321'
-        key: 'Peter'
-      market2.register
-        id: '123456790'
-        timestamp: '987654322'
-        key: 'Paul'
+      market2.register newAccount 'Peter'
+      market2.register newAccount 'Paul'
       market2.deposit
         id: '123456790'
         timestamp: '987654322'
@@ -1851,14 +1747,8 @@ describe 'Market', ->
           'USD'
           'BTC'
         ]
-      market2.register
-        id: '123456789'
-        timestamp: '987654321'
-        key: 'Peter'
-      market2.register
-        id: '123456790'
-        timestamp: '987654322'
-        key: 'Paul'
+      market2.register newAccount 'Peter'
+      market2.register newAccount 'Paul'
       market2.deposit
         id: '123456790'
         timestamp: '987654322'
@@ -1912,14 +1802,8 @@ describe 'Market', ->
           'USD'
           'BTC'
         ]
-      market2.register
-        id: '123456789'
-        timestamp: '987654321'
-        key: 'Peter'
-      market2.register
-        id: '123456790'
-        timestamp: '987654322'
-        key: 'Paul'
+      market2.register newAccount 'Peter'
+      market2.register newAccount 'Paul'
       market2.deposit
         id: '123456790'
         timestamp: '987654322'
@@ -1961,14 +1845,8 @@ describe 'Market', ->
 
   describe '#export', ->
     it 'should export the state of the market as a JSON stringifiable object that can be used to initialise a new Market in the exact same state', ->
-      @market.register
-        id: '123456789'
-        timestamp: '987654321'
-        key: 'Peter'
-      @market.register
-        id: '123456790'
-        timestamp: '987654322'
-        key: 'Paul'
+      @market.register newAccount 'Peter'
+      @market.register newAccount 'Paul'
       @market.deposit
         id: '123456790'
         timestamp: '987654322'

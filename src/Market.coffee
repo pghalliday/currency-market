@@ -41,17 +41,13 @@ module.exports = class Market extends EventEmitter
         state.books[bidCurrency][offerCurrency] = @books[bidCurrency][offerCurrency].export()
     return state
 
-  register: (params) =>
-    if @accounts[params.key]
+  register: (account) =>
+    if @accounts[account.id]
       throw new Error('Account already exists')
     else
-      @accounts[params.key] = new Account
-        id: params.id
-        key: params.key
-        timestamp: params.timestamp
-        currencies: @currencies
-      @lastTransaction = params.id
-      @emit 'account', params
+      @accounts[account.id] = account
+      @lastTransaction = account.id
+      @emit 'account', account
 
   deposit: (deposit) =>
     if typeof deposit.id == 'undefined'

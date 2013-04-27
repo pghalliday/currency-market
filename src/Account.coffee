@@ -10,21 +10,16 @@ module.exports = class Account
         if typeof params.timestamp == 'undefined'
           throw new Error 'Must supply timestamp'
         else
-          if typeof params.key == 'undefined'
-            throw new Error 'Must supply key'
+          if typeof params.currencies == 'undefined'
+            throw new Error 'Must supply currencies'
           else
-            if typeof params.currencies == 'undefined'
-              throw new Error 'Must supply currencies'
-            else
-              @id = params.id
-              @timestamp = params.timestamp
-              @key = params.key
-              params.currencies.forEach (currency) =>
-                @balances[currency] = new Balance()
+            @id = params.id
+            @timestamp = params.timestamp
+            params.currencies.forEach (currency) =>
+              @balances[currency] = new Balance()
     else
       @id = params.state.id
       @timestamp = params.state.timestamp
-      @key = params.state.key
       Object.keys(params.state.balances).forEach (currency) =>
         @balances[currency] = new Balance
           state: params.state.balances[currency]
@@ -33,7 +28,6 @@ module.exports = class Account
     state = Object.create null
     state.id = @id
     state.timestamp = @timestamp
-    state.key = @key
     state.balances = Object.create null
     Object.keys(@balances).forEach (currency) =>
       state.balances[currency] = @balances[currency].export()
@@ -43,15 +37,12 @@ module.exports = class Account
     equal = true
     if @id == account.id
       if @timestamp == account.timestamp
-        if @key == account.key
-          Object.keys(@balances).forEach (currency) =>
-            if typeof account.balances[currency] == 'undefined'
-                equal = false
-            else
-              if !account.balances[currency].equals @balances[currency]
-                equal = false
-        else
-          equal = false
+        Object.keys(@balances).forEach (currency) =>
+          if typeof account.balances[currency] == 'undefined'
+              equal = false
+          else
+            if !account.balances[currency].equals @balances[currency]
+              equal = false
       else
         equal = false
     else
