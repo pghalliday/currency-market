@@ -112,7 +112,17 @@ market.on('trade', function(trade) {
 
 // add accounts
 market.register(new Account({
+  // All IDs are intended to be the transaction IDs and as such
+  // should be globally unique. If not unique then the lastTransaction
+  // field may be rendered meaningless preventing restoration from a 
+  // saved transaction log.
+  // Additionally these IDs are used to key collections so strange behaviour
+  // may result if they are not unique
   id: '100000',
+  // Although the timestamp is not used internally, it is required
+  // so that any functionality hanging off the events can replicate
+  // their time relative behaviour in case a Market has to be restored
+  // from a transaction log
   timestamp: '1366758222',
   currencies: [
     'EUR',
@@ -134,6 +144,8 @@ market.register(new Account({
 market.deposit({
   id: '100002',
   timestamp: '1366758224',
+  // Note that the acount field should be set to the ID of the account.
+  // This is one of the instances whre the transaction ID is used as a key
   account: '100000',
   currency: 'EUR',
   amount: new Amount('5000')
@@ -200,10 +212,14 @@ market.submit(new Order({
   offerAmount: new Amount('3000')
 }));
 
-// cancel an order (this will match because 250 BTC was already traded on this order)
+// cancel an order
 market.cancel({
   id: '100010',
   timestamp: '1366758232',
+  // The Order instance must exactly match the current state
+  // of the order being cancelled. This example will match 
+  // because 250 BTC was already traded on this order. This is
+  // another instance where the transaction ID is used as a key
   order: new Order({
     id: '100006',
     timestamp: '1366758228',
