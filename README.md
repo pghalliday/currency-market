@@ -307,6 +307,10 @@ console.log('********************');
 - Pluggable rounding policies
   - Amount factory required?
   - Divide at last possible moment?
+- Protection against attacks?
+  - entering orders that satisfy each other
+  - entering tiny orders
+  - should this be in a another layer?
 
 ## Contributing
 

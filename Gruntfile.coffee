@@ -4,7 +4,7 @@ module.exports = (grunt) ->
     coffee:
       compile:
         expand: true 
-        src: ['src/**/*.coffee', 'test/**/*.coffee']
+        src: ['src/**/*.coffee', 'test/**/*.coffee', 'perf/**/*.coffee']
         dest: 'lib'
         ext: '.js'
     mochaTest:
