@@ -517,7 +517,8 @@ describe 'Market', ->
 
           describe 'and the left order is an offer', ->
             describe 'and the right order is offering exactly the amount the left order is offering', ->
-                it 'should trade the amount the right order is offering and emit a trade event', (done) ->
+                it.skip 'should trade the amount the right order is offering and emit a trade event', (done) ->
+                  # skipping as matching 2 offers not yet supported
                   checklist = new Checklist [
                       '2'
                       '1000'
@@ -557,7 +558,8 @@ describe 'Market', ->
                   @market.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
 
             describe 'and the right order is offering more than the left order is offering', ->
-                it 'should trade the amount the left order is offering and emit a trade event', (done) ->
+                it.skip 'should trade the amount the left order is offering and emit a trade event', (done) ->
+                  # skipping as matching 2 offers not yet supported
                   checklist = new Checklist [
                       '2'
                       '500'
@@ -597,7 +599,8 @@ describe 'Market', ->
                   @market.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
 
             describe 'and the right order is offering less than the left order is offering', ->
-                it 'should trade the amount the right order is offering and emit a trade event', (done) ->
+                it.skip 'should trade the amount the right order is offering and emit a trade event', (done) ->
+                  # skipping as matching 2 offers not yet supported
                   checklist = new Checklist [
                       '2'
                       '1000'
@@ -639,7 +642,8 @@ describe 'Market', ->
         describe 'and the new (left) price is the better', ->
           describe 'and the left order is an offer', ->              
             describe 'and the right order is offering exactly the amount that the left order is offering multiplied by the right order price', ->
-              it 'should trade the amount the right order is offering at the right order price and emit a trade event', (done) ->
+              it.skip 'should trade the amount the right order is offering at the right order price and emit a trade event', (done) ->
+                # skipping as matching 2 offers not yet supported
                 checklist = new Checklist [
                     '2'
                     '1000'
@@ -679,7 +683,8 @@ describe 'Market', ->
                 @market.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
 
             describe 'and the right order is offering more than the left order is offering multiplied by the right order price', ->
-              it 'should trade the amount the left order is offering at the right order price and emit a trade event', (done) ->
+              # skipping as matching 2 offers not yet supported
+              it.skip 'should trade the amount the left order is offering at the right order price and emit a trade event', (done) ->
                 checklist = new Checklist [
                     '2'
                     '500'
@@ -719,7 +724,8 @@ describe 'Market', ->
                 @market.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
 
             describe 'and the right order is offering less than the left order is offering multiplied by the right order price', ->
-              it 'should trade the amount the right order is offering at the right order price and emit a trade event', (done) ->
+              it.skip 'should trade the amount the right order is offering at the right order price and emit a trade event', (done) ->
+                # skipping as matching 2 offers not yet supported
                 checklist = new Checklist [
                     '2'
                     '1000'
@@ -1014,7 +1020,8 @@ describe 'Market', ->
                 
           describe 'and the left order is a bid', ->
             describe 'and the right order is bidding exactly the amount that the left order is bidding multiplied by the right order price', ->
-              it 'should trade the amount the right order is bidding at the right order price and emit a trade event', (done) ->
+              it.skip 'should trade the amount the right order is bidding at the right order price and emit a trade event', (done) ->
+                # skipping as matching 2 bids not yet supported
                 checklist = new Checklist [
                     '2'
                     '1000'
@@ -1054,7 +1061,8 @@ describe 'Market', ->
                 @market.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
                 
             describe 'and the right order is bidding more than the left order is bidding multiplied by the right order price', ->
-              it 'should trade the amount the left order is bidding at the right order price and emit a trade event', (done) ->
+              it.skip 'should trade the amount the left order is bidding at the right order price and emit a trade event', (done) ->
+                # skipping as matching 2 bids not yet supported
                 checklist = new Checklist [
                     '2'
                     '500'
@@ -1094,7 +1102,8 @@ describe 'Market', ->
                 @market.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
                 
             describe 'and the right order is bidding less than the left order is bidding multiplied by the right order price', ->
-              it 'should trade the amount the right order is bidding at the right order price and emit a trade event', (done) ->
+              it.skip 'should trade the amount the right order is bidding at the right order price and emit a trade event', (done) ->
+                # skipping as matching 2 bids not yet supported
                 checklist = new Checklist [
                     '2'
                     '1000'

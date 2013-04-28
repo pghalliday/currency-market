@@ -120,69 +120,125 @@ module.exports = class Market extends EventEmitter
 
         leftBalances = @accounts[leftOrder.account].balances
         rightBalances = @accounts[rightOrder.account].balances
-        leftOfferCurrency = leftOrder.offerCurrency
-        leftBidCurrency = leftOrder.bidCurrency
+        leftDebitCurrency = leftOrder.offerCurrency
+        rightDebitCurrency = rightOrder.offerCurrency
 
-        rightBidAmount = rightOrder.bidAmount
-        rightOfferAmount = rightOrder.offerAmount
         if leftOrder.type == Order.OFFER
-          leftOfferAmount = leftOrder.offerAmount
-          leftBidAmount = leftOrder.offerAmount.multiply(rightOrder.bidPrice)
-          leftOfferReduction = rightOfferAmount.multiply(rightOrder.offerPrice)
-        else
-          leftBidAmount = leftOrder.bidAmount
-          leftOfferAmount = leftBidAmount.multiply(rightOrder.offerPrice)
-          leftOfferReduction = rightOfferAmount.multiply(leftOrder.bidPrice)
+          if rightOrder.type == Order.BID
+            # Avoid divisions and prices calculated from divisions
+            price = rightOrder.bidPrice
+            if leftOrder.offerAmount.compareTo(rightOrder.bidAmount) > 0
+              console.log 'OFFER > BID'
+              leftDebitAmount = rightOrder.bidAmount
+              rightDebitAmount = rightOrder.offerAmount
+              leftBalances[leftDebitCurrency].unlock leftDebitAmount
+              leftBalances[leftDebitCurrency].withdraw leftDebitAmount
+              rightBalances[leftDebitCurrency].deposit leftDebitAmount
+              rightBalances[rightDebitCurrency].unlock rightDebitAmount
+              rightBalances[rightDebitCurrency].withdraw rightDebitAmount
+              leftBalances[rightDebitCurrency].deposit rightDebitAmount
+              rightBook.delete rightOrder
+              leftOrder.reduceOffer leftDebitAmount
 
-        if leftOfferAmount.compareTo(rightBidAmount) > 0
-          # trade the rightBidAmount
-          leftBalances[leftOfferCurrency].unlock(leftOfferReduction)
-          leftBalances[leftOfferCurrency].withdraw(rightBidAmount)
-          rightBalances[leftOfferCurrency].deposit(rightBidAmount)
-          rightBalances[leftBidCurrency].unlock(rightOfferAmount)
-          rightBalances[leftBidCurrency].withdraw(rightOfferAmount)
-          leftBalances[leftBidCurrency].deposit(rightOfferAmount)
-          # delete the right order
-          rightBook.delete(rightOrder)
-          # reduce the left order
-          leftOrder.reduceOffer(leftOfferReduction)
-          # emit a trade event
-          @emit 'trade',
-            left:
-              order: leftOrder
-              amount: rightOfferAmount
-              price: rightOrder.offerPrice
-            right:
-              order: rightOrder
-              amount: rightBidAmount
-              price: rightOrder.bidPrice
+              # emit the trade event with the amounts credited
+              @emit 'trade',
+              left:
+                order: leftOrder
+                amount: rightDebitAmount
+                price: rightOrder.offerPrice
+              right:
+                order: rightOrder
+                amount: leftDebitAmount
+                price: price
+              
+              # new order was not completely satified so call execute again to see if any more orders can be satified
+              @execute(leftBook, rightBook)
+            else
+              console.log 'OFFER <= BID'
+              leftDebitAmount = leftOrder.offerAmount
+              rightDebitAmount = leftDebitAmount.multiply price
+              leftBalances[leftDebitCurrency].unlock leftDebitAmount
+              leftBalances[leftDebitCurrency].withdraw leftDebitAmount
+              rightBalances[leftDebitCurrency].deposit leftDebitAmount
+              rightBalances[rightDebitCurrency].unlock rightDebitAmount
+              rightBalances[rightDebitCurrency].withdraw rightDebitAmount
+              leftBalances[rightDebitCurrency].deposit rightDebitAmount
+              leftBook.delete leftOrder
+              rightOrder.reduceBid leftDebitAmount
+              if rightOrder.bidAmount.compareTo(Amount.ZERO) == 0
+                rightBook.delete rightOrder
 
-          # call execute again to see if any more orders can be satified
-          @execute(leftBook, rightBook)
+              # emit the trade event with the amounts credited
+              @emit 'trade',
+              left:
+                order: leftOrder
+                amount: rightDebitAmount
+                price: rightOrder.offerPrice
+              right:
+                order: rightOrder
+                amount: leftDebitAmount
+                price: price
+          else
+            # 2 offers cause divisions!
+            throw new Error 'Matching 2 offers not yet supported due to possible rounding errors'
         else
-          # trade the leftOfferAmount
-          leftBalances[leftOfferCurrency].unlock(leftOrder.offerAmount)
-          leftBalances[leftOfferCurrency].withdraw(leftOfferAmount)
-          rightBalances[leftOfferCurrency].deposit(leftOfferAmount)
-          rightBalances[leftBidCurrency].unlock(leftBidAmount)
-          rightBalances[leftBidCurrency].withdraw(leftBidAmount)
-          leftBalances[leftBidCurrency].deposit(leftBidAmount)
-          # delete the left order
-          leftBook.delete(leftOrder)
-          # reduce the right order
-          rightOrder.reduceBid(leftOfferAmount)
-          # delete the right order if now has a zero amount
-          if rightOrder.bidAmount.compareTo(Amount.ZERO) == 0
-            rightBook.delete(rightOrder)
-          @emit 'trade',
-            left:
-              order: leftOrder
-              amount: leftBidAmount
-              price: rightOrder.offerPrice
-            right:
-              order: rightOrder
-              amount: leftOfferAmount
-              price: rightOrder.bidPrice
+          if rightOrder.type == Order.OFFER
+            # Avoid divisions and prices calculated from divisions
+            price = rightOrder.offerPrice
+            if leftOrder.bidAmount.compareTo(rightOrder.offerAmount) > 0
+              console.log 'BID > OFFER'
+              rightDebitAmount = rightOrder.offerAmount
+              leftDebitAmount = rightDebitAmount.multiply price
+              leftBalances[leftDebitCurrency].unlock rightDebitAmount.multiply leftOrder.bidPrice
+              leftBalances[leftDebitCurrency].withdraw leftDebitAmount
+              rightBalances[leftDebitCurrency].deposit leftDebitAmount
+              rightBalances[rightDebitCurrency].unlock rightDebitAmount
+              rightBalances[rightDebitCurrency].withdraw rightDebitAmount
+              leftBalances[rightDebitCurrency].deposit rightDebitAmount
+              rightBook.delete rightOrder
+              leftOrder.reduceBid rightDebitAmount
+
+              # emit the trade event with the amounts credited
+              @emit 'trade',
+              left:
+                order: leftOrder
+                amount: rightDebitAmount
+                price: price
+              right:
+                order: rightOrder
+                amount: leftDebitAmount
+                price: rightOrder.bidPrice
+              
+              # new order was not completely satified so call execute again to see if any more orders can be satified
+              @execute(leftBook, rightBook)
+            else
+              console.log 'BID <= OFFER'
+              rightDebitAmount = leftOrder.bidAmount
+              leftDebitAmount = rightDebitAmount.multiply price
+              leftBalances[leftDebitCurrency].unlock leftOrder.offerAmount
+              leftBalances[leftDebitCurrency].withdraw leftDebitAmount
+              rightBalances[leftDebitCurrency].deposit leftDebitAmount
+              rightBalances[rightDebitCurrency].unlock rightDebitAmount
+              rightBalances[rightDebitCurrency].withdraw rightDebitAmount
+              leftBalances[rightDebitCurrency].deposit rightDebitAmount
+              leftBook.delete leftOrder
+              rightOrder.reduceOffer rightDebitAmount
+              if rightOrder.bidAmount.compareTo(Amount.ZERO) == 0
+                rightBook.delete rightOrder
+
+              # emit the trade event with the amounts credited
+              @emit 'trade',
+              left:
+                order: leftOrder
+                amount: rightDebitAmount
+                price: price
+              right:
+                order: rightOrder
+                amount: leftDebitAmount
+                price: rightOrder.bidPrice
+          else
+            # 2 bids cause divisions!
+            throw new Error 'Matching 2 bids not yet supported due to possible rounding errors'
 
   cancel: (cancellation) =>
     order = cancellation.order
