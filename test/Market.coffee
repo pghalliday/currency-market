@@ -302,14 +302,14 @@ describe 'Market', ->
           'EUR'
           '100'
           '50'
-          '0.01'
+          'undefined'
           '5000'
           '123456794'
           '987654322'
           'Paul'
           'EUR'
           'BTC'
-          '0.010101010101010101010101'
+          'undefined'
           '4950'
           '99'
           '50'
@@ -325,9 +325,9 @@ describe 'Market', ->
         checklist.check order.account
         checklist.check order.bidCurrency
         checklist.check order.offerCurrency
-        checklist.check order.offerPrice.toString()
+        checklist.check order.offerPrice + ''
         checklist.check order.offerAmount.toString()
-        checklist.check order.bidPrice.toString()
+        checklist.check order.bidPrice + ''
         checklist.check order.bidAmount.toString()
 
       @market.register newAccount 'Peter'
@@ -399,11 +399,9 @@ describe 'Market', ->
                 it 'should trade the amount the right order is offering and emit a trade event', (done) ->
                   checklist = new Checklist [
                       '2'
-                      '1000'
-                      '0.2'
                       '1'
-                      '200'
-                      '5'
+                      '0.2'
+                      '1000'
                     ],
                     ordered: true,
                     (error) =>
@@ -411,12 +409,10 @@ describe 'Market', ->
                       done error
 
                   @market.on 'trade', (trade) ->
-                    checklist.check trade.left.order.id
-                    checklist.check trade.left.amount.toString()
-                    checklist.check trade.left.price.toString()
-                    checklist.check trade.right.order.id
-                    checklist.check trade.right.amount.toString()
-                    checklist.check trade.right.price.toString()
+                    checklist.check trade.bid.id
+                    checklist.check trade.offer.id
+                    checklist.check trade.price.toString()
+                    checklist.check trade.amount.toString()
 
                   @market.submit new Order
                     id: '2'
@@ -439,11 +435,9 @@ describe 'Market', ->
                 it 'should trade the amount the left order is offering and emit a trade event', (done) ->
                   checklist = new Checklist [
                       '2'
-                      '500'
-                      '0.2'
                       '1'
-                      '100'
-                      '5'
+                      '0.2'
+                      '500'
                     ],
                     ordered: true,
                     (error) =>
@@ -451,12 +445,10 @@ describe 'Market', ->
                       done error
 
                   @market.on 'trade', (trade) ->
-                    checklist.check trade.left.order.id
-                    checklist.check trade.left.amount.toString()
-                    checklist.check trade.left.price.toString()
-                    checklist.check trade.right.order.id
-                    checklist.check trade.right.amount.toString()
-                    checklist.check trade.right.price.toString()
+                    checklist.check trade.bid.id
+                    checklist.check trade.offer.id
+                    checklist.check trade.price.toString()
+                    checklist.check trade.amount.toString()
 
                   @market.submit new Order
                     id: '2'
@@ -479,11 +471,9 @@ describe 'Market', ->
                 it 'should trade the amount the right order is offering and emit a trade event', (done) ->
                   checklist = new Checklist [
                       '2'
-                      '1000'
-                      '0.2'
                       '1'
-                      '200'
-                      '5'
+                      '0.2'
+                      '1000'
                     ],
                     ordered: true,
                     (error) =>
@@ -491,12 +481,10 @@ describe 'Market', ->
                       done error
 
                   @market.on 'trade', (trade) ->
-                    checklist.check trade.left.order.id
-                    checklist.check trade.left.amount.toString()
-                    checklist.check trade.left.price.toString()
-                    checklist.check trade.right.order.id
-                    checklist.check trade.right.amount.toString()
-                    checklist.check trade.right.price.toString()
+                    checklist.check trade.bid.id
+                    checklist.check trade.offer.id
+                    checklist.check trade.price.toString()
+                    checklist.check trade.amount.toString()
 
                   @market.submit new Order
                     id: '2'
@@ -515,265 +503,14 @@ describe 'Market', ->
                   @market.accounts['Paul'].balances['BTC'].funds.compareTo(amount200).should.equal 0
                   @market.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(amount100).should.equal 0
 
-          describe 'and the left order is an offer', ->
-            describe 'and the right order is offering exactly the amount the left order is offering', ->
-                it.skip 'should trade the amount the right order is offering and emit a trade event', (done) ->
-                  # skipping as matching 2 offers not yet supported
-                  checklist = new Checklist [
-                      '2'
-                      '1000'
-                      '0.2'
-                      '1'
-                      '200'
-                      '5'
-                    ],
-                    ordered: true,
-                    (error) =>
-                      @market.removeAllListeners()
-                      done error
-
-                  @market.on 'trade', (trade) ->
-                    checklist.check trade.left.order.id
-                    checklist.check trade.left.amount.toString()
-                    checklist.check trade.left.price.toString()
-                    checklist.check trade.right.order.id
-                    checklist.check trade.right.amount.toString()
-                    checklist.check trade.right.price.toString()
-
-                  @market.submit new Order
-                    id: '2'
-                    timestamp: '2'
-                    account: 'Paul'
-                    bidCurrency: 'EUR'
-                    offerCurrency: 'BTC'
-                    offerPrice: amount5
-                    offerAmount: amount200
-                  expect(@market.books['BTC']['EUR'].entries['1']).to.not.be.ok
-                  expect(@market.books['EUR']['BTC'].entries['2']).to.not.be.ok
-                  @market.accounts['Peter'].balances['EUR'].funds.compareTo(amount1000).should.equal 0
-                  @market.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
-                  @market.accounts['Peter'].balances['BTC'].funds.compareTo(amount200).should.equal 0
-                  @market.accounts['Paul'].balances['EUR'].funds.compareTo(amount1000).should.equal 0
-                  @market.accounts['Paul'].balances['BTC'].funds.compareTo(amount200).should.equal 0
-                  @market.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
-
-            describe 'and the right order is offering more than the left order is offering', ->
-                it.skip 'should trade the amount the left order is offering and emit a trade event', (done) ->
-                  # skipping as matching 2 offers not yet supported
-                  checklist = new Checklist [
-                      '2'
-                      '500'
-                      '0.2'
-                      '1'
-                      '100'
-                      '5'
-                    ],
-                    ordered: true,
-                    (error) =>
-                      @market.removeAllListeners()
-                      done error
-
-                  @market.on 'trade', (trade) ->
-                    checklist.check trade.left.order.id
-                    checklist.check trade.left.amount.toString()
-                    checklist.check trade.left.price.toString()
-                    checklist.check trade.right.order.id
-                    checklist.check trade.right.amount.toString()
-                    checklist.check trade.right.price.toString()
-
-                  @market.submit new Order
-                    id: '2'
-                    timestamp: '2'
-                    account: 'Paul'
-                    bidCurrency: 'EUR'
-                    offerCurrency: 'BTC'
-                    offerPrice: amount5
-                    offerAmount: amount100
-                  @market.books['BTC']['EUR'].entries['1'].order.offerAmount.compareTo(amount500).should.equal 0
-                  expect(@market.books['EUR']['BTC'].entries['2']).to.not.be.ok
-                  @market.accounts['Peter'].balances['EUR'].funds.compareTo(amount1500).should.equal 0
-                  @market.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(amount500).should.equal 0
-                  @market.accounts['Peter'].balances['BTC'].funds.compareTo(amount100).should.equal 0
-                  @market.accounts['Paul'].balances['EUR'].funds.compareTo(amount500).should.equal 0
-                  @market.accounts['Paul'].balances['BTC'].funds.compareTo(amount300).should.equal 0
-                  @market.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
-
-            describe 'and the right order is offering less than the left order is offering', ->
-                it.skip 'should trade the amount the right order is offering and emit a trade event', (done) ->
-                  # skipping as matching 2 offers not yet supported
-                  checklist = new Checklist [
-                      '2'
-                      '1000'
-                      '0.2'
-                      '1'
-                      '200'
-                      '5'
-                    ],
-                    ordered: true,
-                    (error) =>
-                      @market.removeAllListeners()
-                      done error
-
-                  @market.on 'trade', (trade) ->
-                    checklist.check trade.left.order.id
-                    checklist.check trade.left.amount.toString()
-                    checklist.check trade.left.price.toString()
-                    checklist.check trade.right.order.id
-                    checklist.check trade.right.amount.toString()
-                    checklist.check trade.right.price.toString()
-
-                  @market.submit new Order
-                    id: '2'
-                    timestamp: '2'
-                    account: 'Paul'
-                    bidCurrency: 'EUR'
-                    offerCurrency: 'BTC'
-                    offerPrice: amount5
-                    offerAmount: amount300
-                  expect(@market.books['BTC']['EUR'].entries['1']).to.not.be.ok
-                  @market.books['EUR']['BTC'].entries['2'].order.offerAmount.compareTo(amount100).should.equal 0
-                  @market.accounts['Peter'].balances['EUR'].funds.compareTo(amount1000).should.equal 0
-                  @market.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
-                  @market.accounts['Peter'].balances['BTC'].funds.compareTo(amount200).should.equal 0
-                  @market.accounts['Paul'].balances['EUR'].funds.compareTo(amount1000).should.equal 0
-                  @market.accounts['Paul'].balances['BTC'].funds.compareTo(amount200).should.equal 0
-                  @market.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(amount100).should.equal 0
-
-        describe 'and the new (left) price is the better', ->
-          describe 'and the left order is an offer', ->              
-            describe 'and the right order is offering exactly the amount that the left order is offering multiplied by the right order price', ->
-              it.skip 'should trade the amount the right order is offering at the right order price and emit a trade event', (done) ->
-                # skipping as matching 2 offers not yet supported
-                checklist = new Checklist [
-                    '2'
-                    '1000'
-                    '0.2'
-                    '1'
-                    '200'
-                    '5'
-                  ],
-                  ordered: true,
-                  (error) =>
-                    @market.removeAllListeners()
-                    done error
-
-                @market.on 'trade', (trade) ->
-                  checklist.check trade.left.order.id
-                  checklist.check trade.left.amount.toString()
-                  checklist.check trade.left.price.toString()
-                  checklist.check trade.right.order.id
-                  checklist.check trade.right.amount.toString()
-                  checklist.check trade.right.price.toString()
-
-                @market.submit new Order
-                  id: '2'
-                  timestamp: '2'
-                  account: 'Paul'
-                  bidCurrency: 'EUR'
-                  offerCurrency: 'BTC'
-                  offerPrice: amount4
-                  offerAmount: amount200
-                expect(@market.books['BTC']['EUR'].entries['1']).to.not.be.ok
-                expect(@market.books['EUR']['BTC'].entries['2']).to.not.be.ok
-                @market.accounts['Peter'].balances['EUR'].funds.compareTo(amount1000).should.equal 0
-                @market.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
-                @market.accounts['Peter'].balances['BTC'].funds.compareTo(amount200).should.equal 0
-                @market.accounts['Paul'].balances['EUR'].funds.compareTo(amount1000).should.equal 0
-                @market.accounts['Paul'].balances['BTC'].funds.compareTo(amount200).should.equal 0
-                @market.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
-
-            describe 'and the right order is offering more than the left order is offering multiplied by the right order price', ->
-              # skipping as matching 2 offers not yet supported
-              it.skip 'should trade the amount the left order is offering at the right order price and emit a trade event', (done) ->
-                checklist = new Checklist [
-                    '2'
-                    '500'
-                    '0.2'
-                    '1'
-                    '100'
-                    '5'
-                  ],
-                  ordered: true,
-                  (error) =>
-                    @market.removeAllListeners()
-                    done error
-
-                @market.on 'trade', (trade) ->
-                  checklist.check trade.left.order.id
-                  checklist.check trade.left.amount.toString()
-                  checklist.check trade.left.price.toString()
-                  checklist.check trade.right.order.id
-                  checklist.check trade.right.amount.toString()
-                  checklist.check trade.right.price.toString()
-
-                @market.submit new Order
-                  id: '2'
-                  timestamp: '2'
-                  account: 'Paul'
-                  bidCurrency: 'EUR'
-                  offerCurrency: 'BTC'
-                  offerPrice: amount4
-                  offerAmount: amount100
-                @market.books['BTC']['EUR'].entries['1'].order.offerAmount.compareTo(amount500).should.equal 0
-                expect(@market.books['EUR']['BTC'].entries['2']).to.not.be.ok
-                @market.accounts['Peter'].balances['EUR'].funds.compareTo(amount1500).should.equal 0
-                @market.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(amount500).should.equal 0
-                @market.accounts['Peter'].balances['BTC'].funds.compareTo(amount100).should.equal 0
-                @market.accounts['Paul'].balances['EUR'].funds.compareTo(amount500).should.equal 0
-                @market.accounts['Paul'].balances['BTC'].funds.compareTo(amount300).should.equal 0
-                @market.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
-
-            describe 'and the right order is offering less than the left order is offering multiplied by the right order price', ->
-              it.skip 'should trade the amount the right order is offering at the right order price and emit a trade event', (done) ->
-                # skipping as matching 2 offers not yet supported
-                checklist = new Checklist [
-                    '2'
-                    '1000'
-                    '0.2'
-                    '1'
-                    '200'
-                    '5'
-                  ],
-                  ordered: true,
-                  (error) =>
-                    @market.removeAllListeners()
-                    done error
-
-                @market.on 'trade', (trade) ->
-                  checklist.check trade.left.order.id
-                  checklist.check trade.left.amount.toString()
-                  checklist.check trade.left.price.toString()
-                  checklist.check trade.right.order.id
-                  checklist.check trade.right.amount.toString()
-                  checklist.check trade.right.price.toString()
-
-                @market.submit new Order
-                  id: '2'
-                  timestamp: '2'
-                  account: 'Paul'
-                  bidCurrency: 'EUR'
-                  offerCurrency: 'BTC'
-                  offerPrice: amount4
-                  offerAmount: amount300
-                expect(@market.books['BTC']['EUR'].entries['1']).to.not.be.ok
-                @market.books['EUR']['BTC'].entries['2'].order.offerAmount.compareTo(amount100).should.equal 0
-                @market.accounts['Peter'].balances['EUR'].funds.compareTo(amount1000).should.equal 0
-                @market.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
-                @market.accounts['Peter'].balances['BTC'].funds.compareTo(amount200).should.equal 0
-                @market.accounts['Paul'].balances['EUR'].funds.compareTo(amount1000).should.equal 0
-                @market.accounts['Paul'].balances['BTC'].funds.compareTo(amount200).should.equal 0
-                @market.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(amount100).should.equal 0
-                
           describe 'and the left order is a bid', ->
             describe 'and the right order is offering exactly the amount that the left order is bidding', ->
               it 'should trade the amount the right order is offering at the right order price and emit a trade event', (done) ->
                 checklist = new Checklist [
                     '2'
-                    '1000'
-                    '0.2'
                     '1'
-                    '200'
-                    '5'
+                    '0.2'
+                    '1000'
                   ],
                   ordered: true,
                   (error) =>
@@ -781,12 +518,10 @@ describe 'Market', ->
                     done error
 
                 @market.on 'trade', (trade) ->
-                  checklist.check trade.left.order.id
-                  checklist.check trade.left.amount.toString()
-                  checklist.check trade.left.price.toString()
-                  checklist.check trade.right.order.id
-                  checklist.check trade.right.amount.toString()
-                  checklist.check trade.right.price.toString()
+                  checklist.check trade.bid.id
+                  checklist.check trade.offer.id
+                  checklist.check trade.price.toString()
+                  checklist.check trade.amount.toString()
 
                 @market.submit new Order
                   id: '2'
@@ -809,11 +544,9 @@ describe 'Market', ->
               it 'should trade the amount the left order is bidding at the right order price and emit a trade event', (done) ->
                 checklist = new Checklist [
                     '2'
-                    '500'
-                    '0.2'
                     '1'
-                    '100'
-                    '5'
+                    '0.2'
+                    '500'
                   ],
                   ordered: true,
                   (error) =>
@@ -821,12 +554,10 @@ describe 'Market', ->
                     done error
 
                 @market.on 'trade', (trade) ->
-                  checklist.check trade.left.order.id
-                  checklist.check trade.left.amount.toString()
-                  checklist.check trade.left.price.toString()
-                  checklist.check trade.right.order.id
-                  checklist.check trade.right.amount.toString()
-                  checklist.check trade.right.price.toString()
+                  checklist.check trade.bid.id
+                  checklist.check trade.offer.id
+                  checklist.check trade.price.toString()
+                  checklist.check trade.amount.toString()
 
                 @market.submit new Order
                   id: '2'
@@ -849,11 +580,9 @@ describe 'Market', ->
               it 'should trade the amount the right order is offering at the right order price and emit a trade event', (done) ->
                 checklist = new Checklist [
                     '2'
-                    '1000'
-                    '0.2'
                     '1'
-                    '200'
-                    '5'
+                    '0.2'
+                    '1000'
                   ],
                   ordered: true,
                   (error) =>
@@ -861,12 +590,10 @@ describe 'Market', ->
                     done error
 
                 @market.on 'trade', (trade) ->
-                  checklist.check trade.left.order.id
-                  checklist.check trade.left.amount.toString()
-                  checklist.check trade.left.price.toString()
-                  checklist.check trade.right.order.id
-                  checklist.check trade.right.amount.toString()
-                  checklist.check trade.right.price.toString()
+                  checklist.check trade.bid.id
+                  checklist.check trade.offer.id
+                  checklist.check trade.price.toString()
+                  checklist.check trade.amount.toString()
 
                 @market.submit new Order
                   id: '2'
@@ -901,12 +628,10 @@ describe 'Market', ->
             describe 'and the right order is bidding exactly the amount that the left order is offering', ->
               it 'should trade the amount the right order is bidding at the right order price and emit a trade event', (done) ->
                 checklist = new Checklist [
-                    '2'
-                    '1000'
-                    '0.2'
                     '1'
-                    '200'
+                    '2'
                     '5'
+                    '200'
                   ],
                   ordered: true,
                   (error) =>
@@ -914,12 +639,10 @@ describe 'Market', ->
                     done error
 
                 @market.on 'trade', (trade) ->
-                  checklist.check trade.left.order.id
-                  checklist.check trade.left.amount.toString()
-                  checklist.check trade.left.price.toString()
-                  checklist.check trade.right.order.id
-                  checklist.check trade.right.amount.toString()
-                  checklist.check trade.right.price.toString()
+                  checklist.check trade.bid.id
+                  checklist.check trade.offer.id
+                  checklist.check trade.price.toString()
+                  checklist.check trade.amount.toString()
 
                 @market.submit new Order
                   id: '2'
@@ -941,12 +664,10 @@ describe 'Market', ->
             describe 'and the right order is bidding more than the left order is offering', ->
               it 'should trade the amount the left order is offering at the right order price and emit a trade event', (done) ->
                 checklist = new Checklist [
-                    '2'
-                    '500'
-                    '0.2'
                     '1'
-                    '100'
+                    '2'
                     '5'
+                    '100'
                   ],
                   ordered: true,
                   (error) =>
@@ -954,12 +675,10 @@ describe 'Market', ->
                     done error
 
                 @market.on 'trade', (trade) ->
-                  checklist.check trade.left.order.id
-                  checklist.check trade.left.amount.toString()
-                  checklist.check trade.left.price.toString()
-                  checklist.check trade.right.order.id
-                  checklist.check trade.right.amount.toString()
-                  checklist.check trade.right.price.toString()
+                  checklist.check trade.bid.id
+                  checklist.check trade.offer.id
+                  checklist.check trade.price.toString()
+                  checklist.check trade.amount.toString()
 
                 @market.submit new Order
                   id: '2'
@@ -981,12 +700,10 @@ describe 'Market', ->
             describe 'and the right order is bidding less than the left order is offering', ->
               it 'should trade the amount the right order is bidding at the right order price and emit a trade event', (done) ->
                 checklist = new Checklist [
-                    '2'
-                    '1000'
-                    '0.2'
                     '1'
-                    '200'
+                    '2'
                     '5'
+                    '200'
                   ],
                   ordered: true,
                   (error) =>
@@ -994,12 +711,10 @@ describe 'Market', ->
                     done error
 
                 @market.on 'trade', (trade) ->
-                  checklist.check trade.left.order.id
-                  checklist.check trade.left.amount.toString()
-                  checklist.check trade.left.price.toString()
-                  checklist.check trade.right.order.id
-                  checklist.check trade.right.amount.toString()
-                  checklist.check trade.right.price.toString()
+                  checklist.check trade.bid.id
+                  checklist.check trade.offer.id
+                  checklist.check trade.price.toString()
+                  checklist.check trade.amount.toString()
 
                 @market.submit new Order
                   id: '2'
@@ -1017,131 +732,7 @@ describe 'Market', ->
                 @market.accounts['Paul'].balances['EUR'].funds.compareTo(amount1000).should.equal 0
                 @market.accounts['Paul'].balances['BTC'].funds.compareTo(amount200).should.equal 0
                 @market.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(amount100).should.equal 0
-                
-          describe 'and the left order is a bid', ->
-            describe 'and the right order is bidding exactly the amount that the left order is bidding multiplied by the right order price', ->
-              it.skip 'should trade the amount the right order is bidding at the right order price and emit a trade event', (done) ->
-                # skipping as matching 2 bids not yet supported
-                checklist = new Checklist [
-                    '2'
-                    '1000'
-                    '0.2'
-                    '1'
-                    '200'
-                    '5'
-                  ],
-                  ordered: true,
-                  (error) =>
-                    @market.removeAllListeners()
-                    done error
-
-                @market.on 'trade', (trade) ->
-                  checklist.check trade.left.order.id
-                  checklist.check trade.left.amount.toString()
-                  checklist.check trade.left.price.toString()
-                  checklist.check trade.right.order.id
-                  checklist.check trade.right.amount.toString()
-                  checklist.check trade.right.price.toString()
-
-                @market.submit new Order
-                  id: '2'
-                  timestamp: '2'
-                  account: 'Paul'
-                  bidCurrency: 'EUR'
-                  offerCurrency: 'BTC'
-                  bidPrice: amountPoint25
-                  bidAmount: amount1000
-                expect(@market.books['BTC']['EUR'].entries['1']).to.not.be.ok
-                expect(@market.books['EUR']['BTC'].entries['2']).to.not.be.ok
-                @market.accounts['Peter'].balances['EUR'].funds.compareTo(amount1000).should.equal 0
-                @market.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
-                @market.accounts['Peter'].balances['BTC'].funds.compareTo(amount200).should.equal 0
-                @market.accounts['Paul'].balances['EUR'].funds.compareTo(amount1000).should.equal 0
-                @market.accounts['Paul'].balances['BTC'].funds.compareTo(amount200).should.equal 0
-                @market.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
-                
-            describe 'and the right order is bidding more than the left order is bidding multiplied by the right order price', ->
-              it.skip 'should trade the amount the left order is bidding at the right order price and emit a trade event', (done) ->
-                # skipping as matching 2 bids not yet supported
-                checklist = new Checklist [
-                    '2'
-                    '500'
-                    '0.2'
-                    '1'
-                    '100'
-                    '5'
-                  ],
-                  ordered: true,
-                  (error) =>
-                    @market.removeAllListeners()
-                    done error
-
-                @market.on 'trade', (trade) ->
-                  checklist.check trade.left.order.id
-                  checklist.check trade.left.amount.toString()
-                  checklist.check trade.left.price.toString()
-                  checklist.check trade.right.order.id
-                  checklist.check trade.right.amount.toString()
-                  checklist.check trade.right.price.toString()
-
-                @market.submit new Order
-                  id: '2'
-                  timestamp: '2'
-                  account: 'Paul'
-                  bidCurrency: 'EUR'
-                  offerCurrency: 'BTC'
-                  bidPrice: amountPoint25
-                  bidAmount: amount500
-                @market.books['BTC']['EUR'].entries['1'].order.bidAmount.compareTo(amount100).should.equal 0
-                expect(@market.books['EUR']['BTC'].entries['2']).to.not.be.ok
-                @market.accounts['Peter'].balances['EUR'].funds.compareTo(amount1500).should.equal 0
-                @market.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(amount500).should.equal 0
-                @market.accounts['Peter'].balances['BTC'].funds.compareTo(amount100).should.equal 0
-                @market.accounts['Paul'].balances['EUR'].funds.compareTo(amount500).should.equal 0
-                @market.accounts['Paul'].balances['BTC'].funds.compareTo(amount300).should.equal 0
-                @market.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
-                
-            describe 'and the right order is bidding less than the left order is bidding multiplied by the right order price', ->
-              it.skip 'should trade the amount the right order is bidding at the right order price and emit a trade event', (done) ->
-                # skipping as matching 2 bids not yet supported
-                checklist = new Checklist [
-                    '2'
-                    '1000'
-                    '0.2'
-                    '1'
-                    '200'
-                    '5'
-                  ],
-                  ordered: true,
-                  (error) =>
-                    @market.removeAllListeners()
-                    done error
-
-                @market.on 'trade', (trade) ->
-                  checklist.check trade.left.order.id
-                  checklist.check trade.left.amount.toString()
-                  checklist.check trade.left.price.toString()
-                  checklist.check trade.right.order.id
-                  checklist.check trade.right.amount.toString()
-                  checklist.check trade.right.price.toString()
-
-                @market.submit new Order
-                  id: '2'
-                  timestamp: '2'
-                  account: 'Paul'
-                  bidCurrency: 'EUR'
-                  offerCurrency: 'BTC'
-                  bidPrice: amountPoint25
-                  bidAmount: amount1500
-                expect(@market.books['BTC']['EUR'].entries['1']).to.not.be.ok
-                @market.books['EUR']['BTC'].entries['2'].order.bidAmount.compareTo(amount500).should.equal 0
-                @market.accounts['Peter'].balances['EUR'].funds.compareTo(amount1000).should.equal 0
-                @market.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
-                @market.accounts['Peter'].balances['BTC'].funds.compareTo(amount200).should.equal 0
-                @market.accounts['Paul'].balances['EUR'].funds.compareTo(amount1000).should.equal 0
-                @market.accounts['Paul'].balances['BTC'].funds.compareTo(amount200).should.equal 0
-                @market.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(amount125).should.equal 0
-    
+                    
     describe 'when multiple orders can be matched', ->
       beforeEach ->
         @market.register newAccount 'Peter'
@@ -1195,23 +786,17 @@ describe 'Market', ->
         it 'should correctly execute as many orders as it can and emit trade events', (done) ->
           checklist = new Checklist [
               '5'
-              '500'
-              '0.2'
               '1'
-              '100'
-              '5'
-              '5'
+              '0.2'
               '500'
-              '0.25'
-              '2'
-              '125'
-              '4'
               '5'
-              '250'
-              '0.5'
-              '3'
-              '125'
               '2'
+              '0.25'
+              '500'
+              '5'
+              '3'
+              '0.5'
+              '250'
             ],
             ordered: true,
             (error) =>
@@ -1219,12 +804,10 @@ describe 'Market', ->
               done error
 
           @market.on 'trade', (trade) ->
-            checklist.check trade.left.order.id
-            checklist.check trade.left.amount.toString()
-            checklist.check trade.left.price.toString()
-            checklist.check trade.right.order.id
-            checklist.check trade.right.amount.toString()
-            checklist.check trade.right.price.toString()
+            checklist.check trade.bid.id
+            checklist.check trade.offer.id
+            checklist.check trade.price.toString()
+            checklist.check trade.amount.toString()
 
           @market.submit new Order
             id: '5'
@@ -1250,23 +833,17 @@ describe 'Market', ->
         it 'should correctly execute as many orders as it can and emit trade events', (done) ->
           checklist = new Checklist [
               '5'
-              '500'
-              '0.2'
               '1'
-              '100'
-              '5'
-              '5'
+              '0.2'
               '500'
+              '5'
+              '2'
               '0.25'
-              '2'
-              '125'
-              '4'
-              '5'
               '500'
-              '0.5'
+              '5'
               '3'
-              '250'
-              '2'
+              '0.5'
+              '500'
             ],
             ordered: true,
             (error) =>
@@ -1274,12 +851,10 @@ describe 'Market', ->
               done error
 
           @market.on 'trade', (trade) ->
-            checklist.check trade.left.order.id
-            checklist.check trade.left.amount.toString()
-            checklist.check trade.left.price.toString()
-            checklist.check trade.right.order.id
-            checklist.check trade.right.amount.toString()
-            checklist.check trade.right.price.toString()
+            checklist.check trade.bid.id
+            checklist.check trade.offer.id
+            checklist.check trade.price.toString()
+            checklist.check trade.amount.toString()
 
           @market.submit new Order
             id: '5'
@@ -1484,7 +1059,7 @@ describe 'Market', ->
           'EUR'
           '100'
           '50'
-          '0.01'
+          'undefined'
           '5000'
           '123456796'
           '987654350'
@@ -1493,7 +1068,7 @@ describe 'Market', ->
           'Paul'
           'EUR'
           'BTC'
-          '0.010101010101010101010101'
+          'undefined'
           '4950'
           '99'
           '50'
@@ -1511,9 +1086,9 @@ describe 'Market', ->
         checklist.check cancellation.order.account
         checklist.check cancellation.order.bidCurrency
         checklist.check cancellation.order.offerCurrency
-        checklist.check cancellation.order.offerPrice.toString()
+        checklist.check cancellation.order.offerPrice + ''
         checklist.check cancellation.order.offerAmount.toString()
-        checklist.check cancellation.order.bidPrice.toString()
+        checklist.check cancellation.order.bidPrice + ''
         checklist.check cancellation.order.bidAmount.toString()
 
       @market.register newAccount 'Peter'

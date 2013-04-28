@@ -21,7 +21,12 @@ module.exports = class Book
       order: order
     @entries[order.id] = entry
     if @head
-      if order.bidPrice.compareTo(@highest.bidPrice) > 0
+      if order.bidPrice
+        isHighest = order.bidPrice.compareTo(@highest.bidPrice) > 0
+      else
+        isHighest = order.offerPrice.compareTo(@highest.offerPrice) < 0
+
+      if isHighest
         highestEntry = @entries[@highest.id]
         highestEntry.add entry
         @highest = order

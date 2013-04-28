@@ -27,7 +27,6 @@ module.exports = class Order
         if typeof params.bidPrice == 'undefined'
             throw new Error('Must specify either bid amount and price or offer amount and price')
         else
-          @type = Order.BID
           @bidPrice = params.bidPrice
           if @bidPrice.compareTo(Amount.ZERO) < 0
             throw new Error('bid price cannot be negative')
@@ -41,14 +40,11 @@ module.exports = class Order
               else
                 if typeof params.offerAmount == 'undefined'
                   @offerAmount = @bidPrice.multiply(@bidAmount)
-                  if typeof params.offerPrice == 'undefined'
-                    @offerPrice = @bidAmount.divide(@offerAmount)
-                  else
+                  if typeof params.offerPrice != 'undefined'
                     throw new Error('Must specify either bid amount and price or offer amount and price')
                 else
                   throw new Error('Must specify either bid amount and price or offer amount and price')
       else
-        @type = Order.OFFER
         @offerPrice = params.offerPrice
         if @offerPrice.compareTo(Amount.ZERO) < 0
           throw new Error('offer price cannot be negative')
@@ -62,9 +58,7 @@ module.exports = class Order
             else
               if typeof params.bidAmount == 'undefined'
                 @bidAmount = @offerAmount.multiply(@offerPrice)
-                if typeof params.bidPrice == 'undefined'
-                  @bidPrice = @offerAmount.divide(@bidAmount)
-                else
+                if typeof params.bidPrice != 'undefined'
                   throw new Error('Must specify either bid amount and price or offer amount and price')
               else
                 throw new Error('Must specify either bid amount and price or offer amount and price')
@@ -74,15 +68,16 @@ module.exports = class Order
       @account = params.state.account
       @bidCurrency = params.state.bidCurrency
       @offerCurrency = params.state.offerCurrency
-      @bidPrice = new Amount 
-        state: params.state.bidPrice
+      if params.state.bidPrice
+        @bidPrice = new Amount 
+          state: params.state.bidPrice
       @bidAmount = new Amount
         state: params.state.bidAmount
-      @offerPrice = new Amount
-        state: params.state.offerPrice
+      if params.state.offerPrice
+        @offerPrice = new Amount
+          state: params.state.offerPrice
       @offerAmount = new Amount
         state: params.state.offerAmount
-      @type = params.state.type
 
   export: =>
     state = Object.create null
@@ -91,24 +86,48 @@ module.exports = class Order
     state.account = @account
     state.bidCurrency = @bidCurrency
     state.offerCurrency = @offerCurrency
-    state.bidPrice = @bidPrice.export()
+    if @bidPrice
+      state.bidPrice = @bidPrice.export()
     state.bidAmount = @bidAmount.export()
-    state.offerPrice = @offerPrice.export()
+    if @offerPrice
+      state.offerPrice = @offerPrice.export()
     state.offerAmount = @offerAmount.export()
-    state.type = @type
     return state
 
   equals: (order) =>
-    @id == order.id &&
-    @timestamp == order.timestamp && 
-    @account == order.account &&
-    @bidCurrency == order.bidCurrency &&
-    @offerCurrency == order.offerCurrency &&
-    @bidPrice.compareTo(order.bidPrice) == 0 &&
-    @bidAmount.compareTo(order.bidAmount) == 0 &&
-    @offerPrice.compareTo(order.offerPrice) == 0 &&
-    @offerAmount.compareTo(order.offerAmount) == 0 &&
-    @type == order.type
+    if @id != order.id
+      return false
+    if @timestamp != order.timestamp
+      return false
+    if @account != order.account
+      return false
+    if @bidCurrency != order.bidCurrency
+      return false
+    if @offerCurrency != order.offerCurrency
+      return false
+    if @bidPrice
+      if order.bidPrice
+        if @bidPrice.compareTo(order.bidPrice) != 0
+          return false
+      else
+        return false
+    else
+      if order.bidPrice
+        return false
+    if @bidAmount.compareTo(order.bidAmount) != 0
+      return false
+    if @offerPrice
+      if order.offerPrice
+        if @offerPrice.compareTo(order.offerPrice) != 0
+          return false
+      else
+        return false
+    else
+      if order.offerPrice
+        return false
+    if @offerAmount.compareTo(order.offerAmount) != 0
+      return false
+    return true
 
   reduceOffer: (amount) =>
     if amount.compareTo(@offerAmount) > 0
@@ -123,8 +142,4 @@ module.exports = class Order
     else
       @bidAmount = @bidAmount.subtract(amount)
       @offerAmount = @bidAmount.multiply(@bidPrice)
-
-Order.BID = 1
-Order.OFFER = 2
-
 

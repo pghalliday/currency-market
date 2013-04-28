@@ -32,7 +32,12 @@ module.exports = class BookEntry
     return state
 
   add: (bookEntry) =>
-    if bookEntry.order.bidPrice.compareTo(@order.bidPrice) > 0
+    if @order.bidPrice
+      isHigher = bookEntry.order.bidPrice.compareTo(@order.bidPrice) > 0
+    else
+      isHigher = bookEntry.order.offerPrice.compareTo(@order.offerPrice) < 0
+
+    if isHigher
       if @higher
         @higher.add bookEntry
       else
