@@ -128,7 +128,6 @@ module.exports = class Market extends EventEmitter
             # Avoid divisions and prices calculated from divisions
             price = rightOrder.bidPrice
             if leftOrder.offerAmount.compareTo(rightOrder.bidAmount) > 0
-              console.log 'OFFER > BID'
               leftDebitAmount = rightOrder.bidAmount
               rightDebitAmount = rightOrder.offerAmount
               leftBalances[leftDebitCurrency].unlock leftDebitAmount
@@ -154,7 +153,6 @@ module.exports = class Market extends EventEmitter
               # new order was not completely satified so call execute again to see if any more orders can be satified
               @execute(leftBook, rightBook)
             else
-              console.log 'OFFER <= BID'
               leftDebitAmount = leftOrder.offerAmount
               rightDebitAmount = leftDebitAmount.multiply price
               leftBalances[leftDebitCurrency].unlock leftDebitAmount
@@ -186,7 +184,6 @@ module.exports = class Market extends EventEmitter
             # Avoid divisions and prices calculated from divisions
             price = rightOrder.offerPrice
             if leftOrder.bidAmount.compareTo(rightOrder.offerAmount) > 0
-              console.log 'BID > OFFER'
               rightDebitAmount = rightOrder.offerAmount
               leftDebitAmount = rightDebitAmount.multiply price
               leftBalances[leftDebitCurrency].unlock rightDebitAmount.multiply leftOrder.bidPrice
@@ -212,7 +209,6 @@ module.exports = class Market extends EventEmitter
               # new order was not completely satified so call execute again to see if any more orders can be satified
               @execute(leftBook, rightBook)
             else
-              console.log 'BID <= OFFER'
               rightDebitAmount = leftOrder.bidAmount
               leftDebitAmount = rightDebitAmount.multiply price
               leftBalances[leftDebitCurrency].unlock leftOrder.offerAmount
