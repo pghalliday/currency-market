@@ -69,6 +69,8 @@ module.exports = class Amount
           return new Amount((@value.multiply(amount.divisor)).subtract(amount.value), amount.divisor)
         else
           return new Amount(@value.subtract(amount.value))
+      if @value.compareTo(BigDecimal.ZERO) == 0
+        delete @divisor
     else
       throw new Error('Can only subtract Amount objects')
 
