@@ -6,13 +6,15 @@ module.exports = class Balance
       @funds = Amount.ZERO
       @lockedFunds = Amount.ZERO
     else
-      @funds = new Amount params.state.funds
-      @lockedFunds = new Amount params.state.lockedFunds
+      @funds = new Amount 
+        state: params.state.funds
+      @lockedFunds = new Amount
+        state: params.state.lockedFunds
 
   export: =>
     state = Object.create null
-    state.funds = @funds.toString()
-    state.lockedFunds = @lockedFunds.toString()
+    state.funds = @funds.export()
+    state.lockedFunds = @lockedFunds.export()
     return state
 
   deposit: (amount) =>

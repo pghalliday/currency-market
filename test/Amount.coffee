@@ -117,13 +117,6 @@ describe 'Amount', ->
       amount3.compareTo(anotherAmount3).should.equal(0, 'First amount should not change')
       amount4.compareTo(anotherAmount4).should.equal(0, 'Second amount should not change')
 
-    it 'should round to 25 places', ->
-      amount2 = new Amount('2')
-      amount3 = new Amount('3')
-      amount2Thirds = new Amount('0.6666666666666666666666667')
-      amountRatio = amount2.divide(amount3)
-      amountRatio.compareTo(amount2Thirds).should.equal(0, 'Ratio should be correct')
-
     it 'should divide 1 by 100 and successfully compare to 0.01', ->
       amount1 = new Amount('1')
       amount100 = new Amount('100')
@@ -140,7 +133,24 @@ describe 'Amount', ->
       amount = new Amount('3.14')
       amount.toString().should.equal('3.14')
 
+    it 'should round to 25 places', ->
+      amount2 = new Amount('2')
+      amount3 = new Amount('3')
+      amountRatio = amount2.divide(amount3)
+      amountRatio.toString().should.equal('0.6666666666666666666666667')
+
     it 'should retrun a string representation that is suitable for exporting and later importing amounts', ->
       amount1 = new Amount('3.14')
       amount2 = new Amount amount1.toString()
       amount1.compareTo(amount2).should.equal 0
+
+  describe '#export', ->
+    it 'should export the state of the Amount as a JSON stringifiable object that can be used to initialise a new Amount in the exact same state', ->
+      amount2 = new Amount('2')
+      amount3 = new Amount('3')
+      amountRatio = amount2.divide(amount3)
+      state = amountRatio.export()
+      json = JSON.stringify state
+      newAmount = new Amount
+        state: JSON.parse(json)
+      newAmount.compareTo(amountRatio).should.equal 0

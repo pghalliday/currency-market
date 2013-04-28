@@ -74,10 +74,14 @@ module.exports = class Order
       @account = params.state.account
       @bidCurrency = params.state.bidCurrency
       @offerCurrency = params.state.offerCurrency
-      @bidPrice = new Amount params.state.bidPrice
-      @bidAmount = new Amount params.state.bidAmount
-      @offerPrice = new Amount params.state.offerPrice
-      @offerAmount = new Amount params.state.offerAmount
+      @bidPrice = new Amount 
+        state: params.state.bidPrice
+      @bidAmount = new Amount
+        state: params.state.bidAmount
+      @offerPrice = new Amount
+        state: params.state.offerPrice
+      @offerAmount = new Amount
+        state: params.state.offerAmount
       @type = params.state.type
 
   export: =>
@@ -87,10 +91,10 @@ module.exports = class Order
     state.account = @account
     state.bidCurrency = @bidCurrency
     state.offerCurrency = @offerCurrency
-    state.bidPrice = @bidPrice.toString()
-    state.bidAmount = @bidAmount.toString()
-    state.offerPrice = @offerPrice.toString()
-    state.offerAmount = @offerAmount.toString()
+    state.bidPrice = @bidPrice.export()
+    state.bidAmount = @bidAmount.export()
+    state.offerPrice = @offerPrice.export()
+    state.offerAmount = @offerAmount.export()
     state.type = @type
     return state
 

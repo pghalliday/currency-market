@@ -8,6 +8,7 @@ Amount = require('../src/Amount')
 
 amountPoint01 = new Amount '0.01'
 
+amount3 = new Amount '3'
 amount25 = new Amount '25'
 amount50 = new Amount '50'
 amount75 = new Amount '75'
@@ -504,7 +505,7 @@ describe 'Order', ->
         account: 'name'
         bidCurrency: 'BTC'
         offerCurrency: 'EUR'
-        bidPrice: amount100
+        bidPrice: amount100.divide(amount3)
         bidAmount: amount100
       state = order.export()
       json = JSON.stringify state
