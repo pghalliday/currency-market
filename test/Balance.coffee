@@ -108,7 +108,7 @@ describe 'Balance', ->
     it 'should export the state of the balance as a JSON stringifiable object that can be used to initialise a new Account in the exact same state', ->
       balance = new Balance()
       balance.deposit new Amount '200'
-      balance.lock (new Amount '50').divide(new Amount '3')
+      balance.lock new Amount '50'
       state = balance.export()
       json = JSON.stringify state
       newBalance = new Balance

@@ -560,7 +560,7 @@ describe 'Order', ->
         account: 'name'
         bidCurrency: 'BTC'
         offerCurrency: 'EUR'
-        bidPrice: amount100.divide(amount3)
+        bidPrice: amount100
         bidAmount: amount100
       state = order.export()
       json = JSON.stringify state
