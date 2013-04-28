@@ -2,8 +2,8 @@
 # in each iteration all accounts cancel their previous orders refresh 
 # balances (by withdrawing and depositing) and set new orders
 # the number of trades may vary
-ITERATIONS = 10000
-ACCOUNTS = 10
+ITERATIONS = 10
+ACCOUNTS = 1000
 PRICE = 100
 SPREAD = 4
 AMOUNT = 50
@@ -102,7 +102,7 @@ accounts = market.accounts
   Object.keys(accounts).forEach (accountId) ->
     parameters = randomParameters[accountId][iteration]
     #
-    # If you see an error then comment this back into capture code to reproduce it
+    # If you see an error then uncomment this to capture code to reproduce it
     #
     # console.log 'market.deposit'
     # console.log '  id: \'' + nextTransactionId() + '\''
@@ -175,7 +175,7 @@ accounts = market.accounts
       offerAmount: parameters.offerAmount
 
 elapsedTime = process.hrtime startTime
-console.log tradeCount + ' trades executed in ' + elapsedTime
+console.log tradeCount + ' trades executed in ' + elapsedTime + '(' + tradeCount/elapsedTime[0] + ' trades/second)'
 console.log depositCount + ' deposits'
 console.log withdrawalCount + ' withdrawals'
 console.log orderCount + ' orders'

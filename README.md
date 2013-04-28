@@ -312,6 +312,10 @@ console.log('********************');
 ## Roadmap
 
 - Performance tests
+  - Create performance test classes to see how performance changes as parameters change
+    ie: why does the random test perform less trades/second the more iterations there are when each iteration should be independent
+      - test parameter lookups? - cut them out of the timings!
+      - garbage collection?
 - List orders by account
 - List orders by book (in order)
 - Instant orders
