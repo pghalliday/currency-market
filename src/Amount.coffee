@@ -1,4 +1,6 @@
 BigDecimal = require('bigdecimal').BigDecimal
+ROUND_DOWN = require('bigdecimal').RoundingMode.DOWN()
+SCALE = 25
 
 module.exports = class Amount
   constructor: (value) ->
@@ -43,7 +45,13 @@ module.exports = class Amount
     else
       throw new Error('Can only multiply Amount objects')    
 
+  divide: (amount) =>
+    if amount instanceof Amount
+      return new Amount(@value.divide(amount.value, SCALE, ROUND_DOWN).stripTrailingZeros())
+    else
+      throw new Error('Can only divide Amount objects')    
   toString: =>
     return @value.stripTrailingZeros().toPlainString()
 
 Amount.ZERO = new Amount('0')
+Amount.ONE = new Amount('1')

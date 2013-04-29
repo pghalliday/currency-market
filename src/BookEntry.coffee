@@ -1,4 +1,5 @@
 Order = require './Order'
+Amount = require './Amount'
 
 module.exports = class BookEntry
   constructor: (params) ->
@@ -33,9 +34,15 @@ module.exports = class BookEntry
 
   add: (bookEntry) =>
     if @order.bidPrice
-      isHigher = bookEntry.order.bidPrice.compareTo(@order.bidPrice) > 0
+      if bookEntry.order.bidPrice
+        isHigher = bookEntry.order.bidPrice.compareTo(@order.bidPrice) > 0
+      else
+        isHigher = bookEntry.order.offerPrice.multiply(@order.bidPrice).compareTo(Amount.ONE) < 0
     else
-      isHigher = bookEntry.order.offerPrice.compareTo(@order.offerPrice) < 0
+      if bookEntry.order.offerPrice
+        isHigher = bookEntry.order.offerPrice.compareTo(@order.offerPrice) < 0
+      else
+        isHigher = bookEntry.order.bidPrice.multiply(@order.offerPrice).compareTo(Amount.ONE) > 0
 
     if isHigher
       if @higher
