@@ -33,13 +33,13 @@ randomOfferOffer.execute()
 console.log randomOfferOffer.trades + ' Trades'
 console.log randomOfferOffer.trades / randomOfferOffer.time[0] + ' Trades per second'
 
-# randomBidBid = new RandomBidBid
-#   iterations: 10
-#   accounts: 1000
-#   price: 100
-#   spread: 5
-#   amount: 50
+randomBidBid = new RandomBidBid
+  iterations: 10
+  accounts: 1000
+  price: 100
+  spread: 5
+  amount: 50
 
-# randomBidBid.execute()
-# console.log randomBidBid.trades + ' Trades'
-# console.log randomBidBid.trades / randomBidBid.time[0] + ' Trades per second'
+randomBidBid.execute()
+console.log randomBidBid.trades + ' Trades'
+console.log randomBidBid.trades / randomBidBid.time[0] + ' Trades per second'

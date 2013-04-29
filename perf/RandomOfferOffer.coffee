@@ -107,12 +107,6 @@ module.exports = class RandomOfferOffer
         # console.log '  account: \'' + accountId + '\''
         # console.log '  currency: \'EUR\''
         # console.log '  amount: new Amount \'' + parameters.offerAmount1 + '\''
-        # console.log '@market.deposit'
-        # console.log '  id: \'' + nextTransactionId() + '\''
-        # console.log '  timestamp: \'' + TIMESTAMP + '\''
-        # console.log '  account: \'' + accountId + '\''
-        # console.log '  currency: \'BTC\''
-        # console.log '  amount: new Amount \'' + parameters.offerAmount2 + '\''
         # console.log '@market.submit new Order'
         # console.log '  id: \'' + nextTransactionId() + '\''
         # console.log '  timestamp: \'' + TIMESTAMP + '\''
@@ -121,6 +115,12 @@ module.exports = class RandomOfferOffer
         # console.log '  offerCurrency: \'EUR\''
         # console.log '  offerPrice: new Amount \'' + parameters.offerPrice1 + '\''
         # console.log '  offerAmount: new Amount \'' + parameters.offerAmount1 + '\''
+        # console.log '@market.deposit'
+        # console.log '  id: \'' + nextTransactionId() + '\''
+        # console.log '  timestamp: \'' + TIMESTAMP + '\''
+        # console.log '  account: \'' + accountId + '\''
+        # console.log '  currency: \'BTC\''
+        # console.log '  amount: new Amount \'' + parameters.offerAmount2 + '\''
         # console.log '@market.submit new Order'
         # console.log '  id: \'' + nextTransactionId() + '\''
         # console.log '  timestamp: \'' + TIMESTAMP + '\''
@@ -148,12 +148,6 @@ module.exports = class RandomOfferOffer
           account: accountId
           currency: 'EUR'
           amount: parameters.offerAmount1
-        @market.deposit
-          id: nextTransactionId()
-          timestamp: TIMESTAMP
-          account: accountId
-          currency: 'BTC'
-          amount: parameters.offerAmount2
         @market.submit new Order
           id: nextTransactionId()
           timestamp: TIMESTAMP
@@ -162,6 +156,12 @@ module.exports = class RandomOfferOffer
           offerCurrency: 'EUR'
           offerPrice: parameters.offerPrice1
           offerAmount: parameters.offerAmount1
+        @market.deposit
+          id: nextTransactionId()
+          timestamp: TIMESTAMP
+          account: accountId
+          currency: 'BTC'
+          amount: parameters.offerAmount2
         @market.submit new Order
           id: nextTransactionId()
           timestamp: TIMESTAMP

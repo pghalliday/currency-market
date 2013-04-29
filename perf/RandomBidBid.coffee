@@ -111,12 +111,6 @@ module.exports = class RandomBidBid
         # console.log '  account: \'' + accountId + '\''
         # console.log '  currency: \'EUR\''
         # console.log '  amount: new Amount \'' + parameters.requiredEUR + '\''
-        # console.log '@market.deposit'
-        # console.log '  id: \'' + nextTransactionId() + '\''
-        # console.log '  timestamp: \'' + TIMESTAMP + '\''
-        # console.log '  account: \'' + accountId + '\''
-        # console.log '  currency: \'BTC\''
-        # console.log '  amount: new Amount \'' + parameters.requiredBTC + '\''
         # console.log '@market.submit new Order'
         # console.log '  id: \'' + nextTransactionId() + '\''
         # console.log '  timestamp: \'' + TIMESTAMP + '\''
@@ -125,6 +119,12 @@ module.exports = class RandomBidBid
         # console.log '  offerCurrency: \'EUR\''
         # console.log '  bidPrice: new Amount \'' + parameters.bidPrice2 + '\''
         # console.log '  bidAmount: new Amount \'' + parameters.bidAmount2 + '\''
+        # console.log '@market.deposit'
+        # console.log '  id: \'' + nextTransactionId() + '\''
+        # console.log '  timestamp: \'' + TIMESTAMP + '\''
+        # console.log '  account: \'' + accountId + '\''
+        # console.log '  currency: \'BTC\''
+        # console.log '  amount: new Amount \'' + parameters.requiredBTC + '\''
         # console.log '@market.submit new Order'
         # console.log '  id: \'' + nextTransactionId() + '\''
         # console.log '  timestamp: \'' + TIMESTAMP + '\''
@@ -152,12 +152,6 @@ module.exports = class RandomBidBid
           account: accountId
           currency: 'EUR'
           amount: parameters.requiredEUR
-        @market.deposit
-          id: nextTransactionId()
-          timestamp: TIMESTAMP
-          account: accountId
-          currency: 'BTC'
-          amount: parameters.requiredBTC
         @market.submit new Order
           id: nextTransactionId()
           timestamp: TIMESTAMP
@@ -166,6 +160,12 @@ module.exports = class RandomBidBid
           offerCurrency: 'EUR'
           bidPrice: parameters.bidPrice2
           bidAmount: parameters.bidAmount2
+        @market.deposit
+          id: nextTransactionId()
+          timestamp: TIMESTAMP
+          account: accountId
+          currency: 'BTC'
+          amount: parameters.requiredBTC
         @market.submit new Order
           id: nextTransactionId()
           timestamp: TIMESTAMP

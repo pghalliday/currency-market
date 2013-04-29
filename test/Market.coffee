@@ -1323,10 +1323,9 @@ describe 'Market', ->
         bidPrice: new Amount '107'
         bidAmount: new Amount '45'
 
-    it.skip 'should execute BID/BID orders correctly and not throw an unlock funds error when ? (captured from a failing random performance test)', ->
+    it 'should execute BID/BID orders correctly and not throw an unlock funds error when ? (captured from a failing random performance test)', ->
       @market.register newAccount '100000'
       @market.register newAccount '100001'
-      @market.register newAccount '100002'
       @market.register newAccount '100003'
       @market.deposit
         id: '101000'
@@ -1334,12 +1333,6 @@ describe 'Market', ->
         account: '100000'
         currency: 'EUR'
         amount: new Amount '7540'
-      @market.deposit
-        id: '101001'
-        timestamp: '1366758222'
-        account: '100000'
-        currency: 'BTC'
-        amount: new Amount '60.0000000000000012'
       @market.submit new Order
         id: '101002'
         timestamp: '1366758222'
@@ -1348,34 +1341,12 @@ describe 'Market', ->
         offerCurrency: 'EUR'
         bidPrice: new Amount '116'
         bidAmount: new Amount '65'
-      @market.submit new Order
-        id: '101003'
-        timestamp: '1366758222'
-        account: '100000'
-        bidCurrency: 'EUR'
-        offerCurrency: 'BTC'
-        bidPrice: new Amount '0.00819672131147541'
-        bidAmount: new Amount '7320'
-      @market.deposit
-        id: '101010'
-        timestamp: '1366758222'
-        account: '100001'
-        currency: 'EUR'
-        amount: new Amount '4896'
       @market.deposit
         id: '101011'
         timestamp: '1366758222'
         account: '100001'
         currency: 'BTC'
         amount: new Amount '47.000000000000000047'
-      @market.submit new Order
-        id: '101012'
-        timestamp: '1366758222'
-        account: '100001'
-        bidCurrency: 'BTC'
-        offerCurrency: 'EUR'
-        bidPrice: new Amount '96'
-        bidAmount: new Amount '51'
       @market.submit new Order
         id: '101013'
         timestamp: '1366758222'
@@ -1385,53 +1356,11 @@ describe 'Market', ->
         bidPrice: new Amount '0.009900990099009901'
         bidAmount: new Amount '4747'
       @market.deposit
-        id: '101020'
-        timestamp: '1366758222'
-        account: '100002'
-        currency: 'EUR'
-        amount: new Amount '4520'
-      @market.deposit
-        id: '101021'
-        timestamp: '1366758222'
-        account: '100002'
-        currency: 'BTC'
-        amount: new Amount '58.999999999999999115'
-      @market.submit new Order
-        id: '101022'
-        timestamp: '1366758222'
-        account: '100002'
-        bidCurrency: 'BTC'
-        offerCurrency: 'EUR'
-        bidPrice: new Amount '113'
-        bidAmount: new Amount '40'
-      @market.submit new Order
-        id: '101023'
-        timestamp: '1366758222'
-        account: '100002'
-        bidCurrency: 'EUR'
-        offerCurrency: 'BTC'
-        bidPrice: new Amount '0.008403361344537815'
-        bidAmount: new Amount '7021'
-      @market.deposit
-        id: '101030'
-        timestamp: '1366758222'
-        account: '100003'
-        currency: 'EUR'
-        amount: new Amount '3237'
-      @market.deposit
         id: '101031'
         timestamp: '1366758222'
         account: '100003'
         currency: 'BTC'
         amount: new Amount '53.99999999999999865'
-      @market.submit new Order
-        id: '101032'
-        timestamp: '1366758222'
-        account: '100003'
-        bidCurrency: 'BTC'
-        offerCurrency: 'EUR'
-        bidPrice: new Amount '83'
-        bidAmount: new Amount '39'
       @market.submit new Order
         id: '101033'
         timestamp: '1366758222'

@@ -309,7 +309,10 @@ module.exports = class Market extends EventEmitter
                 # The good news is that this is a corner case and only happens
                 # if you allow your market to be priced in either direction
                 leftDebitAmount = leftOrder.bidAmount.divide price
-                rightDebitAmount = leftOrder.bidAmount
+                # need to use the rounded value here otherwise the remainders from unlocking
+                # and reducing the bid won't add up (this doesn't apply in the above 
+                # division as there is no remainder)
+                rightDebitAmount = leftDebitAmount.multiply price
                 leftBalances[leftDebitCurrency].unlock leftOrder.offerAmount
                 leftBalances[leftDebitCurrency].withdraw leftDebitAmount
                 rightBalances[leftDebitCurrency].deposit leftDebitAmount
