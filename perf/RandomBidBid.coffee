@@ -1,4 +1,4 @@
-# This test places random orders distributed around a fixed price, spread and amount
+# This test places random bid orders distributed around a fixed price, spread and amount
 # in each iteration all accounts cancel their previous orders refresh 
 # balances (by withdrawing and depositing) and set new orders
 # the number of trades may vary
@@ -17,7 +17,7 @@ nextTransactionId = ->
 
 TIMESTAMP = '1366758222'
 
-module.exports = class RandomBidOrder
+module.exports = class RandomBidBid
   constructor: (params) ->
     @iterations = [1..params.iterations]
     @accounts = []
@@ -45,16 +45,19 @@ module.exports = class RandomBidOrder
       @iterations.forEach (iteration) =>
         price = poisson params.price
         spread = poisson params.spread
-        offerPrice = new Amount (price + spread) + ''
-        offerAmount = new Amount (poisson params.amount) + ''
-        bidPrice = new Amount price + ''
-        bidAmount = new Amount (poisson params.amount) + ''
-        requiredEUR = bidAmount.multiply bidPrice
+        offerPrice = price + spread
+        bidPrice1 = new Amount (1 / offerPrice) + ''
+        bidAmount1 = new Amount (offerPrice * (poisson params.amount)) + ''
+        requiredBTC = bidAmount1.multiply bidPrice1
+        bidPrice2 = new Amount price + ''
+        bidAmount2 = new Amount (poisson params.amount) + ''
+        requiredEUR = bidAmount2.multiply bidPrice2
         @randomParameters[accountId][iteration] = 
-          offerPrice: offerPrice
-          offerAmount: offerAmount
-          bidPrice: bidPrice
-          bidAmount: bidAmount
+          bidPrice1: bidPrice1
+          bidAmount1: bidAmount1
+          requiredBTC: requiredBTC
+          bidPrice2: bidPrice2
+          bidAmount2: bidAmount2
           requiredEUR: requiredEUR
       @accounts.push @market.accounts[accountId]
 
@@ -102,34 +105,34 @@ module.exports = class RandomBidOrder
         #
         # If you see an error then uncomment this to capture code to reproduce it
         #
-        # console.log 'market.deposit'
+        # console.log '@market.deposit'
         # console.log '  id: \'' + nextTransactionId() + '\''
         # console.log '  timestamp: \'' + TIMESTAMP + '\''
         # console.log '  account: \'' + accountId + '\''
         # console.log '  currency: \'EUR\''
         # console.log '  amount: new Amount \'' + parameters.requiredEUR + '\''
-        # console.log 'market.deposit'
+        # console.log '@market.deposit'
         # console.log '  id: \'' + nextTransactionId() + '\''
         # console.log '  timestamp: \'' + TIMESTAMP + '\''
         # console.log '  account: \'' + accountId + '\''
         # console.log '  currency: \'BTC\''
-        # console.log '  amount: new Amount \'' + parameters.offerAmount + '\''
-        # console.log 'market.submit new Order'
+        # console.log '  amount: new Amount \'' + parameters.requiredBTC + '\''
+        # console.log '@market.submit new Order'
         # console.log '  id: \'' + nextTransactionId() + '\''
         # console.log '  timestamp: \'' + TIMESTAMP + '\''
         # console.log '  account: \'' + accountId + '\''
         # console.log '  bidCurrency: \'BTC\''
         # console.log '  offerCurrency: \'EUR\''
-        # console.log '  bidPrice: new Amount \'' + parameters.bidPrice + '\''
-        # console.log '  bidAmount: new Amount \'' + parameters.bidAmount + '\''
-        # console.log 'market.submit new Order'
+        # console.log '  bidPrice: new Amount \'' + parameters.bidPrice2 + '\''
+        # console.log '  bidAmount: new Amount \'' + parameters.bidAmount2 + '\''
+        # console.log '@market.submit new Order'
         # console.log '  id: \'' + nextTransactionId() + '\''
         # console.log '  timestamp: \'' + TIMESTAMP + '\''
         # console.log '  account: \'' + accountId + '\''
         # console.log '  bidCurrency: \'EUR\''
         # console.log '  offerCurrency: \'BTC\''
-        # console.log '  offerPrice: new Amount \'' + parameters.offerPrice + '\''
-        # console.log '  offerAmount: new Amount \'' + parameters.offerAmount + '\''
+        # console.log '  bidPrice: new Amount \'' + parameters.bidPrice1 + '\''
+        # console.log '  bidAmount: new Amount \'' + parameters.bidAmount1 + '\''
         #
         @market.withdraw
           id: nextTransactionId()
@@ -154,22 +157,22 @@ module.exports = class RandomBidOrder
           timestamp: TIMESTAMP
           account: accountId
           currency: 'BTC'
-          amount: parameters.offerAmount
+          amount: parameters.requiredBTC
         @market.submit new Order
           id: nextTransactionId()
           timestamp: TIMESTAMP
           account: accountId
           bidCurrency: 'BTC'
           offerCurrency: 'EUR'
-          bidPrice: parameters.bidPrice
-          bidAmount: parameters.bidAmount
+          bidPrice: parameters.bidPrice2
+          bidAmount: parameters.bidAmount2
         @market.submit new Order
           id: nextTransactionId()
           timestamp: TIMESTAMP
           account: accountId
           bidCurrency: 'EUR'
           offerCurrency: 'BTC'
-          offerPrice: parameters.offerPrice
-          offerAmount: parameters.offerAmount
+          bidPrice: parameters.bidPrice1
+          bidAmount: parameters.bidAmount1
 
     @time = process.hrtime startTime

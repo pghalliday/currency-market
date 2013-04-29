@@ -51,7 +51,6 @@ module.exports = class PassItOn
     @market.on 'trade', (trade) =>
       @trades++
 
-
   execute: =>
     startTime = process.hrtime()
     @iterations.forEach =>
