@@ -283,7 +283,7 @@ module.exports = class Market extends EventEmitter
               if leftOrder.bidAmount.compareTo(rightOrder.offerAmount) > 0
                 leftDebitAmount = rightOrder.bidAmount
                 rightDebitAmount = rightOrder.offerAmount
-                leftBalances[leftDebitCurrency].unlock rightOrder.offerAmount.multiply leftOrder.bidPrice
+                leftBalances[leftDebitCurrency].unlock rightDebitAmount.multiply leftOrder.bidPrice
                 leftBalances[leftDebitCurrency].withdraw leftDebitAmount
                 rightBalances[leftDebitCurrency].deposit leftDebitAmount
                 rightBalances[rightDebitCurrency].unlock rightDebitAmount
