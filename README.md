@@ -316,6 +316,7 @@ console.log('********************');
     ie: why does the random test perform less trades/second the more iterations there are when each iteration should be independent
       - test parameter lookups? - cut them out of the timings!
       - garbage collection?
+  - Create random BID/BID and OFFER/OFFER performance tests
 - List orders by account
 - List orders by book (in order)
 - Instant orders
