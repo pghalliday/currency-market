@@ -5,7 +5,6 @@ assert = chai.assert
 sinon = require 'sinon'
 sinonChai = require 'sinon-chai'
 chai.use sinonChai
-Checklist = require 'checklist'
 
 Market = require '../src/Market'
 Book = require '../src/Book'
@@ -73,25 +72,17 @@ describe 'Market', ->
     @market.books['EUR']['USD'].should.be.an.instanceOf(Book)
 
   describe '#register', ->
-    it 'should submit an account to the market, record the last transaction ID and emit an account event', (done) ->
-      checklist = new Checklist [
-          '123456789'
-          '987654321'
-        ],
-        ordered: true,
-        (error) =>
-          @market.removeAllListeners()
-          done error
-
-      @market.on 'account', (account) ->
-        checklist.check account.id
-        checklist.check account.timestamp
+    it 'should submit an account to the market, record the last transaction ID and emit an account event', ->
+      accountSpy = sinon.spy()
+      @market.on 'account', accountSpy
 
       account = newAccount '123456789'
       @market.register account
       @market.lastTransaction.should.equal '123456789'
       account = @market.accounts['123456789']
       account.should.equal account
+      accountSpy.should.have.been.calledOnce
+      accountSpy.firstCall.args[0].should.equal account
 
     it 'should throw an error if the account already exists', ->
       @market.register newAccount '123456789'
@@ -120,41 +111,28 @@ describe 'Market', ->
           amount: amount50
       .to.throw('Must supply timestamp')
 
-    it 'should credit the correct account and currency, record the last transaction ID and emit a deposit event', (done) ->
-      checklist = new Checklist [
-          '123456790'
-          '987654322'
-          'Peter'
-          'BTC'
-          '50'
-        ],
-        ordered: true,
-        (error) =>
-          @market.removeAllListeners()
-          done error
-
-      @market.on 'deposit', (deposit) ->
-        checklist.check deposit.id
-        checklist.check deposit.timestamp
-        checklist.check deposit.account
-        checklist.check deposit.currency
-        checklist.check deposit.amount.toString()
+    it 'should credit the correct account and currency, record the last transaction ID and emit a deposit event', ->
+      depositSpy = sinon.spy()
+      @market.on 'deposit', depositSpy
 
       @market.register newAccount 'Peter'
       account = @market.accounts['Peter']
       account.balances['EUR'].funds.compareTo(Amount.ZERO).should.equal(0)
       account.balances['USD'].funds.compareTo(Amount.ZERO).should.equal(0)
       account.balances['BTC'].funds.compareTo(Amount.ZERO).should.equal(0)
-      @market.deposit
+      deposit = 
         id: '123456790'
         timestamp: '987654322'
         account: 'Peter'
         currency: 'BTC'
         amount: amount50
+      @market.deposit deposit
       @market.lastTransaction.should.equal '123456790'
       account.balances['EUR'].funds.compareTo(Amount.ZERO).should.equal(0)
       account.balances['USD'].funds.compareTo(Amount.ZERO).should.equal(0)
       account.balances['BTC'].funds.compareTo(amount50).should.equal(0)
+      depositSpy.should.have.been.calledOnce
+      depositSpy.firstCall.args[0].should.equal deposit
 
     it 'should throw an error if the account does not exist', ->
       expect =>
@@ -210,25 +188,9 @@ describe 'Market', ->
           amount: amount50
       .to.throw('Must supply timestamp')
 
-    it 'should debit the correct account and currency, record the last transaction ID and emit a withdrawal event', (done) ->
-      checklist = new Checklist [
-          '123456791'
-          '987654323'
-          'Peter'
-          'BTC'
-          '50'
-        ],
-        ordered: true,
-        (error) =>
-          @market.removeAllListeners()
-          done error
-
-      @market.on 'withdrawal', (withdrawal) ->
-        checklist.check withdrawal.id
-        checklist.check withdrawal.timestamp
-        checklist.check withdrawal.account
-        checklist.check withdrawal.currency
-        checklist.check withdrawal.amount.toString()
+    it 'should debit the correct account and currency, record the last transaction ID and emit a withdrawal event', ->
+      withdrawalSpy = sinon.spy()
+      @market.on 'withdrawal', withdrawalSpy
 
       @market.register newAccount 'Peter'
       account = @market.accounts['Peter']
@@ -238,14 +200,17 @@ describe 'Market', ->
         account: 'Peter'
         currency: 'BTC'
         amount: amount200
-      @market.withdraw
+      withdrawal = 
         id: '123456791'
         timestamp: '987654323'
         account: 'Peter'
         currency: 'BTC'
         amount: amount50
+      @market.withdraw withdrawal
       @market.lastTransaction.should.equal '123456791'
       account.balances['BTC'].funds.compareTo(amount150).should.equal(0)
+      withdrawalSpy.should.have.been.calledOnce
+      withdrawalSpy.firstCall.args[0].should.equal withdrawal
 
     it 'should throw an error if the account does not exist', ->
       expect =>
@@ -296,42 +261,9 @@ describe 'Market', ->
         offerAmount: amount100        
       account.balances['EUR'].lockedFunds.compareTo(amount150).should.equal(0)
 
-    it 'should record an order, submit it to the correct book, record the last transaction ID and emit an order event', (done) ->
-      checklist = new Checklist [
-          '123456793'
-          '987654321'
-          'Peter'
-          'BTC'
-          'EUR'
-          '100'
-          '50'
-          'undefined'
-          '5000'
-          '123456794'
-          '987654322'
-          'Paul'
-          'EUR'
-          'BTC'
-          'undefined'
-          '4950'
-          '99'
-          '50'
-        ],
-        ordered: true,
-        (error) =>
-          @market.removeAllListeners()
-          done error
-
-      @market.on 'order', (order) ->
-        checklist.check order.id
-        checklist.check order.timestamp
-        checklist.check order.account
-        checklist.check order.bidCurrency
-        checklist.check order.offerCurrency
-        checklist.check order.offerPrice + ''
-        checklist.check order.offerAmount.toString()
-        checklist.check order.bidPrice + ''
-        checklist.check order.bidAmount.toString()
+    it 'should record an order, submit it to the correct book, record the last transaction ID and emit an order event', ->
+      orderSpy = sinon.spy()
+      @market.on 'order', orderSpy
 
       @market.register newAccount 'Peter'
       @market.register newAccount 'Paul'
@@ -347,7 +279,7 @@ describe 'Market', ->
         account: 'Paul'
         currency: 'BTC'
         amount: amount4950
-      @market.submit new Order
+      order1 = new Order
         id: '123456793'
         timestamp: '987654321'
         account: 'Peter'
@@ -355,9 +287,10 @@ describe 'Market', ->
         offerCurrency: 'EUR'
         offerPrice: amount100
         offerAmount: amount50
+      @market.submit order1
       @market.lastTransaction.should.equal '123456793'
       @market.books['BTC']['EUR'].highest.id.should.equal('123456793')
-      @market.submit new Order
+      order2 = new Order
         id: '123456794'
         timestamp: '987654322'
         account: 'Paul'
@@ -365,8 +298,13 @@ describe 'Market', ->
         offerCurrency: 'BTC'
         bidPrice: amount99
         bidAmount: amount50
+      @market.submit order2
       @market.lastTransaction.should.equal '123456794'
       @market.books['EUR']['BTC'].highest.id.should.equal('123456794')
+
+      orderSpy.should.have.been.calledTwice
+      orderSpy.firstCall.args[0].should.equal order1
+      orderSpy.secondCall.args[0].should.equal order2
 
     describe 'while executing orders', ->
       beforeEach ->
@@ -387,7 +325,7 @@ describe 'Market', ->
 
       describe 'where the existing (right) order is an offer', ->
         beforeEach ->
-          @market.submit new Order
+          @rightOrder = new Order
             id: '1'
             timestamp: '1'
             account: 'Peter'
@@ -395,29 +333,16 @@ describe 'Market', ->
             offerCurrency: 'EUR'
             offerPrice: amountPoint2   # 5
             offerAmount: amount1000 # 200
+          @market.submit @rightOrder
 
         describe 'and the new (left) price is same', ->
           describe 'and the left order is a bid', ->
             describe 'and the right order is offering exactly the amount the left order is bidding', ->
-                it 'should trade the amount the right order is offering and emit a trade event', (done) ->
-                  checklist = new Checklist [
-                      '2'
-                      '1'
-                      '0.2'
-                      '1000'
-                    ],
-                    ordered: true,
-                    (error) =>
-                      @market.removeAllListeners()
-                      done error
+                it 'should trade the amount the right order is offering and emit a trade event', ->
+                  tradeSpy = sinon.spy()
+                  @market.on 'trade', tradeSpy
 
-                  @market.on 'trade', (trade) ->
-                    checklist.check trade.bid.id
-                    checklist.check trade.offer.id
-                    checklist.check trade.price.toString()
-                    checklist.check trade.amount.toString()
-
-                  @market.submit new Order
+                  leftOrder = new Order
                     id: '2'
                     timestamp: '2'
                     account: 'Paul'
@@ -425,6 +350,13 @@ describe 'Market', ->
                     offerCurrency: 'BTC'
                     bidPrice: amountPoint2
                     bidAmount: amount1000
+                  @market.submit leftOrder
+
+                  tradeSpy.should.have.been.calledOnce
+                  tradeSpy.firstCall.args[0].bid.should.equal leftOrder
+                  tradeSpy.firstCall.args[0].offer.should.equal @rightOrder
+                  tradeSpy.firstCall.args[0].price.compareTo(amountPoint2).should.equal 0
+                  tradeSpy.firstCall.args[0].amount.compareTo(amount1000).should.equal 0
                   expect(@market.books['BTC']['EUR'].entries['1']).to.not.be.ok
                   expect(@market.books['EUR']['BTC'].entries['2']).to.not.be.ok
                   @market.accounts['Peter'].balances['EUR'].funds.compareTo(amount1000).should.equal 0
@@ -435,25 +367,11 @@ describe 'Market', ->
                   @market.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
 
             describe 'and the right order is offering more than the left order is bidding', ->
-                it 'should trade the amount the left order is offering and emit a trade event', (done) ->
-                  checklist = new Checklist [
-                      '2'
-                      '1'
-                      '0.2'
-                      '500'
-                    ],
-                    ordered: true,
-                    (error) =>
-                      @market.removeAllListeners()
-                      done error
+                it 'should trade the amount the left order is offering and emit a trade event', ->
+                  tradeSpy = sinon.spy()
+                  @market.on 'trade', tradeSpy
 
-                  @market.on 'trade', (trade) ->
-                    checklist.check trade.bid.id
-                    checklist.check trade.offer.id
-                    checklist.check trade.price.toString()
-                    checklist.check trade.amount.toString()
-
-                  @market.submit new Order
+                  leftOrder = new Order
                     id: '2'
                     timestamp: '2'
                     account: 'Paul'
@@ -461,6 +379,13 @@ describe 'Market', ->
                     offerCurrency: 'BTC'
                     bidPrice: amountPoint2
                     bidAmount: amount500
+                  @market.submit leftOrder
+
+                  tradeSpy.should.have.been.calledOnce
+                  tradeSpy.firstCall.args[0].bid.should.equal leftOrder
+                  tradeSpy.firstCall.args[0].offer.should.equal @rightOrder
+                  tradeSpy.firstCall.args[0].price.compareTo(amountPoint2).should.equal 0
+                  tradeSpy.firstCall.args[0].amount.compareTo(amount500).should.equal 0
                   @market.books['BTC']['EUR'].entries['1'].order.offerAmount.compareTo(amount500).should.equal 0
                   expect(@market.books['EUR']['BTC'].entries['2']).to.not.be.ok
                   @market.accounts['Peter'].balances['EUR'].funds.compareTo(amount1500).should.equal 0
@@ -471,25 +396,11 @@ describe 'Market', ->
                   @market.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
 
             describe 'and the right order is offering less than the left order is bidding', ->
-                it 'should trade the amount the right order is offering and emit a trade event', (done) ->
-                  checklist = new Checklist [
-                      '2'
-                      '1'
-                      '0.2'
-                      '1000'
-                    ],
-                    ordered: true,
-                    (error) =>
-                      @market.removeAllListeners()
-                      done error
+                it 'should trade the amount the right order is offering and emit a trade event', ->
+                  tradeSpy = sinon.spy()
+                  @market.on 'trade', tradeSpy
 
-                  @market.on 'trade', (trade) ->
-                    checklist.check trade.bid.id
-                    checklist.check trade.offer.id
-                    checklist.check trade.price.toString()
-                    checklist.check trade.amount.toString()
-
-                  @market.submit new Order
+                  leftOrder = new Order
                     id: '2'
                     timestamp: '2'
                     account: 'Paul'
@@ -497,6 +408,13 @@ describe 'Market', ->
                     offerCurrency: 'BTC'
                     bidPrice: amountPoint2
                     bidAmount: amount1500
+                  @market.submit leftOrder
+
+                  tradeSpy.should.have.been.calledOnce
+                  tradeSpy.firstCall.args[0].bid.should.equal leftOrder
+                  tradeSpy.firstCall.args[0].offer.should.equal @rightOrder
+                  tradeSpy.firstCall.args[0].price.compareTo(amountPoint2).should.equal 0
+                  tradeSpy.firstCall.args[0].amount.compareTo(amount1000).should.equal 0
                   expect(@market.books['BTC']['EUR'].entries['1']).to.not.be.ok
                   @market.books['EUR']['BTC'].entries['2'].order.bidAmount.compareTo(amount500).should.equal 0
                   @market.accounts['Peter'].balances['EUR'].funds.compareTo(amount1000).should.equal 0
@@ -508,25 +426,11 @@ describe 'Market', ->
 
           describe 'and the left order is an offer', ->
             describe 'and the right order is offering exactly the amount the left order is offering', ->
-                it 'should trade the amount the right order is offering and emit a trade event', (done) ->
-                  checklist = new Checklist [
-                      '2'
-                      '1'
-                      '0.2'
-                      '1000'
-                    ],
-                    ordered: true,
-                    (error) =>
-                      @market.removeAllListeners()
-                      done error
+                it 'should trade the amount the right order is offering and emit a trade event', ->
+                  tradeSpy = sinon.spy()
+                  @market.on 'trade', tradeSpy
 
-                  @market.on 'trade', (trade) ->
-                    checklist.check trade.bid.id
-                    checklist.check trade.offer.id
-                    checklist.check trade.price.toString()
-                    checklist.check trade.amount.toString()
-
-                  @market.submit new Order
+                  leftOrder = new Order
                     id: '2'
                     timestamp: '2'
                     account: 'Paul'
@@ -534,6 +438,13 @@ describe 'Market', ->
                     offerCurrency: 'BTC'
                     offerPrice: amount5
                     offerAmount: amount200
+                  @market.submit leftOrder
+
+                  tradeSpy.should.have.been.calledOnce
+                  tradeSpy.firstCall.args[0].bid.should.equal leftOrder
+                  tradeSpy.firstCall.args[0].offer.should.equal @rightOrder
+                  tradeSpy.firstCall.args[0].price.compareTo(amountPoint2).should.equal 0
+                  tradeSpy.firstCall.args[0].amount.compareTo(amount1000).should.equal 0
                   expect(@market.books['BTC']['EUR'].entries['1']).to.not.be.ok
                   expect(@market.books['EUR']['BTC'].entries['2']).to.not.be.ok
                   @market.accounts['Peter'].balances['EUR'].funds.compareTo(amount1000).should.equal 0
@@ -544,25 +455,11 @@ describe 'Market', ->
                   @market.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
 
             describe 'and the right order is offering more than the left order is offering', ->
-                it 'should trade the amount the left order is offering and emit a trade event', (done) ->
-                  checklist = new Checklist [
-                      '2'
-                      '1'
-                      '0.2'
-                      '500'
-                    ],
-                    ordered: true,
-                    (error) =>
-                      @market.removeAllListeners()
-                      done error
+                it 'should trade the amount the left order is offering and emit a trade event', ->
+                  tradeSpy = sinon.spy()
+                  @market.on 'trade', tradeSpy
 
-                  @market.on 'trade', (trade) ->
-                    checklist.check trade.bid.id
-                    checklist.check trade.offer.id
-                    checklist.check trade.price.toString()
-                    checklist.check trade.amount.toString()
-
-                  @market.submit new Order
+                  leftOrder = new Order
                     id: '2'
                     timestamp: '2'
                     account: 'Paul'
@@ -570,6 +467,13 @@ describe 'Market', ->
                     offerCurrency: 'BTC'
                     offerPrice: amount5
                     offerAmount: amount100
+                  @market.submit leftOrder
+
+                  tradeSpy.should.have.been.calledOnce
+                  tradeSpy.firstCall.args[0].bid.should.equal leftOrder
+                  tradeSpy.firstCall.args[0].offer.should.equal @rightOrder
+                  tradeSpy.firstCall.args[0].price.compareTo(amountPoint2).should.equal 0
+                  tradeSpy.firstCall.args[0].amount.compareTo(amount500).should.equal 0
                   @market.books['BTC']['EUR'].entries['1'].order.offerAmount.compareTo(amount500).should.equal 0
                   expect(@market.books['EUR']['BTC'].entries['2']).to.not.be.ok
                   @market.accounts['Peter'].balances['EUR'].funds.compareTo(amount1500).should.equal 0
@@ -580,25 +484,11 @@ describe 'Market', ->
                   @market.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
 
             describe 'and the right order is offering less than the left order is offering', ->
-                it 'should trade the amount the right order is offering and emit a trade event', (done) ->
-                  checklist = new Checklist [
-                      '2'
-                      '1'
-                      '0.2'
-                      '1000'
-                    ],
-                    ordered: true,
-                    (error) =>
-                      @market.removeAllListeners()
-                      done error
+                it 'should trade the amount the right order is offering and emit a trade event', ->
+                  tradeSpy = sinon.spy()
+                  @market.on 'trade', tradeSpy
 
-                  @market.on 'trade', (trade) ->
-                    checklist.check trade.bid.id
-                    checklist.check trade.offer.id
-                    checklist.check trade.price.toString()
-                    checklist.check trade.amount.toString()
-
-                  @market.submit new Order
+                  leftOrder = new Order
                     id: '2'
                     timestamp: '2'
                     account: 'Paul'
@@ -606,6 +496,13 @@ describe 'Market', ->
                     offerCurrency: 'BTC'
                     offerPrice: amount5
                     offerAmount: amount300
+                  @market.submit leftOrder
+
+                  tradeSpy.should.have.been.calledOnce
+                  tradeSpy.firstCall.args[0].bid.should.equal leftOrder
+                  tradeSpy.firstCall.args[0].offer.should.equal @rightOrder
+                  tradeSpy.firstCall.args[0].price.compareTo(amountPoint2).should.equal 0
+                  tradeSpy.firstCall.args[0].amount.compareTo(amount1000).should.equal 0
                   expect(@market.books['BTC']['EUR'].entries['1']).to.not.be.ok
                   @market.books['EUR']['BTC'].entries['2'].order.offerAmount.compareTo(amount100).should.equal 0
                   @market.accounts['Peter'].balances['EUR'].funds.compareTo(amount1000).should.equal 0
@@ -618,25 +515,11 @@ describe 'Market', ->
         describe 'and the new (left) price is the better', ->
           describe 'and the left order is an offer', ->              
             describe 'and the right order is offering exactly the amount that the left order is offering multiplied by the right order price', ->
-              it 'should trade the amount the right order is offering at the right order price and emit a trade event', (done) ->
-                checklist = new Checklist [
-                    '2'
-                    '1'
-                    '0.2'
-                    '1000'
-                  ],
-                  ordered: true,
-                  (error) =>
-                    @market.removeAllListeners()
-                    done error
+              it 'should trade the amount the right order is offering at the right order price and emit a trade event', ->
+                tradeSpy = sinon.spy()
+                @market.on 'trade', tradeSpy
 
-                @market.on 'trade', (trade) ->
-                  checklist.check trade.bid.id
-                  checklist.check trade.offer.id
-                  checklist.check trade.price.toString()
-                  checklist.check trade.amount.toString()
-
-                @market.submit new Order
+                leftOrder = new Order
                   id: '2'
                   timestamp: '2'
                   account: 'Paul'
@@ -644,6 +527,13 @@ describe 'Market', ->
                   offerCurrency: 'BTC'
                   offerPrice: amount4
                   offerAmount: amount200
+                @market.submit leftOrder
+
+                tradeSpy.should.have.been.calledOnce
+                tradeSpy.firstCall.args[0].bid.should.equal leftOrder
+                tradeSpy.firstCall.args[0].offer.should.equal @rightOrder
+                tradeSpy.firstCall.args[0].price.compareTo(amountPoint2).should.equal 0
+                tradeSpy.firstCall.args[0].amount.compareTo(amount1000).should.equal 0
                 expect(@market.books['BTC']['EUR'].entries['1']).to.not.be.ok
                 expect(@market.books['EUR']['BTC'].entries['2']).to.not.be.ok
                 @market.accounts['Peter'].balances['EUR'].funds.compareTo(amount1000).should.equal 0
@@ -654,25 +544,11 @@ describe 'Market', ->
                 @market.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
 
             describe 'and the right order is offering more than the left order is offering multiplied by the right order price', ->
-              it 'should trade the amount the left order is offering at the right order price and emit a trade event', (done) ->
-                checklist = new Checklist [
-                    '2'
-                    '1'
-                    '0.2'
-                    '500'
-                  ],
-                  ordered: true,
-                  (error) =>
-                    @market.removeAllListeners()
-                    done error
+              it 'should trade the amount the left order is offering at the right order price and emit a trade event', ->
+                tradeSpy = sinon.spy()
+                @market.on 'trade', tradeSpy
 
-                @market.on 'trade', (trade) ->
-                  checklist.check trade.bid.id
-                  checklist.check trade.offer.id
-                  checklist.check trade.price.toString()
-                  checklist.check trade.amount.toString()
-
-                @market.submit new Order
+                leftOrder = new Order
                   id: '2'
                   timestamp: '2'
                   account: 'Paul'
@@ -680,6 +556,13 @@ describe 'Market', ->
                   offerCurrency: 'BTC'
                   offerPrice: amount4
                   offerAmount: amount100
+                @market.submit leftOrder
+
+                tradeSpy.should.have.been.calledOnce
+                tradeSpy.firstCall.args[0].bid.should.equal leftOrder
+                tradeSpy.firstCall.args[0].offer.should.equal @rightOrder
+                tradeSpy.firstCall.args[0].price.compareTo(amountPoint2).should.equal 0
+                tradeSpy.firstCall.args[0].amount.compareTo(amount500).should.equal 0
                 @market.books['BTC']['EUR'].entries['1'].order.offerAmount.compareTo(amount500).should.equal 0
                 expect(@market.books['EUR']['BTC'].entries['2']).to.not.be.ok
                 @market.accounts['Peter'].balances['EUR'].funds.compareTo(amount1500).should.equal 0
@@ -690,25 +573,11 @@ describe 'Market', ->
                 @market.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
 
             describe 'and the right order is offering less than the left order is offering multiplied by the right order price', ->
-              it 'should trade the amount the right order is offering at the right order price and emit a trade event', (done) ->
-                checklist = new Checklist [
-                    '2'
-                    '1'
-                    '0.2'
-                    '1000'
-                  ],
-                  ordered: true,
-                  (error) =>
-                    @market.removeAllListeners()
-                    done error
+              it 'should trade the amount the right order is offering at the right order price and emit a trade event', ->
+                tradeSpy = sinon.spy()
+                @market.on 'trade', tradeSpy
 
-                @market.on 'trade', (trade) ->
-                  checklist.check trade.bid.id
-                  checklist.check trade.offer.id
-                  checklist.check trade.price.toString()
-                  checklist.check trade.amount.toString()
-
-                @market.submit new Order
+                leftOrder = new Order
                   id: '2'
                   timestamp: '2'
                   account: 'Paul'
@@ -716,6 +585,13 @@ describe 'Market', ->
                   offerCurrency: 'BTC'
                   offerPrice: amount4
                   offerAmount: amount300
+                @market.submit leftOrder
+
+                tradeSpy.should.have.been.calledOnce
+                tradeSpy.firstCall.args[0].bid.should.equal leftOrder
+                tradeSpy.firstCall.args[0].offer.should.equal @rightOrder
+                tradeSpy.firstCall.args[0].price.compareTo(amountPoint2).should.equal 0
+                tradeSpy.firstCall.args[0].amount.compareTo(amount1000).should.equal 0
                 expect(@market.books['BTC']['EUR'].entries['1']).to.not.be.ok
                 @market.books['EUR']['BTC'].entries['2'].order.offerAmount.compareTo(amount100).should.equal 0
                 @market.accounts['Peter'].balances['EUR'].funds.compareTo(amount1000).should.equal 0
@@ -727,25 +603,11 @@ describe 'Market', ->
 
           describe 'and the left order is a bid', ->
             describe 'and the right order is offering exactly the amount that the left order is bidding', ->
-              it 'should trade the amount the right order is offering at the right order price and emit a trade event', (done) ->
-                checklist = new Checklist [
-                    '2'
-                    '1'
-                    '0.2'
-                    '1000'
-                  ],
-                  ordered: true,
-                  (error) =>
-                    @market.removeAllListeners()
-                    done error
+              it 'should trade the amount the right order is offering at the right order price and emit a trade event', ->
+                tradeSpy = sinon.spy()
+                @market.on 'trade', tradeSpy
 
-                @market.on 'trade', (trade) ->
-                  checklist.check trade.bid.id
-                  checklist.check trade.offer.id
-                  checklist.check trade.price.toString()
-                  checklist.check trade.amount.toString()
-
-                @market.submit new Order
+                leftOrder = new Order
                   id: '2'
                   timestamp: '2'
                   account: 'Paul'
@@ -753,6 +615,13 @@ describe 'Market', ->
                   offerCurrency: 'BTC'
                   bidPrice: amountPoint25
                   bidAmount: amount1000
+                @market.submit leftOrder
+
+                tradeSpy.should.have.been.calledOnce
+                tradeSpy.firstCall.args[0].bid.should.equal leftOrder
+                tradeSpy.firstCall.args[0].offer.should.equal @rightOrder
+                tradeSpy.firstCall.args[0].price.compareTo(amountPoint2).should.equal 0
+                tradeSpy.firstCall.args[0].amount.compareTo(amount1000).should.equal 0
                 expect(@market.books['BTC']['EUR'].entries['1']).to.not.be.ok
                 expect(@market.books['EUR']['BTC'].entries['2']).to.not.be.ok
                 @market.accounts['Peter'].balances['EUR'].funds.compareTo(amount1000).should.equal 0
@@ -763,25 +632,11 @@ describe 'Market', ->
                 @market.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
                 
             describe 'and the right order is offering more than the left order is bidding', ->
-              it 'should trade the amount the left order is bidding at the right order price and emit a trade event', (done) ->
-                checklist = new Checklist [
-                    '2'
-                    '1'
-                    '0.2'
-                    '500'
-                  ],
-                  ordered: true,
-                  (error) =>
-                    @market.removeAllListeners()
-                    done error
+              it 'should trade the amount the left order is bidding at the right order price and emit a trade event', ->
+                tradeSpy = sinon.spy()
+                @market.on 'trade', tradeSpy
 
-                @market.on 'trade', (trade) ->
-                  checklist.check trade.bid.id
-                  checklist.check trade.offer.id
-                  checklist.check trade.price.toString()
-                  checklist.check trade.amount.toString()
-
-                @market.submit new Order
+                leftOrder = new Order
                   id: '2'
                   timestamp: '2'
                   account: 'Paul'
@@ -789,6 +644,13 @@ describe 'Market', ->
                   offerCurrency: 'BTC'
                   bidPrice: amountPoint25
                   bidAmount: amount500
+                @market.submit leftOrder
+
+                tradeSpy.should.have.been.calledOnce
+                tradeSpy.firstCall.args[0].bid.should.equal leftOrder
+                tradeSpy.firstCall.args[0].offer.should.equal @rightOrder
+                tradeSpy.firstCall.args[0].price.compareTo(amountPoint2).should.equal 0
+                tradeSpy.firstCall.args[0].amount.compareTo(amount500).should.equal 0
                 @market.books['BTC']['EUR'].entries['1'].order.offerAmount.compareTo(amount500).should.equal 0
                 expect(@market.books['EUR']['BTC'].entries['2']).to.not.be.ok
                 @market.accounts['Peter'].balances['EUR'].funds.compareTo(amount1500).should.equal 0
@@ -799,25 +661,11 @@ describe 'Market', ->
                 @market.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
                 
             describe 'and the right order is offering less than the left order is bidding', ->
-              it 'should trade the amount the right order is offering at the right order price and emit a trade event', (done) ->
-                checklist = new Checklist [
-                    '2'
-                    '1'
-                    '0.2'
-                    '1000'
-                  ],
-                  ordered: true,
-                  (error) =>
-                    @market.removeAllListeners()
-                    done error
+              it 'should trade the amount the right order is offering at the right order price and emit a trade event', ->
+                tradeSpy = sinon.spy()
+                @market.on 'trade', tradeSpy
 
-                @market.on 'trade', (trade) ->
-                  checklist.check trade.bid.id
-                  checklist.check trade.offer.id
-                  checklist.check trade.price.toString()
-                  checklist.check trade.amount.toString()
-
-                @market.submit new Order
+                leftOrder = new Order
                   id: '2'
                   timestamp: '2'
                   account: 'Paul'
@@ -825,6 +673,13 @@ describe 'Market', ->
                   offerCurrency: 'BTC'
                   bidPrice: amountPoint25
                   bidAmount: amount1500
+                @market.submit leftOrder
+
+                tradeSpy.should.have.been.calledOnce
+                tradeSpy.firstCall.args[0].bid.should.equal leftOrder
+                tradeSpy.firstCall.args[0].offer.should.equal @rightOrder
+                tradeSpy.firstCall.args[0].price.compareTo(amountPoint2).should.equal 0
+                tradeSpy.firstCall.args[0].amount.compareTo(amount1000).should.equal 0
                 expect(@market.books['BTC']['EUR'].entries['1']).to.not.be.ok
                 @market.books['EUR']['BTC'].entries['2'].order.bidAmount.compareTo(amount500).should.equal 0
                 @market.accounts['Peter'].balances['EUR'].funds.compareTo(amount1000).should.equal 0
@@ -836,7 +691,6 @@ describe 'Market', ->
               
       describe 'where the existing (right) order is a bid', ->
         beforeEach ->
-          @market.removeAllListeners()
           @rightOrder = new Order
             id: '1'
             timestamp: '1'
@@ -850,25 +704,11 @@ describe 'Market', ->
         describe 'and the new (left) price is better', ->
           describe 'and the left order is an offer', ->
             describe 'and the right order is bidding exactly the amount that the left order is offering', ->
-              it 'should trade the amount the right order is bidding at the right order price and emit a trade event', (done) ->
-                checklist = new Checklist [
-                    '1'
-                    '2'
-                    '5'
-                    '200'
-                  ],
-                  ordered: true,
-                  (error) =>
-                    @market.removeAllListeners()
-                    done error
+              it 'should trade the amount the right order is bidding at the right order price and emit a trade event', ->
+                tradeSpy = sinon.spy()
+                @market.on 'trade', tradeSpy
 
-                @market.on 'trade', (trade) ->
-                  checklist.check trade.bid.id
-                  checklist.check trade.offer.id
-                  checklist.check trade.price.toString()
-                  checklist.check trade.amount.toString()
-
-                @market.submit new Order
+                leftOrder = new Order
                   id: '2'
                   timestamp: '2'
                   account: 'Paul'
@@ -876,6 +716,13 @@ describe 'Market', ->
                   offerCurrency: 'BTC'
                   offerPrice: amount4
                   offerAmount: amount200
+                @market.submit leftOrder
+
+                tradeSpy.should.have.been.calledOnce
+                tradeSpy.firstCall.args[0].bid.should.equal @rightOrder
+                tradeSpy.firstCall.args[0].offer.should.equal leftOrder
+                tradeSpy.firstCall.args[0].price.compareTo(amount5).should.equal 0
+                tradeSpy.firstCall.args[0].amount.compareTo(amount200).should.equal 0
                 expect(@market.books['BTC']['EUR'].entries['1']).to.not.be.ok
                 expect(@market.books['EUR']['BTC'].entries['2']).to.not.be.ok
                 @market.accounts['Peter'].balances['EUR'].funds.compareTo(amount1000).should.equal 0
@@ -886,25 +733,11 @@ describe 'Market', ->
                 @market.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
                 
             describe 'and the right order is bidding more than the left order is offering', ->
-              it 'should trade the amount the left order is offering at the right order price and emit a trade event', (done) ->
-                checklist = new Checklist [
-                    '1'
-                    '2'
-                    '5'
-                    '100'
-                  ],
-                  ordered: true,
-                  (error) =>
-                    @market.removeAllListeners()
-                    done error
+              it 'should trade the amount the left order is offering at the right order price and emit a trade event', ->
+                tradeSpy = sinon.spy()
+                @market.on 'trade', tradeSpy
 
-                @market.on 'trade', (trade) ->
-                  checklist.check trade.bid.id
-                  checklist.check trade.offer.id
-                  checklist.check trade.price.toString()
-                  checklist.check trade.amount.toString()
-
-                @market.submit new Order
+                leftOrder = new Order
                   id: '2'
                   timestamp: '2'
                   account: 'Paul'
@@ -912,6 +745,13 @@ describe 'Market', ->
                   offerCurrency: 'BTC'
                   offerPrice: amount4
                   offerAmount: amount100
+                @market.submit leftOrder
+
+                tradeSpy.should.have.been.calledOnce
+                tradeSpy.firstCall.args[0].bid.should.equal @rightOrder
+                tradeSpy.firstCall.args[0].offer.should.equal leftOrder
+                tradeSpy.firstCall.args[0].price.compareTo(amount5).should.equal 0
+                tradeSpy.firstCall.args[0].amount.compareTo(amount100).should.equal 0
                 @market.books['BTC']['EUR'].entries['1'].order.bidAmount.compareTo(amount100).should.equal 0
                 expect(@market.books['EUR']['BTC'].entries['2']).to.not.be.ok
                 @market.accounts['Peter'].balances['EUR'].funds.compareTo(amount1500).should.equal 0
@@ -922,25 +762,11 @@ describe 'Market', ->
                 @market.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
                 
             describe 'and the right order is bidding less than the left order is offering', ->
-              it 'should trade the amount the right order is bidding at the right order price and emit a trade event', (done) ->
-                checklist = new Checklist [
-                    '1'
-                    '2'
-                    '5'
-                    '200'
-                  ],
-                  ordered: true,
-                  (error) =>
-                    @market.removeAllListeners()
-                    done error
+              it 'should trade the amount the right order is bidding at the right order price and emit a trade event', ->
+                tradeSpy = sinon.spy()
+                @market.on 'trade', tradeSpy
 
-                @market.on 'trade', (trade) ->
-                  checklist.check trade.bid.id
-                  checklist.check trade.offer.id
-                  checklist.check trade.price.toString()
-                  checklist.check trade.amount.toString()
-
-                @market.submit new Order
+                leftOrder = new Order
                   id: '2'
                   timestamp: '2'
                   account: 'Paul'
@@ -948,6 +774,13 @@ describe 'Market', ->
                   offerCurrency: 'BTC'
                   offerPrice: amount4
                   offerAmount: amount300
+                @market.submit leftOrder
+
+                tradeSpy.should.have.been.calledOnce
+                tradeSpy.firstCall.args[0].bid.should.equal @rightOrder
+                tradeSpy.firstCall.args[0].offer.should.equal leftOrder
+                tradeSpy.firstCall.args[0].price.compareTo(amount5).should.equal 0
+                tradeSpy.firstCall.args[0].amount.compareTo(amount200).should.equal 0
                 expect(@market.books['BTC']['EUR'].entries['1']).to.not.be.ok
                 @market.books['EUR']['BTC'].entries['2'].order.offerAmount.compareTo(amount100).should.equal 0
                 @market.accounts['Peter'].balances['EUR'].funds.compareTo(amount1000).should.equal 0
@@ -960,6 +793,9 @@ describe 'Market', ->
           describe 'and the left order is a bid', ->
             describe 'and the right order is bidding exactly the amount that the left order is bidding multiplied by the right order price', ->
               it 'should trade the amount the right order is bidding at the right order price and emit a trade event', ->
+                tradeSpy = sinon.spy()
+                @market.on 'trade', tradeSpy
+
                 leftOrder = new Order
                   id: '2'
                   timestamp: '2'
@@ -968,17 +804,13 @@ describe 'Market', ->
                   offerCurrency: 'BTC'
                   bidPrice: amountPoint25
                   bidAmount: amount1000
-
-                tradeSpy = sinon.spy (trade) =>
-                  trade.bid.should.equal @rightOrder
-                  trade.offer.should.equal leftOrder
-                  trade.price.compareTo(amount5).should.equal 0
-                  trade.amount.compareTo(amount200).should.equal 0
-                @market.on 'trade', tradeSpy
-
                 @market.submit leftOrder
 
                 tradeSpy.should.have.been.calledOnce
+                tradeSpy.firstCall.args[0].bid.should.equal @rightOrder
+                tradeSpy.firstCall.args[0].offer.should.equal leftOrder
+                tradeSpy.firstCall.args[0].price.compareTo(amount5).should.equal 0
+                tradeSpy.firstCall.args[0].amount.compareTo(amount200).should.equal 0
                 expect(@market.books['BTC']['EUR'].entries['1']).to.not.be.ok
                 expect(@market.books['EUR']['BTC'].entries['2']).to.not.be.ok
                 @market.accounts['Peter'].balances['EUR'].funds.compareTo(amount1000).should.equal 0
@@ -990,6 +822,9 @@ describe 'Market', ->
                 
             describe 'and the right order is bidding more than the left order is bidding multiplied by the right order price', ->
               it 'should trade the amount the left order is bidding at the right order price and emit a trade event', ->
+                tradeSpy = sinon.spy()
+                @market.on 'trade', tradeSpy
+
                 leftOrder = new Order
                   id: '2'
                   timestamp: '2'
@@ -998,17 +833,13 @@ describe 'Market', ->
                   offerCurrency: 'BTC'
                   bidPrice: amountPoint25
                   bidAmount: amount500
-
-                tradeSpy = sinon.spy (trade) =>
-                  trade.bid.should.equal @rightOrder
-                  trade.offer.should.equal leftOrder
-                  trade.price.compareTo(amount5).should.equal 0
-                  trade.amount.compareTo(amount100).should.equal 0
-                @market.on 'trade', tradeSpy
-
                 @market.submit leftOrder
 
                 tradeSpy.should.have.been.calledOnce
+                tradeSpy.firstCall.args[0].bid.should.equal @rightOrder
+                tradeSpy.firstCall.args[0].offer.should.equal leftOrder
+                tradeSpy.firstCall.args[0].price.compareTo(amount5).should.equal 0
+                tradeSpy.firstCall.args[0].amount.compareTo(amount100).should.equal 0
                 @market.books['BTC']['EUR'].entries['1'].order.bidAmount.compareTo(amount100).should.equal 0
                 expect(@market.books['EUR']['BTC'].entries['2']).to.not.be.ok
                 @market.accounts['Peter'].balances['EUR'].funds.compareTo(amount1500).should.equal 0
@@ -1020,6 +851,9 @@ describe 'Market', ->
                 
             describe 'and the right order is bidding less than the left order is bidding multiplied by the right order price', ->
               it 'should trade the amount the right order is bidding at the right order price and emit a trade event', ->
+                tradeSpy = sinon.spy()
+                @market.on 'trade', tradeSpy
+
                 leftOrder = new Order
                   id: '2'
                   timestamp: '2'
@@ -1028,17 +862,13 @@ describe 'Market', ->
                   offerCurrency: 'BTC'
                   bidPrice: amountPoint25
                   bidAmount: amount1500
-
-                tradeSpy = sinon.spy (trade) =>
-                  trade.bid.should.equal @rightOrder
-                  trade.offer.should.equal leftOrder
-                  trade.price.compareTo(amount5).should.equal 0
-                  trade.amount.compareTo(amount200).should.equal 0
-                @market.on 'trade', tradeSpy
-
                 @market.submit leftOrder
 
                 tradeSpy.should.have.been.calledOnce
+                tradeSpy.firstCall.args[0].bid.should.equal @rightOrder
+                tradeSpy.firstCall.args[0].offer.should.equal leftOrder
+                tradeSpy.firstCall.args[0].price.compareTo(amount5).should.equal 0
+                tradeSpy.firstCall.args[0].amount.compareTo(amount200).should.equal 0
                 expect(@market.books['BTC']['EUR'].entries['1']).to.not.be.ok
                 @market.books['EUR']['BTC'].entries['2'].order.bidAmount.compareTo(amount500).should.equal 0
                 @market.accounts['Peter'].balances['EUR'].funds.compareTo(amount1000).should.equal 0
@@ -1064,7 +894,7 @@ describe 'Market', ->
           account: 'Paul'
           currency: 'BTC'
           amount: amount1000
-        @market.submit new Order
+        @rightOrder1 = new Order
           id: '1'
           timestamp: '1'
           account: 'Peter'
@@ -1072,7 +902,8 @@ describe 'Market', ->
           offerCurrency: 'EUR'
           offerPrice: amountPoint2
           offerAmount: amount500
-        @market.submit new Order
+        @market.submit @rightOrder1
+        @rightOrder2 = new Order
           id: '2'
           timestamp: '2'
           account: 'Peter'
@@ -1080,7 +911,8 @@ describe 'Market', ->
           offerCurrency: 'EUR'
           offerPrice: amountPoint25
           offerAmount: amount500
-        @market.submit new Order
+        @market.submit @rightOrder2
+        @rightOrder3 = new Order
           id: '3'
           timestamp: '3'
           account: 'Peter'
@@ -1088,7 +920,8 @@ describe 'Market', ->
           offerCurrency: 'EUR'
           offerPrice: amountPoint5
           offerAmount: amount500
-        @market.submit new Order
+        @market.submit @rightOrder3
+        @rightOrder4 = new Order
           id: '4'
           timestamp: '4'
           account: 'Peter'
@@ -1096,35 +929,14 @@ describe 'Market', ->
           offerCurrency: 'EUR'
           offerPrice: amount1
           offerAmount: amount500
+        @market.submit @rightOrder4
 
       describe 'and the last order can be completely satisfied', ->
-        it 'should correctly execute as many orders as it can and emit trade events', (done) ->
-          checklist = new Checklist [
-              '5'
-              '1'
-              '0.2'
-              '500'
-              '5'
-              '2'
-              '0.25'
-              '500'
-              '5'
-              '3'
-              '0.5'
-              '250'
-            ],
-            ordered: true,
-            (error) =>
-              @market.removeAllListeners()
-              done error
+        it 'should correctly execute as many orders as it can and emit trade events', ->
+          tradeSpy = sinon.spy()
+          @market.on 'trade', tradeSpy
 
-          @market.on 'trade', (trade) ->
-            checklist.check trade.bid.id
-            checklist.check trade.offer.id
-            checklist.check trade.price.toString()
-            checklist.check trade.amount.toString()
-
-          @market.submit new Order
+          leftOrder = new Order
             id: '5'
             timestamp: '5'
             account: 'Paul'
@@ -1132,6 +944,21 @@ describe 'Market', ->
             offerCurrency: 'BTC'
             bidPrice: amountPoint5
             bidAmount: amount1250
+          @market.submit leftOrder
+
+          tradeSpy.should.have.been.calledThrice
+          tradeSpy.firstCall.args[0].bid.should.equal leftOrder
+          tradeSpy.firstCall.args[0].offer.should.equal @rightOrder1
+          tradeSpy.firstCall.args[0].price.compareTo(amountPoint2).should.equal 0
+          tradeSpy.firstCall.args[0].amount.compareTo(amount500).should.equal 0
+          tradeSpy.secondCall.args[0].bid.should.equal leftOrder
+          tradeSpy.secondCall.args[0].offer.should.equal @rightOrder2
+          tradeSpy.secondCall.args[0].price.compareTo(amountPoint25).should.equal 0
+          tradeSpy.secondCall.args[0].amount.compareTo(amount500).should.equal 0
+          tradeSpy.thirdCall.args[0].bid.should.equal leftOrder
+          tradeSpy.thirdCall.args[0].offer.should.equal @rightOrder3
+          tradeSpy.thirdCall.args[0].price.compareTo(amountPoint5).should.equal 0
+          tradeSpy.thirdCall.args[0].amount.compareTo(amount250).should.equal 0
           expect(@market.books['BTC']['EUR'].entries['1']).to.not.be.ok
           expect(@market.books['BTC']['EUR'].entries['2']).to.not.be.ok
           @market.books['BTC']['EUR'].entries['3'].order.offerAmount.compareTo(amount250).should.equal 0
@@ -1145,33 +972,11 @@ describe 'Market', ->
           @market.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
 
       describe 'and the last order cannot be completely satisfied', ->    
-        it 'should correctly execute as many orders as it can and emit trade events', (done) ->
-          checklist = new Checklist [
-              '5'
-              '1'
-              '0.2'
-              '500'
-              '5'
-              '2'
-              '0.25'
-              '500'
-              '5'
-              '3'
-              '0.5'
-              '500'
-            ],
-            ordered: true,
-            (error) =>
-              @market.removeAllListeners()
-              done error
+        it 'should correctly execute as many orders as it can and emit trade events', ->
+          tradeSpy = sinon.spy()
+          @market.on 'trade', tradeSpy
 
-          @market.on 'trade', (trade) ->
-            checklist.check trade.bid.id
-            checklist.check trade.offer.id
-            checklist.check trade.price.toString()
-            checklist.check trade.amount.toString()
-
-          @market.submit new Order
+          leftOrder = new Order
             id: '5'
             timestamp: '5'
             account: 'Paul'
@@ -1179,6 +984,21 @@ describe 'Market', ->
             offerCurrency: 'BTC'
             bidPrice: amountPoint5
             bidAmount: amount1750
+          @market.submit leftOrder
+
+          tradeSpy.should.have.been.calledThrice
+          tradeSpy.firstCall.args[0].bid.should.equal leftOrder
+          tradeSpy.firstCall.args[0].offer.should.equal @rightOrder1
+          tradeSpy.firstCall.args[0].price.compareTo(amountPoint2).should.equal 0
+          tradeSpy.firstCall.args[0].amount.compareTo(amount500).should.equal 0
+          tradeSpy.secondCall.args[0].bid.should.equal leftOrder
+          tradeSpy.secondCall.args[0].offer.should.equal @rightOrder2
+          tradeSpy.secondCall.args[0].price.compareTo(amountPoint25).should.equal 0
+          tradeSpy.secondCall.args[0].amount.compareTo(amount500).should.equal 0
+          tradeSpy.thirdCall.args[0].bid.should.equal leftOrder
+          tradeSpy.thirdCall.args[0].offer.should.equal @rightOrder3
+          tradeSpy.thirdCall.args[0].price.compareTo(amountPoint5).should.equal 0
+          tradeSpy.thirdCall.args[0].amount.compareTo(amount500).should.equal 0
           expect(@market.books['BTC']['EUR'].entries['1']).to.not.be.ok
           expect(@market.books['BTC']['EUR'].entries['2']).to.not.be.ok
           expect(@market.books['BTC']['EUR'].entries['3']).to.not.be.ok
@@ -1410,48 +1230,9 @@ describe 'Market', ->
           offerAmount: amount50        
       account.balances['EUR'].lockedFunds.compareTo(amount100).should.equal 0
 
-    it 'should remove the order from the orders collection and from the correct book, record the last transaction ID and emit an cancellation event', (done) ->
-      checklist = new Checklist [
-          '123456795'
-          '987654349'
-          '123456793'
-          '987654321'
-          'Peter'
-          'BTC'
-          'EUR'
-          '100'
-          '50'
-          'undefined'
-          '5000'
-          '123456796'
-          '987654350'
-          '123456794'
-          '987654322'
-          'Paul'
-          'EUR'
-          'BTC'
-          'undefined'
-          '4950'
-          '99'
-          '50'
-        ],
-        ordered: true,
-        (error) =>
-          @market.removeAllListeners()
-          done error
-
-      @market.on 'cancellation', (cancellation) ->
-        checklist.check cancellation.id
-        checklist.check cancellation.timestamp
-        checklist.check cancellation.order.id
-        checklist.check cancellation.order.timestamp
-        checklist.check cancellation.order.account
-        checklist.check cancellation.order.bidCurrency
-        checklist.check cancellation.order.offerCurrency
-        checklist.check cancellation.order.offerPrice + ''
-        checklist.check cancellation.order.offerAmount.toString()
-        checklist.check cancellation.order.bidPrice + ''
-        checklist.check cancellation.order.bidAmount.toString()
+    it 'should remove the order from the orders collection and from the correct book, record the last transaction ID and emit an cancellation event', ->
+      cancellationSpy = sinon.spy()
+      @market.on 'cancellation', cancellationSpy
 
       @market.register newAccount 'Peter'
       @market.register newAccount 'Paul'
@@ -1483,7 +1264,7 @@ describe 'Market', ->
         offerCurrency: 'BTC'
         bidPrice: amount99
         bidAmount: amount50
-      @market.cancel
+      cancellation1 = 
         id: '123456795'
         timestamp: '987654349'
         order: new Order
@@ -1494,10 +1275,11 @@ describe 'Market', ->
           offerCurrency: 'EUR'
           offerPrice: amount100
           offerAmount: amount50
+      @market.cancel cancellation1
       @market.lastTransaction.should.equal '123456795'
       expect(@market.books['BTC']['EUR'].entries['123456793']).to.not.be.ok
       expect(@market.books['BTC']['EUR'].highest).to.not.be.ok
-      @market.cancel
+      cancellation2 = 
         id: '123456796'
         timestamp: '987654350'
         order: new Order
@@ -1508,9 +1290,13 @@ describe 'Market', ->
           offerCurrency: 'BTC'
           bidPrice: amount99
           bidAmount: amount50
+      @market.cancel cancellation2
       @market.lastTransaction.should.equal '123456796'
       expect(@market.books['BTC']['EUR'].entries['123456794']).to.not.be.ok
       expect(@market.books['EUR']['BTC'].highest).to.not.be.ok
+      cancellationSpy.should.have.been.calledTwice
+      cancellationSpy.firstCall.args[0].should.equal cancellation1
+      cancellationSpy.secondCall.args[0].should.equal cancellation2
 
     it 'should throw an error if the order cannot be found', ->
       expect =>
