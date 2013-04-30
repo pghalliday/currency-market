@@ -314,8 +314,12 @@ console.log('********************');
 - List orders by account
 - List orders by book (in order)
 - Instant orders
-  - Fill or Kill limit orders
   - Market orders
+    - zero priced offers that are rejected if they cannot be completely filled by the market
+      - if a zero price is used then any remainder cannot be left on the book as it may cause a division by zero
+      - partial fills could be executed as long as the remainder is instantly cancelled
+  - Fill or Kill limit orders?
+    - will be tougher (less efficient) than market orders as an average price will have to be calculated?
 - Pluggable commission schemes
   - fixed rate
   - calculated through callback
