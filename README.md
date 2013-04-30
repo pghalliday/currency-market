@@ -332,7 +332,7 @@ console.log('********************');
 - Protection against attacks?
   - entering orders that satisfy each other
   - entering tiny orders
-  - should this be in a another layer?
+  - should this be in another layer?
 
 ## Contributing
 

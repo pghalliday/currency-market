@@ -1,6 +1,7 @@
 Amount = require('./Amount')
+EventEmitter = require('events').EventEmitter
 
-module.exports = class Order
+module.exports = class Order extends EventEmitter
   constructor: (params) ->
     if typeof params.state == 'undefined'
       @id =  params.id
@@ -129,17 +130,141 @@ module.exports = class Order
       return false
     return true
 
-  reduceOffer: (amount) =>
-    if amount.compareTo(@offerAmount) > 0
-      throw new Error('offer amount cannot be negative')
-    else
-      @offerAmount = @offerAmount.subtract(amount)
-      @bidAmount = @offerAmount.multiply(@offerPrice)
+  fillOffer = (offerAmount, bidAmount) ->
+    @offerAmount = @offerAmount.subtract(offerAmount)
+    @bidAmount = @offerAmount.multiply(@offerPrice)
+    @emit 'fill', 
+      order: @
+      offerAmount: offerAmount
+      bidAmount: bidAmount
 
-  reduceBid: (amount) =>
-    if amount.compareTo(@bidAmount) > 0
-      throw new Error('bid amount cannot be negative')
-    else
-      @bidAmount = @bidAmount.subtract(amount)
-      @offerAmount = @bidAmount.multiply(@bidPrice)
+  fillBid = (bidAmount, offerAmount) ->
+    @bidAmount = @bidAmount.subtract(bidAmount)
+    @offerAmount = @bidAmount.multiply(@bidPrice)
+    @emit 'fill',
+      order: @
+      offerAmount: offerAmount
+      bidAmount: bidAmount
 
+  match: (order) =>
+    if @offerPrice
+      if order.bidPrice
+        if order.bidPrice.compareTo(@offerPrice) >= 0
+          # prices overlap so we make a trade
+          price = order.bidPrice
+          if @offerAmount.compareTo(order.bidAmount) > 0
+            leftOfferAmount = order.bidAmount
+            rightOfferAmount = order.offerAmount
+            fillBid.call order, leftOfferAmount, rightOfferAmount
+            fillOffer.call @, leftOfferAmount, rightOfferAmount
+            order.emit 'trade',
+              bid: order
+              offer: @
+              price: price
+              amount: leftOfferAmount
+            return true
+          else
+            leftOfferAmount = @offerAmount
+            rightOfferAmount = leftOfferAmount.multiply price
+            fillBid.call order, leftOfferAmount, rightOfferAmount
+            fillOffer.call @, leftOfferAmount, rightOfferAmount
+            order.emit 'trade',
+              bid: order
+              offer: @
+              price: price
+              amount: leftOfferAmount
+            return false
+      else
+        if order.offerPrice.multiply(@offerPrice).compareTo(Amount.ONE) <= 0
+          # prices overlap so we make a trade
+          price = order.offerPrice
+          if @offerAmount.compareTo(order.bidAmount) > 0
+            leftOfferAmount = order.bidAmount
+            rightOfferAmount = order.offerAmount
+            fillOffer.call order, rightOfferAmount, leftOfferAmount
+            fillOffer.call @, leftOfferAmount, rightOfferAmount
+            order.emit 'trade',
+              bid: @
+              offer: order
+              price: price
+              amount: rightOfferAmount
+            return true
+          else
+            leftOfferAmount = @offerAmount
+            # NB: Cannot think of any way to avoid this divide but
+            # must ensure that we round down as rounding up could
+            # result in more funds being unlocked or withdrawn than
+            # are available.
+            # The good news is that this is a corner case and only happens
+            # if you allow your market to be priced in either direction
+            rightOfferAmount = leftOfferAmount.divide price
+            fillOffer.call order, rightOfferAmount, leftOfferAmount
+            fillOffer.call @, leftOfferAmount, rightOfferAmount
+            order.emit 'trade',
+              bid: @
+              offer: order
+              price: price
+              amount: rightOfferAmount
+            return false
+    else
+      if order.offerPrice
+        if @bidPrice.compareTo(order.offerPrice) >= 0
+          # prices overlap so we make a trade
+          price = order.offerPrice
+          if @bidAmount.compareTo(order.offerAmount) > 0
+            rightOfferAmount = order.offerAmount
+            leftOfferAmount = rightOfferAmount.multiply price
+            fillOffer.call order, rightOfferAmount, leftOfferAmount
+            fillBid.call @, rightOfferAmount, leftOfferAmount
+            order.emit 'trade',
+              bid: @
+              offer: order
+              price: price
+              amount: rightOfferAmount
+            return true
+          else
+            rightOfferAmount = @bidAmount
+            leftOfferAmount = rightOfferAmount.multiply price
+            fillOffer.call order, rightOfferAmount, leftOfferAmount
+            fillBid.call @, rightOfferAmount, leftOfferAmount
+            order.emit 'trade',
+              bid: @
+              offer: order
+              price: price
+              amount: rightOfferAmount
+            return false
+      else
+        if order.bidPrice.multiply(@bidPrice).compareTo(Amount.ONE) >= 0
+          # prices overlap so we make a trade
+          price = order.bidPrice
+          if @bidAmount.compareTo(order.offerAmount) > 0
+            leftOfferAmount = order.bidAmount
+            rightOfferAmount = order.offerAmount
+            fillBid.call order, leftOfferAmount, rightOfferAmount
+            fillBid.call @, rightOfferAmount, leftOfferAmount
+            order.emit 'trade',
+              bid: order
+              offer: @
+              price: price
+              amount: leftOfferAmount
+            return true
+          else
+            # NB: Cannot think of any way to avoid this divide but
+            # must ensure that we round down as rounding up could
+            # result in more funds being unlocked or withdrawn than
+            # are available.
+            # The good news is that this is a corner case and only happens
+            # if you allow your market to be priced in either direction
+            leftOfferAmount = @bidAmount.divide price
+            # need to use the rounded value here otherwise the remainders from unlocking
+            # and reducing the bid won't add up (this doesn't apply in the above 
+            # division as there is no remainder)
+            rightOfferAmount = leftOfferAmount.multiply price
+            fillBid.call order, leftOfferAmount, rightOfferAmount
+            fillBid.call @, rightOfferAmount, leftOfferAmount
+            order.emit 'trade',
+              bid: order
+              offer: @
+              price: price
+              amount: leftOfferAmount
+            return false

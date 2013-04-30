@@ -2,20 +2,33 @@ chai = require 'chai'
 chai.should()
 expect = chai.expect
 assert = chai.assert
+sinon = require 'sinon'
+sinonChai = require 'sinon-chai'
+chai.use sinonChai
 
 Order = require('../src/Order')
 Amount = require('../src/Amount')
 
 amountPoint01 = new Amount '0.01'
-
+amountPoint2 = new Amount '0.2'
+amountPoint25 = new Amount '0.25'
 amount3 = new Amount '3'
+amount4 = new Amount '4'
+amount5 = new Amount '5'
 amount25 = new Amount '25'
 amount50 = new Amount '50'
 amount75 = new Amount '75'
 amount60 = new Amount '60'
 amount100 = new Amount '100'
 amount101 = new Amount '101'
+amount125 = new Amount '125'
 amount150 = new Amount '150'
+amount200 = new Amount '200'
+amount300 = new Amount '300'
+amount400 = new Amount '400'
+amount500 = new Amount '500'
+amount1000 = new Amount '1000'
+amount1500 = new Amount '1500'
 amount5000 = new Amount '5000'
 amount7500 = new Amount '7500'
 
@@ -498,59 +511,729 @@ describe 'Order', ->
         bidAmount: amount100
       order1.equals(order2).should.be.false
 
-  describe '#reduceOffer', ->
-    it 'should create a copy of the order with the reduced offer amount', ->
-      order = new Order
-        id: '123456789'
-        timestamp: '987654321'
-        account: 'name'
-        bidCurrency: 'BTC'
-        offerCurrency: 'EUR'
-        offerPrice: amount100
-        offerAmount: amount100
-      order.reduceOffer amount25
-      order.offerAmount.compareTo(amount75).should.equal 0
-      order.bidAmount.compareTo(amount7500).should.equal 0
+  describe '#match', ->
+    describe 'where the existing (right) order is an offer', ->
+      beforeEach ->
+        @order = new Order
+          id: '1'
+          timestamp: '1'
+          account: 'Peter'
+          bidCurrency: 'BTC'
+          offerCurrency: 'EUR'
+          offerPrice: amountPoint2   # 5
+          offerAmount: amount1000 # 200
+        @fillSpy = sinon.spy()
+        @order.on 'fill', @fillSpy
+        @tradeSpy = sinon.spy()
+        @order.on 'trade', @tradeSpy
 
-    it 'should throw an error if the order is reduced to zero or below', ->
-      order = new Order
-        id: '123456789'
-        timestamp: '987654321'
-        account: 'name'
-        bidCurrency: 'BTC'
-        offerCurrency: 'EUR'
-        offerPrice: amount100
-        offerAmount: amount100
-      expect ->
-        order.reduceOffer amount101
-      .to.throw('offer amount cannot be negative')
+      describe 'and the new (left) price is same', ->
+        describe 'and the left order is a bid', ->
+          describe 'and the right order is offering exactly the amount the left order is bidding', ->
+              it 'should trade the amount the right order is offering, emit fill events and a trade event and return false to indicate that no higher trades can be filled by the left order', ->
+                order = new Order
+                  id: '2'
+                  timestamp: '2'
+                  account: 'Paul'
+                  bidCurrency: 'EUR'
+                  offerCurrency: 'BTC'
+                  bidPrice: amountPoint2
+                  bidAmount: amount1000
+                fillSpy = sinon.spy()
+                order.on 'fill', fillSpy
+                tradeSpy = sinon.spy()
+                order.on 'trade', tradeSpy
 
-  describe '#reduceBid', ->
-    it 'should create a copy of the order with the reduced bid amount', ->
-      order = new Order
-        id: '123456789'
-        timestamp: '987654321'
-        account: 'name'
-        bidCurrency: 'BTC'
-        offerCurrency: 'EUR'
-        bidPrice: amount100
-        bidAmount: amount100
-      order.reduceBid amount25
-      order.bidAmount.compareTo(amount75).should.equal 0
-      order.offerAmount.compareTo(amount7500).should.equal 0
-      
-    it 'should throw an error if the order is reduced below zero', ->
-      order = new Order
-        id: '123456789'
-        timestamp: '987654321'
-        account: 'name'
-        bidCurrency: 'BTC'
-        offerCurrency: 'EUR'
-        bidPrice: amount100
-        bidAmount: amount100
-      expect ->
-        order.reduceBid amount101
-      .to.throw('bid amount cannot be negative')
+                order.match(@order).should.be.false
+
+                fillSpy.should.have.been.calledOnce
+                fillSpy.firstCall.args[0].order.should.equal order
+                fillSpy.firstCall.args[0].offerAmount.compareTo(amount200).should.equal 0
+                fillSpy.firstCall.args[0].bidAmount.compareTo(amount1000).should.equal 0
+                order.offerAmount.compareTo(Amount.ZERO).should.equal 0
+                order.bidAmount.compareTo(Amount.ZERO).should.equal 0
+
+                @fillSpy.should.have.been.calledOnce
+                @fillSpy.firstCall.args[0].order.should.equal @order
+                @fillSpy.firstCall.args[0].bidAmount.compareTo(amount200).should.equal 0
+                @fillSpy.firstCall.args[0].offerAmount.compareTo(amount1000).should.equal 0
+                @order.bidAmount.compareTo(Amount.ZERO).should.equal 0
+                @order.offerAmount.compareTo(Amount.ZERO).should.equal 0
+
+                tradeSpy.should.not.have.been.called
+                @tradeSpy.should.have.been.calledOnce
+                @tradeSpy.firstCall.args[0].bid.should.equal order
+                @tradeSpy.firstCall.args[0].offer.should.equal @order
+                @tradeSpy.firstCall.args[0].price.compareTo(amountPoint2).should.equal 0
+                @tradeSpy.firstCall.args[0].amount.compareTo(amount1000).should.equal 0
+
+          describe 'and the right order is offering more than the left order is bidding', ->
+              it 'should trade the amount the left order is offering, emit fill events and a trade event and return false to indicate that higher trades may still be filled by the left order', ->
+                order = new Order
+                  id: '2'
+                  timestamp: '2'
+                  account: 'Paul'
+                  bidCurrency: 'EUR'
+                  offerCurrency: 'BTC'
+                  bidPrice: amountPoint2
+                  bidAmount: amount500
+                fillSpy = sinon.spy()
+                order.on 'fill', fillSpy
+                tradeSpy = sinon.spy()
+                order.on 'trade', tradeSpy
+                
+                order.match(@order).should.be.false
+
+                fillSpy.should.have.been.calledOnce
+                fillSpy.firstCall.args[0].order.should.equal order
+                fillSpy.firstCall.args[0].offerAmount.compareTo(amount100).should.equal 0
+                fillSpy.firstCall.args[0].bidAmount.compareTo(amount500).should.equal 0
+                order.offerAmount.compareTo(Amount.ZERO).should.equal 0
+                order.bidAmount.compareTo(Amount.ZERO).should.equal 0
+
+                @fillSpy.should.have.been.calledOnce
+                @fillSpy.firstCall.args[0].order.should.equal @order
+                @fillSpy.firstCall.args[0].bidAmount.compareTo(amount100).should.equal 0
+                @fillSpy.firstCall.args[0].offerAmount.compareTo(amount500).should.equal 0
+                @order.bidAmount.compareTo(amount100).should.equal 0
+                @order.offerAmount.compareTo(amount500).should.equal 0
+
+                tradeSpy.should.not.have.been.called
+                @tradeSpy.should.have.been.calledOnce
+                @tradeSpy.firstCall.args[0].bid.should.equal order
+                @tradeSpy.firstCall.args[0].offer.should.equal @order
+                @tradeSpy.firstCall.args[0].price.compareTo(amountPoint2).should.equal 0
+                @tradeSpy.firstCall.args[0].amount.compareTo(amount500).should.equal 0
+
+          describe 'and the right order is offering less than the left order is bidding', ->
+              it 'should trade the amount the right order is offering, emit fill events and a trade event and return true', ->
+                order = new Order
+                  id: '2'
+                  timestamp: '2'
+                  account: 'Paul'
+                  bidCurrency: 'EUR'
+                  offerCurrency: 'BTC'
+                  bidPrice: amountPoint2
+                  bidAmount: amount1500
+                fillSpy = sinon.spy()
+                order.on 'fill', fillSpy
+                tradeSpy = sinon.spy()
+                order.on 'trade', tradeSpy
+                
+                order.match(@order).should.be.true
+
+                fillSpy.should.have.been.calledOnce
+                fillSpy.firstCall.args[0].order.should.equal order
+                fillSpy.firstCall.args[0].offerAmount.compareTo(amount200).should.equal 0
+                fillSpy.firstCall.args[0].bidAmount.compareTo(amount1000).should.equal 0
+                order.offerAmount.compareTo(amount100).should.equal 0
+                order.bidAmount.compareTo(amount500).should.equal 0
+
+                @fillSpy.should.have.been.calledOnce
+                @fillSpy.firstCall.args[0].order.should.equal @order
+                @fillSpy.firstCall.args[0].bidAmount.compareTo(amount200).should.equal 0
+                @fillSpy.firstCall.args[0].offerAmount.compareTo(amount1000).should.equal 0
+                @order.bidAmount.compareTo(Amount.ZERO).should.equal 0
+                @order.offerAmount.compareTo(Amount.ZERO).should.equal 0
+
+                tradeSpy.should.not.have.been.called
+                @tradeSpy.should.have.been.calledOnce
+                @tradeSpy.firstCall.args[0].bid.should.equal order
+                @tradeSpy.firstCall.args[0].offer.should.equal @order
+                @tradeSpy.firstCall.args[0].price.compareTo(amountPoint2).should.equal 0
+                @tradeSpy.firstCall.args[0].amount.compareTo(amount1000).should.equal 0
+
+        describe 'and the left order is an offer', ->
+          describe 'and the right order is offering exactly the amount the left order is offering', ->
+              it 'should trade the amount the right order is offering, emit a fill events and a trade event and return false', ->
+                order = new Order
+                  id: '2'
+                  timestamp: '2'
+                  account: 'Paul'
+                  bidCurrency: 'EUR'
+                  offerCurrency: 'BTC'
+                  offerPrice: amount5
+                  offerAmount: amount200
+                fillSpy = sinon.spy()
+                order.on 'fill', fillSpy
+                tradeSpy = sinon.spy()
+                order.on 'trade', tradeSpy
+                
+                order.match(@order).should.be.false
+
+                fillSpy.should.have.been.calledOnce
+                fillSpy.firstCall.args[0].order.should.equal order
+                fillSpy.firstCall.args[0].offerAmount.compareTo(amount200).should.equal 0
+                fillSpy.firstCall.args[0].bidAmount.compareTo(amount1000).should.equal 0
+                order.offerAmount.compareTo(Amount.ZERO).should.equal 0
+                order.bidAmount.compareTo(Amount.ZERO).should.equal 0
+
+                @fillSpy.should.have.been.calledOnce
+                @fillSpy.firstCall.args[0].order.should.equal @order
+                @fillSpy.firstCall.args[0].bidAmount.compareTo(amount200).should.equal 0
+                @fillSpy.firstCall.args[0].offerAmount.compareTo(amount1000).should.equal 0
+                @order.bidAmount.compareTo(Amount.ZERO).should.equal 0
+                @order.offerAmount.compareTo(Amount.ZERO).should.equal 0
+
+                tradeSpy.should.not.have.been.called
+                @tradeSpy.should.have.been.calledOnce
+                @tradeSpy.firstCall.args[0].bid.should.equal order
+                @tradeSpy.firstCall.args[0].offer.should.equal @order
+                @tradeSpy.firstCall.args[0].price.compareTo(amountPoint2).should.equal 0
+                @tradeSpy.firstCall.args[0].amount.compareTo(amount1000).should.equal 0
+
+          describe 'and the right order is offering more than the left order is offering', ->
+              it 'should trade the amount the left order is offering, emit a fill events and a trade event and return false', ->
+                order = new Order
+                  id: '2'
+                  timestamp: '2'
+                  account: 'Paul'
+                  bidCurrency: 'EUR'
+                  offerCurrency: 'BTC'
+                  offerPrice: amount5
+                  offerAmount: amount100
+                fillSpy = sinon.spy()
+                order.on 'fill', fillSpy
+                tradeSpy = sinon.spy()
+                order.on 'trade', tradeSpy
+                
+                order.match(@order).should.be.false
+
+                fillSpy.should.have.been.calledOnce
+                fillSpy.firstCall.args[0].order.should.equal order
+                fillSpy.firstCall.args[0].offerAmount.compareTo(amount100).should.equal 0
+                fillSpy.firstCall.args[0].bidAmount.compareTo(amount500).should.equal 0
+                order.offerAmount.compareTo(Amount.ZERO).should.equal 0
+                order.bidAmount.compareTo(Amount.ZERO).should.equal 0
+
+                @fillSpy.should.have.been.calledOnce
+                @fillSpy.firstCall.args[0].order.should.equal @order
+                @fillSpy.firstCall.args[0].bidAmount.compareTo(amount100).should.equal 0
+                @fillSpy.firstCall.args[0].offerAmount.compareTo(amount500).should.equal 0
+                @order.bidAmount.compareTo(amount100).should.equal 0
+                @order.offerAmount.compareTo(amount500).should.equal 0
+
+                tradeSpy.should.not.have.been.called
+                @tradeSpy.should.have.been.calledOnce
+                @tradeSpy.firstCall.args[0].bid.should.equal order
+                @tradeSpy.firstCall.args[0].offer.should.equal @order
+                @tradeSpy.firstCall.args[0].price.compareTo(amountPoint2).should.equal 0
+                @tradeSpy.firstCall.args[0].amount.compareTo(amount500).should.equal 0
+
+          describe 'and the right order is offering less than the left order is offering', ->
+              it 'should trade the amount the right order is offering, emit fill events and a trade event and return true', ->
+                order = new Order
+                  id: '2'
+                  timestamp: '2'
+                  account: 'Paul'
+                  bidCurrency: 'EUR'
+                  offerCurrency: 'BTC'
+                  offerPrice: amount5
+                  offerAmount: amount300
+                fillSpy = sinon.spy()
+                order.on 'fill', fillSpy
+                tradeSpy = sinon.spy()
+                order.on 'trade', tradeSpy
+                
+                order.match(@order).should.be.true
+
+                fillSpy.should.have.been.calledOnce
+                fillSpy.firstCall.args[0].order.should.equal order
+                fillSpy.firstCall.args[0].offerAmount.compareTo(amount200).should.equal 0
+                fillSpy.firstCall.args[0].bidAmount.compareTo(amount1000).should.equal 0
+                order.offerAmount.compareTo(amount100).should.equal 0
+                order.bidAmount.compareTo(amount500).should.equal 0
+
+                @fillSpy.should.have.been.calledOnce
+                @fillSpy.firstCall.args[0].order.should.equal @order
+                @fillSpy.firstCall.args[0].bidAmount.compareTo(amount200).should.equal 0
+                @fillSpy.firstCall.args[0].offerAmount.compareTo(amount1000).should.equal 0
+                @order.bidAmount.compareTo(Amount.ZERO).should.equal 0
+                @order.offerAmount.compareTo(Amount.ZERO).should.equal 0
+
+                tradeSpy.should.not.have.been.called
+                @tradeSpy.should.have.been.calledOnce
+                @tradeSpy.firstCall.args[0].bid.should.equal order
+                @tradeSpy.firstCall.args[0].offer.should.equal @order
+                @tradeSpy.firstCall.args[0].price.compareTo(amountPoint2).should.equal 0
+                @tradeSpy.firstCall.args[0].amount.compareTo(amount1000).should.equal 0
+
+      describe 'and the new (left) price is the better', ->
+        describe 'and the left order is an offer', ->              
+          describe 'and the right order is offering exactly the amount that the left order is offering multiplied by the right order price', ->
+            it 'should trade the amount the right order is offering at the right order price, emit fill events and a trade event and return false', ->
+              order = new Order
+                id: '2'
+                timestamp: '2'
+                account: 'Paul'
+                bidCurrency: 'EUR'
+                offerCurrency: 'BTC'
+                offerPrice: amount4
+                offerAmount: amount200
+              fillSpy = sinon.spy()
+              order.on 'fill', fillSpy
+              tradeSpy = sinon.spy()
+              order.on 'trade', tradeSpy
+              
+              order.match(@order).should.be.false
+
+              fillSpy.should.have.been.calledOnce
+              fillSpy.firstCall.args[0].order.should.equal order
+              fillSpy.firstCall.args[0].offerAmount.compareTo(amount200).should.equal 0
+              fillSpy.firstCall.args[0].bidAmount.compareTo(amount1000).should.equal 0
+              order.offerAmount.compareTo(Amount.ZERO).should.equal 0
+              order.bidAmount.compareTo(Amount.ZERO).should.equal 0
+
+              @fillSpy.should.have.been.calledOnce
+              @fillSpy.firstCall.args[0].order.should.equal @order
+              @fillSpy.firstCall.args[0].bidAmount.compareTo(amount200).should.equal 0
+              @fillSpy.firstCall.args[0].offerAmount.compareTo(amount1000).should.equal 0
+              @order.bidAmount.compareTo(Amount.ZERO).should.equal 0
+              @order.offerAmount.compareTo(Amount.ZERO).should.equal 0
+
+              tradeSpy.should.not.have.been.called
+              @tradeSpy.should.have.been.calledOnce
+              @tradeSpy.firstCall.args[0].bid.should.equal order
+              @tradeSpy.firstCall.args[0].offer.should.equal @order
+              @tradeSpy.firstCall.args[0].price.compareTo(amountPoint2).should.equal 0
+              @tradeSpy.firstCall.args[0].amount.compareTo(amount1000).should.equal 0
+
+          describe 'and the right order is offering more than the left order is offering multiplied by the right order price', ->
+            it 'should trade the amount the left order is offering at the right order price, emit fill events and a trade event and return false', ->
+              order = new Order
+                id: '2'
+                timestamp: '2'
+                account: 'Paul'
+                bidCurrency: 'EUR'
+                offerCurrency: 'BTC'
+                offerPrice: amount4
+                offerAmount: amount100
+              fillSpy = sinon.spy()
+              order.on 'fill', fillSpy
+              tradeSpy = sinon.spy()
+              order.on 'trade', tradeSpy
+              
+              order.match(@order).should.be.false
+
+              fillSpy.should.have.been.calledOnce
+              fillSpy.firstCall.args[0].order.should.equal order
+              fillSpy.firstCall.args[0].offerAmount.compareTo(amount100).should.equal 0
+              fillSpy.firstCall.args[0].bidAmount.compareTo(amount500).should.equal 0
+              order.offerAmount.compareTo(Amount.ZERO).should.equal 0
+              order.bidAmount.compareTo(Amount.ZERO).should.equal 0
+
+              @fillSpy.should.have.been.calledOnce
+              @fillSpy.firstCall.args[0].order.should.equal @order
+              @fillSpy.firstCall.args[0].bidAmount.compareTo(amount100).should.equal 0
+              @fillSpy.firstCall.args[0].offerAmount.compareTo(amount500).should.equal 0
+              @order.bidAmount.compareTo(amount100).should.equal 0
+              @order.offerAmount.compareTo(amount500).should.equal 0
+
+              tradeSpy.should.not.have.been.called
+              @tradeSpy.should.have.been.calledOnce
+              @tradeSpy.firstCall.args[0].bid.should.equal order
+              @tradeSpy.firstCall.args[0].offer.should.equal @order
+              @tradeSpy.firstCall.args[0].price.compareTo(amountPoint2).should.equal 0
+              @tradeSpy.firstCall.args[0].amount.compareTo(amount500).should.equal 0
+
+          describe 'and the right order is offering less than the left order is offering multiplied by the right order price', ->
+            it 'should trade the amount the right order is offering at the right order price, emit fill events and a trade event and return true', ->
+              order = new Order
+                id: '2'
+                timestamp: '2'
+                account: 'Paul'
+                bidCurrency: 'EUR'
+                offerCurrency: 'BTC'
+                offerPrice: amount4
+                offerAmount: amount300
+              fillSpy = sinon.spy()
+              order.on 'fill', fillSpy
+              tradeSpy = sinon.spy()
+              order.on 'trade', tradeSpy
+              
+              order.match(@order).should.be.true
+
+              fillSpy.should.have.been.calledOnce
+              fillSpy.firstCall.args[0].order.should.equal order
+              fillSpy.firstCall.args[0].offerAmount.compareTo(amount200).should.equal 0
+              fillSpy.firstCall.args[0].bidAmount.compareTo(amount1000).should.equal 0
+              order.offerAmount.compareTo(amount100).should.equal 0
+              order.bidAmount.compareTo(amount400).should.equal 0
+
+              @fillSpy.should.have.been.calledOnce
+              @fillSpy.firstCall.args[0].order.should.equal @order
+              @fillSpy.firstCall.args[0].bidAmount.compareTo(amount200).should.equal 0
+              @fillSpy.firstCall.args[0].offerAmount.compareTo(amount1000).should.equal 0
+              @order.bidAmount.compareTo(Amount.ZERO).should.equal 0
+              @order.offerAmount.compareTo(Amount.ZERO).should.equal 0
+
+              tradeSpy.should.not.have.been.called
+              @tradeSpy.should.have.been.calledOnce
+              @tradeSpy.firstCall.args[0].bid.should.equal order
+              @tradeSpy.firstCall.args[0].offer.should.equal @order
+              @tradeSpy.firstCall.args[0].price.compareTo(amountPoint2).should.equal 0
+              @tradeSpy.firstCall.args[0].amount.compareTo(amount1000).should.equal 0
+
+        describe 'and the left order is a bid', ->
+          describe 'and the right order is offering exactly the amount that the left order is bidding', ->
+            it 'should trade the amount the right order is offering at the right order price, emit fill events and a trade event and retrun false', ->
+              order = new Order
+                id: '2'
+                timestamp: '2'
+                account: 'Paul'
+                bidCurrency: 'EUR'
+                offerCurrency: 'BTC'
+                bidPrice: amountPoint25
+                bidAmount: amount1000
+              fillSpy = sinon.spy()
+              order.on 'fill', fillSpy
+              tradeSpy = sinon.spy()
+              order.on 'trade', tradeSpy
+              
+              order.match(@order).should.be.false
+
+              fillSpy.should.have.been.calledOnce
+              fillSpy.firstCall.args[0].order.should.equal order
+              fillSpy.firstCall.args[0].offerAmount.compareTo(amount200).should.equal 0
+              fillSpy.firstCall.args[0].bidAmount.compareTo(amount1000).should.equal 0
+              order.offerAmount.compareTo(Amount.ZERO).should.equal 0
+              order.bidAmount.compareTo(Amount.ZERO).should.equal 0
+
+              @fillSpy.should.have.been.calledOnce
+              @fillSpy.firstCall.args[0].order.should.equal @order
+              @fillSpy.firstCall.args[0].bidAmount.compareTo(amount200).should.equal 0
+              @fillSpy.firstCall.args[0].offerAmount.compareTo(amount1000).should.equal 0
+              @order.bidAmount.compareTo(Amount.ZERO).should.equal 0
+              @order.offerAmount.compareTo(Amount.ZERO).should.equal 0
+
+              tradeSpy.should.not.have.been.called
+              @tradeSpy.should.have.been.calledOnce
+              @tradeSpy.firstCall.args[0].bid.should.equal order
+              @tradeSpy.firstCall.args[0].offer.should.equal @order
+              @tradeSpy.firstCall.args[0].price.compareTo(amountPoint2).should.equal 0
+              @tradeSpy.firstCall.args[0].amount.compareTo(amount1000).should.equal 0
+              
+          describe 'and the right order is offering more than the left order is bidding', ->
+            it 'should trade the amount the left order is bidding at the right order price, emit fill events and a trade event and return false', ->
+              order = new Order
+                id: '2'
+                timestamp: '2'
+                account: 'Paul'
+                bidCurrency: 'EUR'
+                offerCurrency: 'BTC'
+                bidPrice: amountPoint25
+                bidAmount: amount500
+              fillSpy = sinon.spy()
+              order.on 'fill', fillSpy
+              tradeSpy = sinon.spy()
+              order.on 'trade', tradeSpy
+              
+              order.match(@order).should.be.false
+
+              fillSpy.should.have.been.calledOnce
+              fillSpy.firstCall.args[0].order.should.equal order
+              fillSpy.firstCall.args[0].offerAmount.compareTo(amount100).should.equal 0
+              fillSpy.firstCall.args[0].bidAmount.compareTo(amount500).should.equal 0
+              order.offerAmount.compareTo(Amount.ZERO).should.equal 0
+              order.bidAmount.compareTo(Amount.ZERO).should.equal 0
+
+              @fillSpy.should.have.been.calledOnce
+              @fillSpy.firstCall.args[0].order.should.equal @order
+              @fillSpy.firstCall.args[0].bidAmount.compareTo(amount100).should.equal 0
+              @fillSpy.firstCall.args[0].offerAmount.compareTo(amount500).should.equal 0
+              @order.bidAmount.compareTo(amount100).should.equal 0
+              @order.offerAmount.compareTo(amount500).should.equal 0
+
+              tradeSpy.should.not.have.been.called
+              @tradeSpy.should.have.been.calledOnce
+              @tradeSpy.firstCall.args[0].bid.should.equal order
+              @tradeSpy.firstCall.args[0].offer.should.equal @order
+              @tradeSpy.firstCall.args[0].price.compareTo(amountPoint2).should.equal 0
+              @tradeSpy.firstCall.args[0].amount.compareTo(amount500).should.equal 0
+
+          describe 'and the right order is offering less than the left order is bidding', ->
+            it 'should trade the amount the right order is offering at the right order price, emit fill events and a trade event and return true', ->
+              order = new Order
+                id: '2'
+                timestamp: '2'
+                account: 'Paul'
+                bidCurrency: 'EUR'
+                offerCurrency: 'BTC'
+                bidPrice: amountPoint25
+                bidAmount: amount1500
+              fillSpy = sinon.spy()
+              order.on 'fill', fillSpy
+              tradeSpy = sinon.spy()
+              order.on 'trade', tradeSpy
+              
+              order.match(@order).should.be.true
+
+              fillSpy.should.have.been.calledOnce
+              fillSpy.firstCall.args[0].order.should.equal order
+              fillSpy.firstCall.args[0].offerAmount.compareTo(amount200).should.equal 0
+              fillSpy.firstCall.args[0].bidAmount.compareTo(amount1000).should.equal 0
+              order.offerAmount.compareTo(amount125).should.equal 0
+              order.bidAmount.compareTo(amount500).should.equal 0
+
+              @fillSpy.should.have.been.calledOnce
+              @fillSpy.firstCall.args[0].order.should.equal @order
+              @fillSpy.firstCall.args[0].bidAmount.compareTo(amount200).should.equal 0
+              @fillSpy.firstCall.args[0].offerAmount.compareTo(amount1000).should.equal 0
+              @order.bidAmount.compareTo(Amount.ZERO).should.equal 0
+              @order.offerAmount.compareTo(Amount.ZERO).should.equal 0
+
+              tradeSpy.should.not.have.been.called
+              @tradeSpy.should.have.been.calledOnce
+              @tradeSpy.firstCall.args[0].bid.should.equal order
+              @tradeSpy.firstCall.args[0].offer.should.equal @order
+              @tradeSpy.firstCall.args[0].price.compareTo(amountPoint2).should.equal 0
+              @tradeSpy.firstCall.args[0].amount.compareTo(amount1000).should.equal 0
+            
+    describe 'where the existing (right) order is a bid', ->
+      beforeEach ->
+        @order = new Order
+          id: '1'
+          timestamp: '1'
+          account: 'Peter'
+          bidCurrency: 'BTC'
+          offerCurrency: 'EUR'
+          bidPrice: amount5     # 0.2
+          bidAmount: amount200  # 1000
+        @fillSpy = sinon.spy()
+        @order.on 'fill', @fillSpy
+        @tradeSpy = sinon.spy()
+        @order.on 'trade', @tradeSpy
+
+      describe 'and the new (left) price is better', ->
+        describe 'and the left order is an offer', ->
+          describe 'and the right order is bidding exactly the amount that the left order is offering', ->
+            it 'should trade the amount the right order is bidding at the right order price, emit fill events and a trade event and return false', ->
+              order = new Order
+                id: '2'
+                timestamp: '2'
+                account: 'Paul'
+                bidCurrency: 'EUR'
+                offerCurrency: 'BTC'
+                offerPrice: amount4
+                offerAmount: amount200
+              fillSpy = sinon.spy()
+              order.on 'fill', fillSpy
+              tradeSpy = sinon.spy()
+              order.on 'trade', tradeSpy
+              
+              order.match(@order).should.be.false
+
+              fillSpy.should.have.been.calledOnce
+              fillSpy.firstCall.args[0].order.should.equal order
+              fillSpy.firstCall.args[0].offerAmount.compareTo(amount200).should.equal 0
+              fillSpy.firstCall.args[0].bidAmount.compareTo(amount1000).should.equal 0
+              order.offerAmount.compareTo(Amount.ZERO).should.equal 0
+              order.bidAmount.compareTo(Amount.ZERO).should.equal 0
+
+              @fillSpy.should.have.been.calledOnce
+              @fillSpy.firstCall.args[0].order.should.equal @order
+              @fillSpy.firstCall.args[0].bidAmount.compareTo(amount200).should.equal 0
+              @fillSpy.firstCall.args[0].offerAmount.compareTo(amount1000).should.equal 0
+              @order.bidAmount.compareTo(Amount.ZERO).should.equal 0
+              @order.offerAmount.compareTo(Amount.ZERO).should.equal 0
+
+              tradeSpy.should.not.have.been.called
+              @tradeSpy.should.have.been.calledOnce
+              @tradeSpy.firstCall.args[0].bid.should.equal @order
+              @tradeSpy.firstCall.args[0].offer.should.equal order
+              @tradeSpy.firstCall.args[0].price.compareTo(amount5).should.equal 0
+              @tradeSpy.firstCall.args[0].amount.compareTo(amount200).should.equal 0
+
+          describe 'and the right order is bidding more than the left order is offering', ->
+            it 'should trade the amount the left order is offering at the right order price, emit fill events and a trade event and return false', ->
+              order = new Order
+                id: '2'
+                timestamp: '2'
+                account: 'Paul'
+                bidCurrency: 'EUR'
+                offerCurrency: 'BTC'
+                offerPrice: amount4
+                offerAmount: amount100
+              fillSpy = sinon.spy()
+              order.on 'fill', fillSpy
+              tradeSpy = sinon.spy()
+              order.on 'trade', tradeSpy
+              
+              order.match(@order).should.be.false
+
+              fillSpy.should.have.been.calledOnce
+              fillSpy.firstCall.args[0].order.should.equal order
+              fillSpy.firstCall.args[0].offerAmount.compareTo(amount100).should.equal 0
+              fillSpy.firstCall.args[0].bidAmount.compareTo(amount500).should.equal 0
+              order.offerAmount.compareTo(Amount.ZERO).should.equal 0
+              order.bidAmount.compareTo(Amount.ZERO).should.equal 0
+
+              @fillSpy.should.have.been.calledOnce
+              @fillSpy.firstCall.args[0].order.should.equal @order
+              @fillSpy.firstCall.args[0].bidAmount.compareTo(amount100).should.equal 0
+              @fillSpy.firstCall.args[0].offerAmount.compareTo(amount500).should.equal 0
+              @order.bidAmount.compareTo(amount100).should.equal 0
+              @order.offerAmount.compareTo(amount500).should.equal 0
+
+              tradeSpy.should.not.have.been.called
+              @tradeSpy.should.have.been.calledOnce
+              @tradeSpy.firstCall.args[0].bid.should.equal @order
+              @tradeSpy.firstCall.args[0].offer.should.equal order
+              @tradeSpy.firstCall.args[0].price.compareTo(amount5).should.equal 0
+              @tradeSpy.firstCall.args[0].amount.compareTo(amount100).should.equal 0
+
+          describe 'and the right order is bidding less than the left order is offering', ->
+            it 'should trade the amount the right order is bidding at the right order price, emit fill events and a trade event and return true', ->
+              order = new Order
+                id: '2'
+                timestamp: '2'
+                account: 'Paul'
+                bidCurrency: 'EUR'
+                offerCurrency: 'BTC'
+                offerPrice: amount4
+                offerAmount: amount300
+              fillSpy = sinon.spy()
+              order.on 'fill', fillSpy
+              tradeSpy = sinon.spy()
+              order.on 'trade', tradeSpy
+              
+              order.match(@order).should.be.true
+
+              fillSpy.should.have.been.calledOnce
+              fillSpy.firstCall.args[0].order.should.equal order
+              fillSpy.firstCall.args[0].offerAmount.compareTo(amount200).should.equal 0
+              fillSpy.firstCall.args[0].bidAmount.compareTo(amount1000).should.equal 0
+              order.offerAmount.compareTo(amount100).should.equal 0
+              order.bidAmount.compareTo(amount400).should.equal 0
+
+              @fillSpy.should.have.been.calledOnce
+              @fillSpy.firstCall.args[0].order.should.equal @order
+              @fillSpy.firstCall.args[0].bidAmount.compareTo(amount200).should.equal 0
+              @fillSpy.firstCall.args[0].offerAmount.compareTo(amount1000).should.equal 0
+              @order.bidAmount.compareTo(Amount.ZERO).should.equal 0
+              @order.offerAmount.compareTo(Amount.ZERO).should.equal 0
+
+              tradeSpy.should.not.have.been.called
+              @tradeSpy.should.have.been.calledOnce
+              @tradeSpy.firstCall.args[0].bid.should.equal @order
+              @tradeSpy.firstCall.args[0].offer.should.equal order
+              @tradeSpy.firstCall.args[0].price.compareTo(amount5).should.equal 0
+              @tradeSpy.firstCall.args[0].amount.compareTo(amount200).should.equal 0
+
+        describe 'and the left order is a bid', ->
+          describe 'and the right order is bidding exactly the amount that the left order is bidding multiplied by the right order price', ->
+            it 'should trade the amount the right order is bidding at the right order price, emit fill events and a trade event and return false', ->
+              order = new Order
+                id: '2'
+                timestamp: '2'
+                account: 'Paul'
+                bidCurrency: 'EUR'
+                offerCurrency: 'BTC'
+                bidPrice: amountPoint25
+                bidAmount: amount1000
+              fillSpy = sinon.spy()
+              order.on 'fill', fillSpy
+              tradeSpy = sinon.spy()
+              order.on 'trade', tradeSpy
+              
+              order.match(@order).should.be.false
+
+              fillSpy.should.have.been.calledOnce
+              fillSpy.firstCall.args[0].order.should.equal order
+              fillSpy.firstCall.args[0].offerAmount.compareTo(amount200).should.equal 0
+              fillSpy.firstCall.args[0].bidAmount.compareTo(amount1000).should.equal 0
+              order.offerAmount.compareTo(Amount.ZERO).should.equal 0
+              order.bidAmount.compareTo(Amount.ZERO).should.equal 0
+
+              @fillSpy.should.have.been.calledOnce
+              @fillSpy.firstCall.args[0].order.should.equal @order
+              @fillSpy.firstCall.args[0].bidAmount.compareTo(amount200).should.equal 0
+              @fillSpy.firstCall.args[0].offerAmount.compareTo(amount1000).should.equal 0
+              @order.bidAmount.compareTo(Amount.ZERO).should.equal 0
+              @order.offerAmount.compareTo(Amount.ZERO).should.equal 0
+
+              tradeSpy.should.not.have.been.called
+              @tradeSpy.should.have.been.calledOnce
+              @tradeSpy.firstCall.args[0].bid.should.equal @order
+              @tradeSpy.firstCall.args[0].offer.should.equal order
+              @tradeSpy.firstCall.args[0].price.compareTo(amount5).should.equal 0
+              @tradeSpy.firstCall.args[0].amount.compareTo(amount200).should.equal 0
+
+          describe 'and the right order is bidding more than the left order is bidding multiplied by the right order price', ->
+            it 'should trade the amount the left order is bidding at the right order price, emit fill events and a trade event and return false', ->
+              order = new Order
+                id: '2'
+                timestamp: '2'
+                account: 'Paul'
+                bidCurrency: 'EUR'
+                offerCurrency: 'BTC'
+                bidPrice: amountPoint25
+                bidAmount: amount500
+              fillSpy = sinon.spy()
+              order.on 'fill', fillSpy
+              tradeSpy = sinon.spy()
+              order.on 'trade', tradeSpy
+              
+              order.match(@order).should.be.false
+
+              fillSpy.should.have.been.calledOnce
+              fillSpy.firstCall.args[0].order.should.equal order
+              fillSpy.firstCall.args[0].offerAmount.compareTo(amount100).should.equal 0
+              fillSpy.firstCall.args[0].bidAmount.compareTo(amount500).should.equal 0
+              order.offerAmount.compareTo(Amount.ZERO).should.equal 0
+              order.bidAmount.compareTo(Amount.ZERO).should.equal 0
+
+              @fillSpy.should.have.been.calledOnce
+              @fillSpy.firstCall.args[0].order.should.equal @order
+              @fillSpy.firstCall.args[0].bidAmount.compareTo(amount100).should.equal 0
+              @fillSpy.firstCall.args[0].offerAmount.compareTo(amount500).should.equal 0
+              @order.bidAmount.compareTo(amount100).should.equal 0
+              @order.offerAmount.compareTo(amount500).should.equal 0
+
+              tradeSpy.should.not.have.been.called
+              @tradeSpy.should.have.been.calledOnce
+              @tradeSpy.firstCall.args[0].bid.should.equal @order
+              @tradeSpy.firstCall.args[0].offer.should.equal order
+              @tradeSpy.firstCall.args[0].price.compareTo(amount5).should.equal 0
+              @tradeSpy.firstCall.args[0].amount.compareTo(amount100).should.equal 0
+              
+          describe 'and the right order is bidding less than the left order is bidding multiplied by the right order price', ->
+            it 'should trade the amount the right order is bidding at the right order price, emit fill events and a trade event and return true', ->
+              order = new Order
+                id: '2'
+                timestamp: '2'
+                account: 'Paul'
+                bidCurrency: 'EUR'
+                offerCurrency: 'BTC'
+                bidPrice: amountPoint25
+                bidAmount: amount1500
+              fillSpy = sinon.spy()
+              order.on 'fill', fillSpy
+              tradeSpy = sinon.spy()
+              order.on 'trade', tradeSpy
+              
+              order.match(@order).should.be.true
+
+              fillSpy.should.have.been.calledOnce
+              fillSpy.firstCall.args[0].order.should.equal order
+              fillSpy.firstCall.args[0].offerAmount.compareTo(amount200).should.equal 0
+              fillSpy.firstCall.args[0].bidAmount.compareTo(amount1000).should.equal 0
+              order.offerAmount.compareTo(amount125).should.equal 0
+              order.bidAmount.compareTo(amount500).should.equal 0
+
+              @fillSpy.should.have.been.calledOnce
+              @fillSpy.firstCall.args[0].order.should.equal @order
+              @fillSpy.firstCall.args[0].bidAmount.compareTo(amount200).should.equal 0
+              @fillSpy.firstCall.args[0].offerAmount.compareTo(amount1000).should.equal 0
+              @order.bidAmount.compareTo(Amount.ZERO).should.equal 0
+              @order.offerAmount.compareTo(Amount.ZERO).should.equal 0
+
+              tradeSpy.should.not.have.been.called
+              @tradeSpy.should.have.been.calledOnce
+              @tradeSpy.firstCall.args[0].bid.should.equal @order
+              @tradeSpy.firstCall.args[0].offer.should.equal order
+              @tradeSpy.firstCall.args[0].price.compareTo(amount5).should.equal 0
+              @tradeSpy.firstCall.args[0].amount.compareTo(amount200).should.equal 0
 
   describe '#export', ->
     it 'should export the state of the order as a JSON stringifiable object that can be used to initialise a new order in the exact same state', ->
