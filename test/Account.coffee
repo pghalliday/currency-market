@@ -343,7 +343,7 @@ describe 'Account', ->
           bidAmount: amount10
         @account.submit @order
 
-      it 'should adjust the locked funds', ->
+      it 'should adjust the locked funds and make deposits and withdrawals to apply the fill', ->
        order = new Order
           id: '2'
           timestamp: '2'
@@ -355,6 +355,8 @@ describe 'Account', ->
         order.match @order
         @account.orders['1'].should.equal @order
         @account.balances['EUR'].lockedFunds.compareTo(amount500).should.equal 0
+        @account.balances['EUR'].funds.compareTo(amount500).should.equal 0
+        @account.balances['BTC'].funds.compareTo(amount5).should.equal 0
 
       it 'should delete fully filled orders', ->
        order = new Order
@@ -369,6 +371,29 @@ describe 'Account', ->
         expect(@account.orders['1']).to.not.be.ok
         @account.balances['EUR'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
 
+  describe '#cancel', ->
+    it 'should delete an order and unlock the appropriate funds', ->
+      account = new Account
+        id: '123456789'
+        timestamp: '987654322'
+        currencies: [
+          'EUR'
+          'USD'
+          'BTC'
+        ]
+      account.balances['EUR'].deposit new Amount '1000'
+      order = new Order
+        id: '1'
+        timestamp: '1'
+        account: '123456789'
+        offerCurrency: 'EUR'
+        bidCurrency: 'BTC'
+        bidPrice: new Amount '100'
+        bidAmount: new Amount '10'
+      account.submit order
+      account.cancel order
+      expect(@account.orders['1']).to.not.be.ok
+      account.balances['EUR'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
 
   describe '#export', ->
     it 'should export the state of the account as a JSON stringifiable object that can be used to initialise a new Account in the exact same state', ->

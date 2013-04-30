@@ -79,4 +79,11 @@ module.exports = class Account
         @balances[order.offerCurrency].unlock fill.offerAmount
       else
         @balances[order.offerCurrency].unlock fill.bidAmount.multiply order.bidPrice
+      @balances[order.offerCurrency].withdraw fill.offerAmount
+      @balances[order.bidCurrency].deposit fill.bidAmount
+
+  cancel: (order) =>
+    delete @orders[order.id]
+    @balances[order.offerCurrency].unlock order.offerAmount
+   
 
