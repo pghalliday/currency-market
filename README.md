@@ -319,9 +319,12 @@ console.log('********************');
 - Pluggable commission schemes
   - fixed rate
   - calculated through callback
+- Stop requiring currencies to be declared in advance?
+  - this could make it tough to add currencies later (but not impossible - maybe add an addCurrency function)
 - Pluggable rounding policies
   - Amount factory required?
-  - Divide at last possible moment?
+  - currently we only round down debits and credits so as not to debit more funds than available
+    - current rounding is done to an arbitrary scale of 25
 - Protection against attacks?
   - entering orders that satisfy each other
   - entering tiny orders
