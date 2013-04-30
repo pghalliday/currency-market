@@ -26,9 +26,8 @@ module.exports = class Account
       Object.keys(params.state.balances).forEach (currency) =>
         @balances[currency] = new Balance
           state: params.state.balances[currency]
-      Object.keys(params.state.orders).forEach (orderId) =>
-        @orders[orderId] = new Order
-          state: params.state.orders[orderId]
+      params.state.orders.forEach (orderId) =>
+        @orders[orderId] = params.orders[orderId]
 
   export: =>
     state = Object.create null
@@ -37,9 +36,9 @@ module.exports = class Account
     state.balances = Object.create null
     Object.keys(@balances).forEach (currency) =>
       state.balances[currency] = @balances[currency].export()
-    state.orders = Object.create null
+    state.orders = []
     Object.keys(@orders).forEach (orderId) =>
-      state.orders[orderId] = @orders[orderId].export()
+      state.orders.push orderId
     return state
 
   equals: (account) =>

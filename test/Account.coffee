@@ -397,6 +397,16 @@ describe 'Account', ->
 
   describe '#export', ->
     it 'should export the state of the account as a JSON stringifiable object that can be used to initialise a new Account in the exact same state', ->
+      orders = Object.create null
+      order = new Order
+        id: '1'
+        timestamp: '1'
+        account: '123456789'
+        offerCurrency: 'EUR'
+        bidCurrency: 'BTC'
+        bidPrice: amount100
+        bidAmount: amount10
+      orders[order.id] = order     
       account = new Account
         id: '123456789'
         timestamp: '987654322'
@@ -405,16 +415,12 @@ describe 'Account', ->
           'USD'
           'BTC'
         ]
-      account.orders['1'] = new Order
-        id: '1'
-        timestamp: '1'
-        account: '123456789'
-        offerCurrency: 'EUR'
-        bidCurrency: 'BTC'
-        bidPrice: new Amount '100'
-        bidAmount: new Amount '10'
+      account.balances['EUR'].deposit amount1000
+      account.submit order
       state = account.export()
       json = JSON.stringify state
       newAccount = new Account
         state: JSON.parse(json)
+        orders: orders
       newAccount.equals(account).should.be.true
+      newAccount.orders[order.id].should.equal order
