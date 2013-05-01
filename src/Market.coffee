@@ -96,6 +96,17 @@ module.exports = class Market extends EventEmitter
             @lastTransaction = withdrawal.id
             @emit 'withdrawal', withdrawal
 
+  execute = (leftBook, rightBook) ->
+    leftOrder = leftBook.highest
+    rightOrder = rightBook.highest
+    if typeof leftOrder != 'undefined' && typeof rightOrder != 'undefined'
+        # just added an order to the left book so the left order must be
+        # the most recent addition if we get here. This means that we should
+        # take the price from the right order
+        tryAgain = leftOrder.match rightOrder
+        if tryAgain
+          execute leftBook, rightBook
+
   submit: (order) =>
     account = @accounts[order.account]
     if typeof account == 'undefined'
@@ -110,7 +121,7 @@ module.exports = class Market extends EventEmitter
           throw new Error('Offer currency is not supported')
         else
           account.submit order
-          book.add order
+          book.submit order
           @orders[order.id] = order
           order.on 'fill', (fill) =>
             if order.bidAmount.compareTo(Amount.ZERO) == 0
@@ -122,37 +133,12 @@ module.exports = class Market extends EventEmitter
           # emit an order added event
           @emit 'order', order
           # check the books to see if any orders can be executed
-          @execute(book, @books[order.offerCurrency][order.bidCurrency])
-
-  execute: (leftBook, rightBook) =>
-    leftOrder = leftBook.highest
-    rightOrder = rightBook.highest
-    if typeof leftOrder != 'undefined' && typeof rightOrder != 'undefined'
-        # just added an order to the left book so the left order must be
-        # the most recent addition if we get here. This means that we should
-        # take the price from the right order
-        onRightFill = (fill) =>
-          order = fill.order
-          if order.bidAmount.compareTo(Amount.ZERO) == 0
-            rightBook.delete order
-
-        onLeftFill = (fill) =>
-          order = fill.order
-          if order.bidAmount.compareTo(Amount.ZERO) == 0
-            leftBook.delete order
-
-        rightOrder.on 'fill', onRightFill
-        leftOrder.on 'fill', onLeftFill
-        tryAgain = leftOrder.match rightOrder
-        rightOrder.removeListener 'fill', onRightFill
-        leftOrder.removeListener 'fill', onLeftFill
-        if tryAgain
-          @execute leftBook, rightBook
+          execute(book, @books[order.offerCurrency][order.bidCurrency])
 
   cancel: (cancellation) =>
     order = @orders[cancellation.order]
     if order
-      @books[order.bidCurrency][order.offerCurrency].delete(order)
+      @books[order.bidCurrency][order.offerCurrency].cancel(order)
       @accounts[order.account].cancel order
       @lastTransaction = cancellation.id
       @emit 'cancellation', cancellation

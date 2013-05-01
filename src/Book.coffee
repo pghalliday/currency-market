@@ -1,4 +1,5 @@
 BookEntry = require './BookEntry'
+Amount = require './Amount'
 
 module.exports = class Book
   constructor: (params) ->
@@ -17,10 +18,33 @@ module.exports = class Book
       state.head = @head.export()
     return state
 
-  add: (order) =>
+  deleteEntry = (entry) ->
+    delete @entries[entry.order.id]
+    parent = entry.parent
+    newHead = entry.delete()
+
+    if @highest == entry.order
+      if newHead
+        @highest = newHead.getHighest().order
+      else
+        if parent
+          @highest = parent.order
+        else
+          delete @highest
+
+    if entry == @head
+      if newHead
+        @head = newHead
+      else
+        delete @head
+
+  submit: (order) =>
     entry = new BookEntry
       order: order
     @entries[order.id] = entry
+    order.on 'fill', (fill) =>
+      if order.bidAmount.compareTo(Amount.ZERO) == 0
+        deleteEntry.call @, entry
     if @head
       if order.bidPrice
         isHighest = order.bidPrice.compareTo(@highest.bidPrice) > 0
@@ -37,30 +61,13 @@ module.exports = class Book
       @head = entry
       @highest = order
   
-  delete: (order) =>
+  cancel: (order) =>
     entry = @entries[order.id]
     if !entry
       throw new Error('Order cannot be found')
     else
       if entry.order.equals order
-        delete @entries[order.id]
-        parent = entry.parent
-        newHead = entry.delete()
-
-        if @highest == entry.order
-          if newHead
-            @highest = newHead.getHighest().order
-          else
-            if parent
-              @highest = parent.order
-            else
-              delete @highest
-
-        if entry == @head
-          if newHead
-            @head = newHead
-          else
-            delete @head
+        deleteEntry.call @, entry
       else
         throw new Error('Order does not match')
 
