@@ -338,4 +338,5 @@ describe 'Book', ->
 
       newBook = new Book
         state: JSON.parse(json)
+        orders: orders1
       newBook.equals(book).should.be.true

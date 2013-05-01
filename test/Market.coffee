@@ -62,7 +62,7 @@ describe 'Market', ->
         'BTC'
       ]
 
-  it 'should instantiate with a collection of accounts and books matching the supported currencies', ->
+  it 'should instantiate with collections of accounts and books matching the supported currencies', ->
     Object.keys(@market.accounts).should.be.empty
     @market.books['EUR']['BTC'].should.be.an.instanceOf(Book)
     @market.books['EUR']['USD'].should.be.an.instanceOf(Book)
@@ -1220,14 +1220,7 @@ describe 'Market', ->
       @market.cancel
         id: '123456791'
         timestamp: '987654350'
-        order: new Order
-          id: '123456789'
-          timestamp: '987654321'
-          account: 'Peter'
-          bidCurrency: 'BTC'
-          offerCurrency: 'EUR'
-          offerPrice: amount100
-          offerAmount: amount50        
+        order: '123456789'
       account.balances['EUR'].lockedFunds.compareTo(amount100).should.equal 0
 
     it 'should remove the order from the orders collection and from the correct book, record the last transaction ID and emit an cancellation event', ->
@@ -1267,14 +1260,7 @@ describe 'Market', ->
       cancellation1 = 
         id: '123456795'
         timestamp: '987654349'
-        order: new Order
-          id: '123456793'
-          timestamp: '987654321'
-          account: 'Peter'
-          bidCurrency: 'BTC'
-          offerCurrency: 'EUR'
-          offerPrice: amount100
-          offerAmount: amount50
+        order: '123456793'
       @market.cancel cancellation1
       @market.lastTransaction.should.equal '123456795'
       expect(@market.books['BTC']['EUR'].entries['123456793']).to.not.be.ok
@@ -1282,14 +1268,7 @@ describe 'Market', ->
       cancellation2 = 
         id: '123456796'
         timestamp: '987654350'
-        order: new Order
-          id: '123456794'
-          timestamp: '987654322'
-          account: 'Paul'
-          bidCurrency: 'EUR'
-          offerCurrency: 'BTC'
-          bidPrice: amount99
-          bidAmount: amount50
+        order: '123456794'
       @market.cancel cancellation2
       @market.lastTransaction.should.equal '123456796'
       expect(@market.books['BTC']['EUR'].entries['123456794']).to.not.be.ok
@@ -1303,46 +1282,8 @@ describe 'Market', ->
         @market.cancel
           id: '123456795'
           timestamp: '987654349'
-          order: new Order
-            id: '123456793'
-            timestamp: '987654321'
-            account: 'Peter'
-            bidCurrency: 'BTC'
-            offerCurrency: 'EUR'
-            offerPrice: amount100
-            offerAmount: amount50        
+          order: '123456793'
       .to.throw('Order cannot be found')
-
-    it 'should throw an error if the order does not match', ->
-      @market.register newAccount 'Peter'
-      account = @market.accounts['Peter']
-      @market.deposit
-        id: '123456790'
-        timestamp: '987654322'
-        account: 'Peter'
-        currency: 'EUR'
-        amount: amount200
-      @market.submit new Order
-        id: '123456789'
-        timestamp: '987654321'
-        account: 'Peter'
-        bidCurrency: 'BTC'
-        offerCurrency: 'EUR'
-        offerPrice: amount100
-        offerAmount: amount50        
-      expect =>
-        @market.cancel
-          id: '123456795'
-          timestamp: '987654349'
-          order: new Order
-            id: '123456789'
-            timestamp: '987654321'
-            account: 'Peter'
-            bidCurrency: 'BTC'
-            offerCurrency: 'EUR'
-            offerPrice: amount100
-            offerAmount: amount20        
-      .to.throw('Order does not match')
 
   describe '#equals', ->
     beforeEach ->

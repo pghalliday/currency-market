@@ -7,6 +7,7 @@ module.exports = class Book
       if typeof params.state.head != 'undefined'
         @head = new BookEntry
           state: params.state.head
+          orders: params.orders
           entries: @entries
         @highest = @head.getHighest().order
 

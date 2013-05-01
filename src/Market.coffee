@@ -8,17 +8,23 @@ module.exports = class Market extends EventEmitter
   constructor: (params) ->
     @accounts = Object.create null
     @books = Object.create null
+    @orders = Object.create null
     if params.state
       @lastTransaction = params.state.lastTransaction
       @currencies = params.state.currencies
+      Object.keys(params.state.orders).forEach (id) =>
+        @orders[id] = new Order
+          state: params.state.orders[id]
       Object.keys(params.state.accounts).forEach (id) =>
         @accounts[id] = new Account
           state: params.state.accounts[id]
+          orders: @orders
       Object.keys(params.state.books).forEach (bidCurrency) =>
         @books[bidCurrency] = Object.create null
         Object.keys(params.state.books[bidCurrency]).forEach (offerCurrency) =>
           @books[bidCurrency][offerCurrency] = new Book
             state: params.state.books[bidCurrency][offerCurrency]
+            orders: @orders
     else
       @currencies = params.currencies
       @currencies.forEach (offerCurrency) =>
@@ -31,8 +37,11 @@ module.exports = class Market extends EventEmitter
     state = Object.create null
     state.lastTransaction = @lastTransaction
     state.currencies = @currencies
+    state.orders = Object.create null
     state.accounts = Object.create null
     state.books = Object.create null
+    Object.keys(@orders).forEach (id) =>
+      state.orders[id] = @orders[id].export()
     Object.keys(@accounts).forEach (id) =>
       state.accounts[id] = @accounts[id].export()
     Object.keys(@books).forEach (bidCurrency) =>
@@ -92,23 +101,26 @@ module.exports = class Market extends EventEmitter
     if typeof account == 'undefined'
       throw new Error('Account does not exist')
     else
-      balance = account.balances[order.offerCurrency]
-      if typeof balance == 'undefined'
-        throw new Error('Offer currency is not supported')
+      books = @books[order.bidCurrency]
+      if typeof books == 'undefined'
+        throw new Error('Bid currency is not supported')
       else
-        books = @books[order.bidCurrency]
-        if typeof books == 'undefined'
-          throw new Error('Bid currency is not supported')
+        book = books[order.offerCurrency]
+        if typeof book == 'undefined'
+          throw new Error('Offer currency is not supported')
         else
-          book = books[order.offerCurrency]
-          balance.lock order.offerAmount
+          account.submit order
           book.add order
-          # emit an order added event
+          @orders[order.id] = order
+          order.on 'fill', (fill) =>
+            if order.bidAmount.compareTo(Amount.ZERO) == 0
+              delete @orders[order.id]
           @lastTransaction = order.id
-          @emit 'order', order
           # forward trade events from the order
           order.on 'trade', (trade) =>
             @emit 'trade', trade
+          # emit an order added event
+          @emit 'order', order
           # check the books to see if any orders can be executed
           @execute(book, @books[order.offerCurrency][order.bidCurrency])
 
@@ -121,26 +133,11 @@ module.exports = class Market extends EventEmitter
         # take the price from the right order
         onRightFill = (fill) =>
           order = fill.order
-          balances = @accounts[order.account].balances
-          debitBalance = balances[order.offerCurrency]
-          creditBalance = balances[order.bidCurrency]
-          debitBalance.unlock fill.offerAmount
-          debitBalance.withdraw fill.offerAmount
-          creditBalance.deposit fill.bidAmount
           if order.bidAmount.compareTo(Amount.ZERO) == 0
             rightBook.delete order
 
         onLeftFill = (fill) =>
           order = fill.order
-          balances = @accounts[order.account].balances
-          debitBalance = balances[order.offerCurrency]
-          creditBalance = balances[order.bidCurrency]
-          if order.offerPrice  
-            debitBalance.unlock fill.offerAmount
-          else
-            debitBalance.unlock fill.bidAmount.multiply order.bidPrice
-          debitBalance.withdraw fill.offerAmount
-          creditBalance.deposit fill.bidAmount
           if order.bidAmount.compareTo(Amount.ZERO) == 0
             leftBook.delete order
 
@@ -153,11 +150,14 @@ module.exports = class Market extends EventEmitter
           @execute leftBook, rightBook
 
   cancel: (cancellation) =>
-    order = cancellation.order
-    @books[order.bidCurrency][order.offerCurrency].delete(order)
-    @accounts[order.account].balances[order.offerCurrency].unlock(order.offerAmount)
-    @lastTransaction = cancellation.id
-    @emit 'cancellation', cancellation
+    order = @orders[cancellation.order]
+    if order
+      @books[order.bidCurrency][order.offerCurrency].delete(order)
+      @accounts[order.account].cancel order
+      @lastTransaction = cancellation.id
+      @emit 'cancellation', cancellation
+    else
+      throw new Error 'Order cannot be found'
 
   equals: (market) =>
     equal = true
@@ -168,41 +168,52 @@ module.exports = class Market extends EventEmitter
       if @lastTransaction != market.lastTransaction
         equal = false
     if equal
-      @currencies.forEach (currency) =>
-        if market.currencies.indexOf(currency) == -1
+      Object.keys(@orders).forEach (id) =>
+        if market.orders[id]
+          if !(@orders[id].equals market.orders[id])
+            equal = false
+        else
           equal = false
       if equal
-        market.currencies.forEach (currency) =>
-          if @currencies.indexOf(currency) == -1
+        Object.keys(market.orders).forEach (id) =>
+          if !@orders[id]
             equal = false
         if equal
-          Object.keys(@accounts).forEach (id) =>
-            if Object.keys(market.accounts).indexOf(id) == -1
+          @currencies.forEach (currency) =>
+            if market.currencies.indexOf(currency) == -1
               equal = false
           if equal
-            Object.keys(market.accounts).forEach (id) =>
-              if Object.keys(@accounts).indexOf(id) == -1
+            market.currencies.forEach (currency) =>
+              if @currencies.indexOf(currency) == -1
                 equal = false
-              else
-                if !@accounts[id].equals(market.accounts[id])
-                  equal = false
             if equal
-              Object.keys(@books).forEach (bidCurrency) =>
-                if Object.keys(market.books).indexOf(bidCurrency) == -1
+              Object.keys(@accounts).forEach (id) =>
+                if !market.accounts[id]
                   equal = false
               if equal
-                Object.keys(market.books).forEach (bidCurrency) =>
-                  if Object.keys(@books).indexOf(bidCurrency) == -1
+                Object.keys(market.accounts).forEach (id) =>
+                  if !@accounts[id]
                     equal = false
                   else
-                    Object.keys(@books[bidCurrency]).forEach (offerCurrency) =>
-                      if Object.keys(market.books[bidCurrency]).indexOf(offerCurrency) == -1
+                    if !@accounts[id].equals(market.accounts[id])
+                      equal = false
+                if equal
+                  Object.keys(@books).forEach (bidCurrency) =>
+                    if Object.keys(market.books).indexOf(bidCurrency) == -1
+                      equal = false
+                  if equal
+                    Object.keys(market.books).forEach (bidCurrency) =>
+                      if Object.keys(@books).indexOf(bidCurrency) == -1
                         equal = false
-                    if equal
-                      Object.keys(market.books[bidCurrency]).forEach (offerCurrency) =>
-                        if Object.keys(@books[bidCurrency]).indexOf(offerCurrency) == -1
-                          equal = false
-                        else
-                          if !@books[bidCurrency][offerCurrency].equals(market.books[bidCurrency][offerCurrency])
-                            equal = false              
+                      else
+                        Object.keys(@books[bidCurrency]).forEach (offerCurrency) =>
+                          if Object.keys(market.books[bidCurrency]).indexOf(offerCurrency) == -1
+                            equal = false
+                        if equal
+                          Object.keys(market.books[bidCurrency]).forEach (offerCurrency) =>
+                            if Object.keys(@books[bidCurrency]).indexOf(offerCurrency) == -1
+                              equal = false
+                            else
+                              if !@books[bidCurrency][offerCurrency].equals(market.books[bidCurrency][offerCurrency])
+                                equal = false              
     return equal

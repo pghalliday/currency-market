@@ -4,17 +4,18 @@ Amount = require './Amount'
 module.exports = class BookEntry
   constructor: (params) ->
     if params.state
-      @order = new Order
-        state: params.state.order
+      @order = params.orders[params.state.order]
       params.entries[@order.id] = @
       if params.state.lower
         @lower = new BookEntry
           state: params.state.lower
+          orders: params.orders
           entries: params.entries
         @lower.parent = @
       if params.state.higher
         @higher = new BookEntry
           state: params.state.higher
+          orders: params.orders
           entries: params.entries
         @higher.parent = @
     else
@@ -25,7 +26,7 @@ module.exports = class BookEntry
 
   export: =>
     state = Object.create null
-    state.order = @order.export()
+    state.order = @order.id
     if @lower
       state.lower = @lower.export()
     if @higher

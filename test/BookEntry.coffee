@@ -22,27 +22,33 @@ amount7 = new Amount '7'
 amount8 = new Amount '8'
 amount200 = new Amount '200'
 
+newBid = (bidPrice, id) ->
+  new Order
+    id: id || '1'
+    timestamp: '1'
+    account: 'Peter'
+    bidCurrency: 'EUR'
+    offerCurrency: 'BTC'
+    bidPrice: bidPrice
+    bidAmount: amount200
+
 newBidBookEntry = (bidPrice, id) ->
-  new BookEntry
-    order: new Order
-      id: id || '1'
-      timestamp: '1'
-      account: 'Peter'
-      bidCurrency: 'EUR'
-      offerCurrency: 'BTC'
-      bidPrice: bidPrice
-      bidAmount: amount200
+  new BookEntry 
+    order: newBid bidPrice, id
+
+newOffer = (offerPrice, id) ->
+  new Order
+    id: id || '1'
+    timestamp: '1'
+    account: 'Peter'
+    bidCurrency: 'EUR'
+    offerCurrency: 'BTC'
+    offerPrice: offerPrice
+    offerAmount: amount200
 
 newOfferBookEntry = (offerPrice, id) ->
   new BookEntry
-    order: new Order
-      id: id || '1'
-      timestamp: '1'
-      account: 'Peter'
-      bidCurrency: 'EUR'
-      offerCurrency: 'BTC'
-      offerPrice: offerPrice
-      offerAmount: amount200
+    order: newOffer offerPrice, id
 
 describe 'BookEntry', ->
 
@@ -488,14 +494,31 @@ describe 'BookEntry', ->
 
   describe '#export', ->
     it 'should export the tree as a JSON stringifiable object that can be used to initialise a new tree in the exact same state and populate a new entries collection keyed by order ID', ->
-      bookEntry1 = newBidBookEntry amount1, '1'
-      bookEntry2 = newBidBookEntry amount2, '2'
-      bookEntry3 = newBidBookEntry amount3, '3'
-      bookEntry4 = newBidBookEntry amount4, '4'
-      bookEntry5 = newBidBookEntry amount5, '5'
-      bookEntry6 = newBidBookEntry amount6, '6'
-      bookEntry7 = newBidBookEntry amount7, '7'
-      bookEntry8 = newBidBookEntry amount8, '8'
+      orders = Object.create null
+      orders['1'] = newBid amount1, '1'
+      bookEntry1 = new BookEntry 
+        order: orders['1']
+      orders['2'] = newBid amount2, '2'
+      bookEntry2 = new BookEntry 
+        order: orders['2']
+      orders['3'] = newBid amount3, '3'
+      bookEntry3 = new BookEntry 
+        order: orders['3']
+      orders['4'] = newBid amount4, '4'
+      bookEntry4 = new BookEntry 
+        order: orders['4']
+      orders['5'] = newBid amount5, '5'
+      bookEntry5 = new BookEntry 
+        order: orders['5']
+      orders['6'] = newBid amount6, '6'
+      bookEntry6 = new BookEntry 
+        order: orders['6']
+      orders['7'] = newBid amount7, '7'
+      bookEntry7 = new BookEntry 
+        order: orders['7']
+      orders['8'] = newBid amount8, '8'
+      bookEntry8 = new BookEntry 
+        order: orders['8']
 
       bookEntry4.add bookEntry2
       bookEntry4.add bookEntry6
@@ -510,13 +533,22 @@ describe 'BookEntry', ->
       json = JSON.stringify state
       bookEntry = new BookEntry
         state: JSON.parse json
+        orders: orders
         entries: entries
-      bookEntry.equals(bookEntry4).should.be.true
+      entries['1'].order.should.equal orders['1']
       entries['1'].equals(bookEntry1).should.be.true
+      entries['2'].order.should.equal orders['2']
       entries['2'].equals(bookEntry2).should.be.true
+      entries['3'].order.should.equal orders['3']
       entries['3'].equals(bookEntry3).should.be.true
+      entries['4'].order.should.equal orders['4']
       entries['4'].equals(bookEntry4).should.be.true
+      entries['5'].order.should.equal orders['5']
       entries['5'].equals(bookEntry5).should.be.true
+      entries['6'].order.should.equal orders['6']
       entries['6'].equals(bookEntry6).should.be.true
+      entries['7'].order.should.equal orders['7']
       entries['7'].equals(bookEntry7).should.be.true
+      entries['8'].order.should.equal orders['8']
       entries['8'].equals(bookEntry8).should.be.true
+      bookEntry.equals(bookEntry4).should.be.true
