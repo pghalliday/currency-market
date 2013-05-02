@@ -1265,6 +1265,7 @@ describe 'Market', ->
       @market.lastTransaction.should.equal '123456795'
       expect(@market.books['BTC']['EUR'].entries['123456793']).to.not.be.ok
       expect(@market.books['BTC']['EUR'].highest).to.not.be.ok
+      expect(@market.orders['123456793']).to.not.be.ok
       cancellation2 = 
         id: '123456796'
         timestamp: '987654350'
@@ -1273,6 +1274,7 @@ describe 'Market', ->
       @market.lastTransaction.should.equal '123456796'
       expect(@market.books['BTC']['EUR'].entries['123456794']).to.not.be.ok
       expect(@market.books['EUR']['BTC'].highest).to.not.be.ok
+      expect(@market.orders['123456794']).to.not.be.ok
       cancellationSpy.should.have.been.calledTwice
       cancellationSpy.firstCall.args[0].should.equal cancellation1
       cancellationSpy.secondCall.args[0].should.equal cancellation2

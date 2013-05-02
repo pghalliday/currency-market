@@ -20,7 +20,7 @@ describe 'Balance', ->
       balance.deposit(new Amount('150'))
       balance.funds.compareTo(new Amount('350')).should.equal(0)
 
-  describe '#lock', ->
+  describe '#submit', ->
     it 'should add the offer amount to the locked funds', ->
       balance = new Balance()
       balance.deposit(new Amount('200'))
@@ -37,7 +37,7 @@ describe 'Balance', ->
         balance.lock(new Amount('150'))
       .to.throw('Cannot lock funds that are not available')
 
-  describe '#unlock', ->
+  describe '#cancel', ->
     it 'should subtract the offer amount from the locked funds', ->
       balance = new Balance()
       balance.deposit(new Amount('200'))

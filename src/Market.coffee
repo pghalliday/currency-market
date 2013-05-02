@@ -133,12 +133,13 @@ module.exports = class Market extends EventEmitter
           # emit an order added event
           @emit 'order', order
           # check the books to see if any orders can be executed
-          execute(book, @books[order.offerCurrency][order.bidCurrency])
+          execute book, @books[order.offerCurrency][order.bidCurrency]
 
   cancel: (cancellation) =>
     order = @orders[cancellation.order]
     if order
-      @books[order.bidCurrency][order.offerCurrency].cancel(order)
+      delete @orders[cancellation.order]
+      @books[order.bidCurrency][order.offerCurrency].cancel order
       @accounts[order.account].cancel order
       @lastTransaction = cancellation.id
       @emit 'cancellation', cancellation

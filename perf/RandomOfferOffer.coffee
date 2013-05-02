@@ -86,13 +86,13 @@ module.exports = class RandomOfferOffer
         @market.cancel
           id: nextTransactionId()
           timestamp: TIMESTAMP
-          order: entries[id].order
+          order: id
       entries = @market.books['BTC']['EUR'].entries
       Object.keys(entries).forEach (id) =>
         @market.cancel
           id: nextTransactionId()
           timestamp: TIMESTAMP
-          order: entries[id].order
+          order: id
 
       # withdraw funds, make deposits and place new orders
       @accounts.forEach (account) =>

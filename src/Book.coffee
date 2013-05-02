@@ -42,9 +42,6 @@ module.exports = class Book
     entry = new BookEntry
       order: order
     @entries[order.id] = entry
-    order.on 'fill', (fill) =>
-      if order.bidAmount.compareTo(Amount.ZERO) == 0
-        deleteEntry.call @, entry
     if @head
       if order.bidPrice
         isHighest = order.bidPrice.compareTo(@highest.bidPrice) > 0
@@ -60,6 +57,9 @@ module.exports = class Book
     else
       @head = entry
       @highest = order
+    order.on 'fill', (fill) =>
+      if order.bidAmount.compareTo(Amount.ZERO) == 0
+        deleteEntry.call @, entry
   
   cancel: (order) =>
     entry = @entries[order.id]
