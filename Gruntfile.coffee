@@ -1,6 +1,13 @@
 module.exports = (grunt) ->
   grunt.initConfig
     clean: ['lib']
+    copy:
+      main:
+        files: [
+          expand: true
+          src: ['thirdparty/**']
+          dest: 'lib'
+        ]
     coffee:
       compile:
         expand: true 
@@ -16,9 +23,11 @@ module.exports = (grunt) ->
   grunt.loadNpmTasks 'grunt-contrib-clean'
   grunt.loadNpmTasks 'grunt-contrib-coffee'
   grunt.loadNpmTasks 'grunt-mocha-test'
+  grunt.loadNpmTasks('grunt-contrib-copy');
 
   grunt.registerTask 'default', [
     'clean'
+    'copy'
     'coffee'
     'mochaTest'
   ]

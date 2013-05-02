@@ -1,57 +1,58 @@
-BigDecimal = require('bigdecimal').BigDecimal
-ROUND_DOWN = require('bigdecimal').RoundingMode.DOWN()
-SCALE = 25
+Big = require('../thirdparty/big')
+Big.DP = 25
+Big.RM = 0
 
 module.exports = class Amount
   constructor: (value) ->
-    if value instanceof BigDecimal
+    if value instanceof Big
       @value = value
     else if typeof value == 'string'
       try
-        @value = new BigDecimal(value)
+        @value = new Big value
       catch e
         throw new Error('String initializer cannot be parsed to a number')
     else if value.state
-      @value = new BigDecimal value.state.value
+      @value = new Big value.state.value
     else
       throw new Error('Must intialize from string')
 
   export: =>
     state = Object.create null
-    state.value = @value.toPlainString()
+    state.value = @value.toString()
     return state
 
   compareTo: (amount) =>
     if amount instanceof Amount
-      return @value.compareTo(amount.value)
+      return @value.cmp amount.value
     else
-      throw new Error('Can only compare to Amount objects')
+      throw new Error 'Can only compare to Amount objects'
 
   add: (amount) =>
     if amount instanceof Amount
-      return new Amount(@value.add(amount.value))
+      return new Amount @value.plus amount.value
     else
-      throw new Error('Can only add Amount objects')
+      throw new Error 'Can only add Amount objects'
 
   subtract: (amount) =>
     if amount instanceof Amount
-      return new Amount(@value.subtract(amount.value))
+      return new Amount @value.minus amount.value
     else
-      throw new Error('Can only subtract Amount objects')
+      throw new Error 'Can only subtract Amount objects'
 
   multiply: (amount) =>
     if amount instanceof Amount
-      return new Amount(@value.multiply(amount.value))
+      return new Amount @value.times amount.value
     else
-      throw new Error('Can only multiply Amount objects')    
+      throw new Error 'Can only multiply Amount objects'
 
   divide: (amount) =>
     if amount instanceof Amount
-      return new Amount(@value.divide(amount.value, SCALE, ROUND_DOWN).stripTrailingZeros())
+      return new Amount @value.div amount.value
     else
-      throw new Error('Can only divide Amount objects')    
-  toString: =>
-    return @value.stripTrailingZeros().toPlainString()
+      throw new Error 'Can only divide Amount objects'
 
-Amount.ZERO = new Amount('0')
-Amount.ONE = new Amount('1')
+  toString: =>
+    return @value.toString()
+
+Amount.ZERO = new Amount '0'
+Amount.ONE = new Amount '1'
