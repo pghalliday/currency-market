@@ -12,19 +12,16 @@ module.exports = class Market extends EventEmitter
     if params.state
       @lastTransaction = params.state.lastTransaction
       @currencies = params.state.currencies
-      Object.keys(params.state.orders).forEach (id) =>
-        @orders[id] = new Order
-          state: params.state.orders[id]
-      Object.keys(params.state.accounts).forEach (id) =>
-        @accounts[id] = new Account
-          state: params.state.accounts[id]
-          orders: @orders
       Object.keys(params.state.books).forEach (bidCurrency) =>
         @books[bidCurrency] = Object.create null
         Object.keys(params.state.books[bidCurrency]).forEach (offerCurrency) =>
           @books[bidCurrency][offerCurrency] = new Book
             state: params.state.books[bidCurrency][offerCurrency]
             orders: @orders
+      Object.keys(params.state.accounts).forEach (id) =>
+        @accounts[id] = new Account
+          state: params.state.accounts[id]
+          orders: @orders
     else
       @currencies = params.currencies
       @currencies.forEach (offerCurrency) =>
@@ -37,11 +34,8 @@ module.exports = class Market extends EventEmitter
     state = Object.create null
     state.lastTransaction = @lastTransaction
     state.currencies = @currencies
-    state.orders = Object.create null
     state.accounts = Object.create null
     state.books = Object.create null
-    Object.keys(@orders).forEach (id) =>
-      state.orders[id] = @orders[id].export()
     Object.keys(@accounts).forEach (id) =>
       state.accounts[id] = @accounts[id].export()
     Object.keys(@books).forEach (bidCurrency) =>
@@ -123,9 +117,8 @@ module.exports = class Market extends EventEmitter
           account.submit order
           book.submit order
           @orders[order.id] = order
-          order.on 'fill', (fill) =>
-            if order.bidAmount.compareTo(Amount.ZERO) == 0
-              delete @orders[order.id]
+          order.on 'done', (fill) =>
+            delete @orders[order.id]
           @lastTransaction = order.id
           # forward trade events from the order
           order.on 'trade', (trade) =>

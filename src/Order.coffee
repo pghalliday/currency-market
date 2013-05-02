@@ -79,6 +79,17 @@ module.exports = class Order extends EventEmitter
           state: params.state.offerPrice
       @offerAmount = new Amount
         state: params.state.offerAmount
+      if params.state.lower
+        @lower = new Order
+          state: params.state.lower
+          orders: params.orders
+        @lower.parent = @
+      if params.state.higher
+        @higher = new Order
+          state: params.state.higher
+          orders: params.orders
+        @higher.parent = @
+      params.orders[@id] = @
 
   export: =>
     state = Object.create null
@@ -93,6 +104,10 @@ module.exports = class Order extends EventEmitter
     if @offerPrice
       state.offerPrice = @offerPrice.export()
     state.offerAmount = @offerAmount.export()
+    if @lower
+      state.lower = @lower.export()
+    if @higher
+      state.higher = @higher.export()
     return state
 
   equals: (order) =>
@@ -128,23 +143,54 @@ module.exports = class Order extends EventEmitter
         return false
     if @offerAmount.compareTo(order.offerAmount) != 0
       return false
+    if @higher
+      if order.higher
+        if !@higher.equals order.higher
+          return false
+      else
+        return false
+    else if order.higher
+      return false
+    if @lower
+      if order.lower
+        if !@lower.equals order.lower
+          return false
+      else
+        return false
+    else if order.lower
+      return false
     return true
 
-  fillOffer = (offerAmount, bidAmount) ->
-    @offerAmount = @offerAmount.subtract(offerAmount)
-    @bidAmount = @offerAmount.multiply(@offerPrice)
+  partialOffer = (bidAmount, offerAmount) ->
+    @offerAmount = @offerAmount.subtract offerAmount
+    @bidAmount = @offerAmount.multiply @offerPrice
     @emit 'fill', 
       order: @
       offerAmount: offerAmount
       bidAmount: bidAmount
+      fundsUnlocked: offerAmount
 
-  fillBid = (bidAmount, offerAmount) ->
-    @bidAmount = @bidAmount.subtract(bidAmount)
-    @offerAmount = @bidAmount.multiply(@bidPrice)
+  partialBid = (bidAmount, offerAmount) ->
+    @bidAmount = @bidAmount.subtract bidAmount
+    newOfferAmount = @bidAmount.multiply @bidPrice
+    fundsUnlocked = @offerAmount.subtract newOfferAmount
+    @offerAmount = newOfferAmount
     @emit 'fill',
       order: @
       offerAmount: offerAmount
       bidAmount: bidAmount
+      fundsUnlocked: fundsUnlocked
+
+  fill = (bidAmount, offerAmount) ->
+    fundsUnlocked = @offerAmount
+    @bidAmount = Amount.ZERO
+    @offerAmount = Amount.ZERO
+    @emit 'fill', 
+      order: @
+      offerAmount: offerAmount
+      bidAmount: bidAmount
+      fundsUnlocked: fundsUnlocked
+    @emit 'done'
 
   match: (order) =>
     if @offerPrice
@@ -152,11 +198,12 @@ module.exports = class Order extends EventEmitter
         if order.bidPrice.compareTo(@offerPrice) >= 0
           # prices overlap so we make a trade
           price = order.bidPrice
-          if @offerAmount.compareTo(order.bidAmount) > 0
+          compareAmounts = @offerAmount.compareTo order.bidAmount
+          if compareAmounts > 0
             leftOfferAmount = order.bidAmount
             rightOfferAmount = order.offerAmount
-            fillBid.call order, leftOfferAmount, rightOfferAmount
-            fillOffer.call @, leftOfferAmount, rightOfferAmount
+            fill.call order, leftOfferAmount, rightOfferAmount
+            partialOffer.call @, rightOfferAmount, leftOfferAmount
             order.emit 'trade',
               bid: order
               offer: @
@@ -166,8 +213,11 @@ module.exports = class Order extends EventEmitter
           else
             leftOfferAmount = @offerAmount
             rightOfferAmount = leftOfferAmount.multiply price
-            fillBid.call order, leftOfferAmount, rightOfferAmount
-            fillOffer.call @, leftOfferAmount, rightOfferAmount
+            if compareAmounts == 0
+              fill.call order, leftOfferAmount, rightOfferAmount
+            else
+              partialBid.call order, leftOfferAmount, rightOfferAmount
+            fill.call @, rightOfferAmount, leftOfferAmount
             order.emit 'trade',
               bid: order
               offer: @
@@ -178,11 +228,12 @@ module.exports = class Order extends EventEmitter
         if order.offerPrice.multiply(@offerPrice).compareTo(Amount.ONE) <= 0
           # prices overlap so we make a trade
           price = order.offerPrice
-          if @offerAmount.compareTo(order.bidAmount) > 0
+          compareAmounts = @offerAmount.compareTo order.bidAmount
+          if compareAmounts > 0
             leftOfferAmount = order.bidAmount
             rightOfferAmount = order.offerAmount
-            fillOffer.call order, rightOfferAmount, leftOfferAmount
-            fillOffer.call @, leftOfferAmount, rightOfferAmount
+            fill.call order, leftOfferAmount, rightOfferAmount
+            partialOffer.call @, rightOfferAmount, leftOfferAmount
             order.emit 'trade',
               bid: @
               offer: order
@@ -198,8 +249,11 @@ module.exports = class Order extends EventEmitter
             # The good news is that this is a corner case and only happens
             # if you allow your market to be priced in either direction
             rightOfferAmount = leftOfferAmount.divide price
-            fillOffer.call order, rightOfferAmount, leftOfferAmount
-            fillOffer.call @, leftOfferAmount, rightOfferAmount
+            if compareAmounts == 0
+              fill.call order, leftOfferAmount, rightOfferAmount
+            else
+              partialOffer.call order, leftOfferAmount, rightOfferAmount
+            fill.call @, rightOfferAmount, leftOfferAmount
             order.emit 'trade',
               bid: @
               offer: order
@@ -211,11 +265,12 @@ module.exports = class Order extends EventEmitter
         if @bidPrice.compareTo(order.offerPrice) >= 0
           # prices overlap so we make a trade
           price = order.offerPrice
-          if @bidAmount.compareTo(order.offerAmount) > 0
+          compareAmounts = @bidAmount.compareTo order.offerAmount
+          if compareAmounts > 0
             rightOfferAmount = order.offerAmount
             leftOfferAmount = rightOfferAmount.multiply price
-            fillOffer.call order, rightOfferAmount, leftOfferAmount
-            fillBid.call @, rightOfferAmount, leftOfferAmount
+            fill.call order, leftOfferAmount, rightOfferAmount
+            partialBid.call @, rightOfferAmount, leftOfferAmount
             order.emit 'trade',
               bid: @
               offer: order
@@ -225,8 +280,11 @@ module.exports = class Order extends EventEmitter
           else
             rightOfferAmount = @bidAmount
             leftOfferAmount = rightOfferAmount.multiply price
-            fillOffer.call order, rightOfferAmount, leftOfferAmount
-            fillBid.call @, rightOfferAmount, leftOfferAmount
+            if compareAmounts == 0
+              fill.call order, leftOfferAmount, rightOfferAmount
+            else
+              partialOffer.call order, leftOfferAmount, rightOfferAmount
+            fill.call @, rightOfferAmount, leftOfferAmount
             order.emit 'trade',
               bid: @
               offer: order
@@ -237,11 +295,12 @@ module.exports = class Order extends EventEmitter
         if order.bidPrice.multiply(@bidPrice).compareTo(Amount.ONE) >= 0
           # prices overlap so we make a trade
           price = order.bidPrice
-          if @bidAmount.compareTo(order.offerAmount) > 0
+          compareAmounts = @bidAmount.compareTo order.offerAmount
+          if compareAmounts > 0
             leftOfferAmount = order.bidAmount
             rightOfferAmount = order.offerAmount
-            fillBid.call order, leftOfferAmount, rightOfferAmount
-            fillBid.call @, rightOfferAmount, leftOfferAmount
+            fill.call order, leftOfferAmount, rightOfferAmount
+            partialBid.call @, rightOfferAmount, leftOfferAmount
             order.emit 'trade',
               bid: order
               offer: @
@@ -260,11 +319,93 @@ module.exports = class Order extends EventEmitter
             # and reducing the bid won't add up (this doesn't apply in the above 
             # division as there is no remainder)
             rightOfferAmount = leftOfferAmount.multiply price
-            fillBid.call order, leftOfferAmount, rightOfferAmount
-            fillBid.call @, rightOfferAmount, leftOfferAmount
+            if compareAmounts == 0
+              fill.call order, leftOfferAmount, rightOfferAmount
+            else
+              partialBid.call order, leftOfferAmount, rightOfferAmount
+            fill.call @, rightOfferAmount, leftOfferAmount
             order.emit 'trade',
               bid: order
               offer: @
               price: price
               amount: leftOfferAmount
             return false
+
+  add: (order) =>
+    if @bidPrice
+      if order.bidPrice
+        isHigher = order.bidPrice.compareTo(@bidPrice) > 0
+      else
+        isHigher = order.offerPrice.multiply(@bidPrice).compareTo(Amount.ONE) < 0
+    else
+      if order.offerPrice
+        isHigher = order.offerPrice.compareTo(@offerPrice) < 0
+      else
+        isHigher = order.bidPrice.multiply(@offerPrice).compareTo(Amount.ONE) > 0
+
+    if isHigher
+      if @higher
+        @higher.add order
+      else
+        @higher = order
+        order.parent = @
+    else
+      if @lower
+        @lower.add order
+      else
+        @lower = order
+        order.parent = @
+
+  addLowest: (order) =>
+    if @lower
+      @lower.addLowest order
+    else
+      @lower = order
+      order.parent = @
+
+  delete: =>
+    if @parent
+      if @parent.lower == @
+        if @higher
+          @parent.lower = @higher
+          @higher.parent = @parent
+          newHead = @higher
+          if @lower
+            @higher.addLowest @lower
+        else if @lower
+          @parent.lower = @lower
+          @lower.parent = @parent
+          newHead = @lower
+        else
+          delete @parent.lower
+      else
+        if @higher
+          @parent.higher = @higher
+          @higher.parent = @parent
+          newHead = @higher
+          if @lower
+            @higher.addLowest @lower
+        else if @lower
+          @parent.higher = @lower
+          @lower.parent = @parent
+          newHead = @lower
+        else
+          delete @parent.higher
+    else
+      if @higher
+        delete @higher.parent
+        newHead = @higher
+        if @lower
+          @higher.addLowest @lower
+      else if @lower
+        delete @lower.parent
+        newHead = @lower
+      else
+        # do nothing, this is an orphan and will be garbage collected
+    return newHead
+
+  getHighest: =>
+    if @higher
+      return @higher.getHighest()
+    else
+      return @

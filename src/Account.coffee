@@ -72,14 +72,11 @@ module.exports = class Account
     @balances[order.offerCurrency].lock order.offerAmount
     @orders[order.id] = order
     order.on 'fill', (fill) =>
-      if order.bidAmount.compareTo(Amount.ZERO) == 0
-        delete @orders[order.id]
-      if order.offerPrice
-        @balances[order.offerCurrency].unlock fill.offerAmount
-      else
-        @balances[order.offerCurrency].unlock fill.bidAmount.multiply order.bidPrice
+      @balances[order.offerCurrency].unlock fill.fundsUnlocked
       @balances[order.offerCurrency].withdraw fill.offerAmount
       @balances[order.bidCurrency].deposit fill.bidAmount
+    order.on 'done', =>
+      delete @orders[order.id]
 
   cancel: (order) =>
     delete @orders[order.id]

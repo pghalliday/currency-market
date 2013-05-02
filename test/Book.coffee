@@ -323,7 +323,7 @@ describe 'Book', ->
       book1.equals(book2).should.be.false
 
   describe '#export', ->
-    it 'should export the state of the book as a JSON stringifiable object that can be used to initialise a new Book in the exact same state', ->
+    it 'should export the state of the book as a JSON stringifiable object that can be used to initialise a new Book in the exact same state and populate a collection of orders keyed by id', ->
       book = new Book()
       #
       #                       1
@@ -339,41 +339,58 @@ describe 'Book', ->
       #             / \   / \   / \   / \
       #            8   9 10 11 12 13 14 15
       #
-      orders1 = Object.create null
-      orders1['1'] = newOrder('1', amount50)
-      orders1['2'] = newOrder('2', amount51)
-      orders1['3'] = newOrder('3', amount49)
-      orders1['4'] = newOrder('4', amount52)
-      orders1['5'] = newOrder('5', amount50Point5)
-      orders1['6'] = newOrder('6', amount49Point5)
-      orders1['7'] = newOrder('7', amount48Point5)
-      orders1['8'] = newOrder('8', amount48Point5) # is equal to but should be placed lower than order 7
-      orders1['9'] = newOrder('9', amount48Point75)
-      orders1['10'] = newOrder('10', amount49Point5) # is equal to but should be placed lower than order 6
-      orders1['11'] = newOrder('11', amount49Point75)
-      orders1['12'] = newOrder('12', amount50Point5) # is equal to but should be placed lower than order 5
-      orders1['13'] = newOrder('13', amount50Point75)
-      orders1['14'] = newOrder('14', amount52) # is equal to but should be placed lower than order 4
-      orders1['15'] = newOrder('15', amount53)
-      book.submit(orders1['1'])
-      book.submit(orders1['2'])
-      book.submit(orders1['3'])
-      book.submit(orders1['4'])
-      book.submit(orders1['5'])
-      book.submit(orders1['6'])
-      book.submit(orders1['7'])
-      book.submit(orders1['8'])
-      book.submit(orders1['9'])
-      book.submit(orders1['10'])
-      book.submit(orders1['11'])
-      book.submit(orders1['12'])
-      book.submit(orders1['13'])
-      book.submit(orders1['14'])
-      book.submit(orders1['15'])
+      order1 = newOrder('1', amount50)
+      order2 = newOrder('2', amount51)
+      order3 = newOrder('3', amount49)
+      order4 = newOrder('4', amount52)
+      order5 = newOrder('5', amount50Point5)
+      order6 = newOrder('6', amount49Point5)
+      order7 = newOrder('7', amount48Point5)
+      order8 = newOrder('8', amount48Point5) # is equal to but should be placed lower than order 7
+      order9 = newOrder('9', amount48Point75)
+      order10 = newOrder('10', amount49Point5) # is equal to but should be placed lower than order 6
+      order11 = newOrder('11', amount49Point75)
+      order12 = newOrder('12', amount50Point5) # is equal to but should be placed lower than order 5
+      order13 = newOrder('13', amount50Point75)
+      order14 = newOrder('14', amount52) # is equal to but should be placed lower than order 4
+      order15 = newOrder('15', amount53)
+      book.submit(order1)
+      book.submit(order2)
+      book.submit(order3)
+      book.submit(order4)
+      book.submit(order5)
+      book.submit(order6)
+      book.submit(order7)
+      book.submit(order8)
+      book.submit(order9)
+      book.submit(order10)
+      book.submit(order11)
+      book.submit(order12)
+      book.submit(order13)
+      book.submit(order14)
+      book.submit(order15)
+
       state = book.export()
       json = JSON.stringify state
-
+      orders = Object.create null
       newBook = new Book
         state: JSON.parse(json)
-        orders: orders1
+        orders: orders
+
       newBook.equals(book).should.be.true
+      orders['1'].equals(order1).should.be.true
+      orders['2'].equals(order2).should.be.true
+      orders['3'].equals(order3).should.be.true
+      orders['4'].equals(order4).should.be.true
+      orders['5'].equals(order5).should.be.true
+      orders['6'].equals(order6).should.be.true
+      orders['7'].equals(order7).should.be.true
+      orders['8'].equals(order8).should.be.true
+      orders['9'].equals(order9).should.be.true
+      orders['10'].equals(order10).should.be.true
+      orders['11'].equals(order11).should.be.true
+      orders['12'].equals(order12).should.be.true
+      orders['13'].equals(order13).should.be.true
+      orders['14'].equals(order14).should.be.true
+      orders['15'].equals(order15).should.be.true
+

@@ -12,9 +12,15 @@ Amount = require('../src/Amount')
 amountPoint01 = new Amount '0.01'
 amountPoint2 = new Amount '0.2'
 amountPoint25 = new Amount '0.25'
+amountPoint5 = new Amount '0.5'
+amount1 = new Amount '1'
+amount2 = new Amount '2'
 amount3 = new Amount '3'
 amount4 = new Amount '4'
 amount5 = new Amount '5'
+amount6 = new Amount '6'
+amount7 = new Amount '7'
+amount8 = new Amount '8'
 amount25 = new Amount '25'
 amount50 = new Amount '50'
 amount75 = new Amount '75'
@@ -34,6 +40,26 @@ amount7500 = new Amount '7500'
 
 amountMinus50 = new Amount '-50'
 amountMinus100 = new Amount '-100'
+
+newBidOrder = (bidPrice, id) ->
+  new Order
+    id: id || '1'
+    timestamp: '1'
+    account: 'Peter'
+    bidCurrency: 'EUR'
+    offerCurrency: 'BTC'
+    bidPrice: bidPrice
+    bidAmount: amount200
+
+newOfferOrder = (offerPrice, id) ->
+  new Order
+    id: id || '1'
+    timestamp: '1'
+    account: 'Peter'
+    bidCurrency: 'EUR'
+    offerCurrency: 'BTC'
+    offerPrice: offerPrice
+    offerAmount: amount200
 
 describe 'Order', ->
   it 'should throw an error if the ID is missing', ->
@@ -273,7 +299,7 @@ describe 'Order', ->
     order.bidCurrency.should.equal 'BTC'
     order.offerCurrency.should.equal 'EUR'
 
-  it 'should instantiate with a bid price and bid amount calculating the offer amount', ->
+  it 'should instantiate with an undefined parent, lower and higher orders, bid price and bid amount calculating the offer amount', ->
     order = new Order
       id: '123456789'
       timestamp: '987654321'
@@ -285,8 +311,11 @@ describe 'Order', ->
     order.bidPrice.compareTo(amount100).should.equal 0
     order.bidAmount.compareTo(amount50).should.equal 0
     order.offerAmount.compareTo(amount5000).should.equal 0
+    expect(order.parent).to.not.be.ok
+    expect(order.lower).to.not.be.ok
+    expect(order.higher).to.not.be.ok
 
-  it 'should instantiate with an offer price and offer amount calculating the bid amount', ->
+  it 'should instantiate with an undefined parent, lower and higher orders, offer price and offer amount calculating the bid amount', ->
     order = new Order
       id: '123456789'
       timestamp: '987654321'
@@ -298,6 +327,9 @@ describe 'Order', ->
     order.offerPrice.compareTo(amount100).should.equal 0
     order.bidAmount.compareTo(amount5000).should.equal 0
     order.offerAmount.compareTo(amount50).should.equal 0
+    expect(order.parent).to.not.be.ok
+    expect(order.lower).to.not.be.ok
+    expect(order.higher).to.not.be.ok
 
   describe '#equals', ->
     it 'should return true if the orders are identical', ->
@@ -318,6 +350,75 @@ describe 'Order', ->
         bidPrice: amount100
         bidAmount: amount50
       order1.equals(order2).should.be.true
+
+    describe 'with trees of orders', ->
+      beforeEach ->
+        @bidOrder1a = newBidOrder amount1
+        @bidOrder1b = newBidOrder amount1
+        @bidOrder2a = newBidOrder amount2
+        @bidOrder2b = newBidOrder amount2
+        @bidOrder3a = newBidOrder amount3
+        @bidOrder3b = newBidOrder amount3
+        @bidOrder4a = newBidOrder amount4
+        @bidOrder4b = newBidOrder amount4
+        @bidOrder5a = newBidOrder amount5
+        @bidOrder5b = newBidOrder amount5
+        @bidOrder6a = newBidOrder amount6
+        @bidOrder6b = newBidOrder amount6
+        @bidOrder7a = newBidOrder amount7
+        @bidOrder7b = newBidOrder amount7
+        @bidOrder8a = newBidOrder amount8
+        @bidOrder8b = newBidOrder amount8
+
+      it 'should return true if 2 trees are the same', ->
+        @bidOrder4a.equals(@bidOrder4b).should.be.true
+
+        @bidOrder4a.add @bidOrder5a
+        @bidOrder4b.add @bidOrder5b
+        @bidOrder4a.equals(@bidOrder4b).should.be.true
+
+        @bidOrder4a.add @bidOrder3a
+        @bidOrder4b.add @bidOrder3b
+        @bidOrder4a.equals(@bidOrder4b).should.be.true
+
+        @bidOrder4a.add @bidOrder2a
+        @bidOrder4b.add @bidOrder2b
+        @bidOrder4a.equals(@bidOrder4b).should.be.true
+
+        @bidOrder4a.add @bidOrder1a
+        @bidOrder4b.add @bidOrder1b
+        @bidOrder4a.equals(@bidOrder4b).should.be.true
+
+        @bidOrder4a.add @bidOrder8a
+        @bidOrder4b.add @bidOrder8b
+        @bidOrder4a.equals(@bidOrder4b).should.be.true
+
+        @bidOrder4a.add @bidOrder6a
+        @bidOrder4b.add @bidOrder6b
+        @bidOrder4a.equals(@bidOrder4b).should.be.true
+
+        @bidOrder4a.add @bidOrder7a
+        @bidOrder4b.add @bidOrder7b
+        @bidOrder4a.equals(@bidOrder4b).should.be.true
+
+      it 'should return false if the trees are different', ->
+        @bidOrder4a.equals(@bidOrder5b).should.be.false
+
+        @bidOrder4a.add @bidOrder5a
+        @bidOrder4a.equals(@bidOrder4b).should.be.false
+        @bidOrder4b.equals(@bidOrder4a).should.be.false
+
+        @bidOrder4b.add @bidOrder6b
+        @bidOrder4a.equals(@bidOrder4b).should.be.false
+        @bidOrder4b.equals(@bidOrder4a).should.be.false
+
+        @bidOrder3a.add @bidOrder2a
+        @bidOrder3a.equals(@bidOrder3b).should.be.false
+        @bidOrder3b.equals(@bidOrder3a).should.be.false
+
+        @bidOrder3b.add @bidOrder1b
+        @bidOrder3a.equals(@bidOrder3b).should.be.false
+        @bidOrder3b.equals(@bidOrder3a).should.be.false
 
     it 'should return false if the orders have different IDs', ->
       order1 = new Order
@@ -522,6 +623,8 @@ describe 'Order', ->
           offerCurrency: 'EUR'
           offerPrice: amountPoint2   # 5
           offerAmount: amount1000 # 200
+        @doneSpy = sinon.spy()
+        @order.on 'done', @doneSpy
         @fillSpy = sinon.spy()
         @order.on 'fill', @fillSpy
         @tradeSpy = sinon.spy()
@@ -539,12 +642,17 @@ describe 'Order', ->
                   offerCurrency: 'BTC'
                   bidPrice: amountPoint2
                   bidAmount: amount1000
+                doneSpy = sinon.spy()
+                order.on 'done', doneSpy
                 fillSpy = sinon.spy()
                 order.on 'fill', fillSpy
                 tradeSpy = sinon.spy()
                 order.on 'trade', tradeSpy
 
                 order.match(@order).should.be.false
+
+                doneSpy.should.have.been.calledOnce
+                @doneSpy.should.have.been.calledOnce
 
                 fillSpy.should.have.been.calledOnce
                 fillSpy.firstCall.args[0].order.should.equal order
@@ -577,12 +685,17 @@ describe 'Order', ->
                   offerCurrency: 'BTC'
                   bidPrice: amountPoint2
                   bidAmount: amount500
+                doneSpy = sinon.spy()
+                order.on 'done', doneSpy
                 fillSpy = sinon.spy()
                 order.on 'fill', fillSpy
                 tradeSpy = sinon.spy()
                 order.on 'trade', tradeSpy
                 
                 order.match(@order).should.be.false
+
+                doneSpy.should.have.been.calledOnce
+                @doneSpy.should.not.have.been.called
 
                 fillSpy.should.have.been.calledOnce
                 fillSpy.firstCall.args[0].order.should.equal order
@@ -615,12 +728,17 @@ describe 'Order', ->
                   offerCurrency: 'BTC'
                   bidPrice: amountPoint2
                   bidAmount: amount1500
+                doneSpy = sinon.spy()
+                order.on 'done', doneSpy
                 fillSpy = sinon.spy()
                 order.on 'fill', fillSpy
                 tradeSpy = sinon.spy()
                 order.on 'trade', tradeSpy
                 
                 order.match(@order).should.be.true
+
+                doneSpy.should.not.have.been.called
+                @doneSpy.should.have.been.calledOnce
 
                 fillSpy.should.have.been.calledOnce
                 fillSpy.firstCall.args[0].order.should.equal order
@@ -654,12 +772,17 @@ describe 'Order', ->
                   offerCurrency: 'BTC'
                   offerPrice: amount5
                   offerAmount: amount200
+                doneSpy = sinon.spy()
+                order.on 'done', doneSpy
                 fillSpy = sinon.spy()
                 order.on 'fill', fillSpy
                 tradeSpy = sinon.spy()
                 order.on 'trade', tradeSpy
                 
                 order.match(@order).should.be.false
+
+                doneSpy.should.have.been.calledOnce
+                @doneSpy.should.have.been.calledOnce
 
                 fillSpy.should.have.been.calledOnce
                 fillSpy.firstCall.args[0].order.should.equal order
@@ -692,12 +815,17 @@ describe 'Order', ->
                   offerCurrency: 'BTC'
                   offerPrice: amount5
                   offerAmount: amount100
+                doneSpy = sinon.spy()
+                order.on 'done', doneSpy
                 fillSpy = sinon.spy()
                 order.on 'fill', fillSpy
                 tradeSpy = sinon.spy()
                 order.on 'trade', tradeSpy
                 
                 order.match(@order).should.be.false
+
+                doneSpy.should.have.been.calledOnce
+                @doneSpy.should.not.have.been.called
 
                 fillSpy.should.have.been.calledOnce
                 fillSpy.firstCall.args[0].order.should.equal order
@@ -730,12 +858,17 @@ describe 'Order', ->
                   offerCurrency: 'BTC'
                   offerPrice: amount5
                   offerAmount: amount300
+                doneSpy = sinon.spy()
+                order.on 'done', doneSpy
                 fillSpy = sinon.spy()
                 order.on 'fill', fillSpy
                 tradeSpy = sinon.spy()
                 order.on 'trade', tradeSpy
                 
                 order.match(@order).should.be.true
+
+                doneSpy.should.not.have.been.called
+                @doneSpy.should.have.been.calledOnce
 
                 fillSpy.should.have.been.calledOnce
                 fillSpy.firstCall.args[0].order.should.equal order
@@ -770,12 +903,17 @@ describe 'Order', ->
                 offerCurrency: 'BTC'
                 offerPrice: amount4
                 offerAmount: amount200
+              doneSpy = sinon.spy()
+              order.on 'done', doneSpy
               fillSpy = sinon.spy()
               order.on 'fill', fillSpy
               tradeSpy = sinon.spy()
               order.on 'trade', tradeSpy
               
               order.match(@order).should.be.false
+
+              doneSpy.should.have.been.calledOnce
+              @doneSpy.should.have.been.calledOnce
 
               fillSpy.should.have.been.calledOnce
               fillSpy.firstCall.args[0].order.should.equal order
@@ -808,12 +946,17 @@ describe 'Order', ->
                 offerCurrency: 'BTC'
                 offerPrice: amount4
                 offerAmount: amount100
+              doneSpy = sinon.spy()
+              order.on 'done', doneSpy
               fillSpy = sinon.spy()
               order.on 'fill', fillSpy
               tradeSpy = sinon.spy()
               order.on 'trade', tradeSpy
               
               order.match(@order).should.be.false
+
+              doneSpy.should.have.been.calledOnce
+              @doneSpy.should.not.have.been.called
 
               fillSpy.should.have.been.calledOnce
               fillSpy.firstCall.args[0].order.should.equal order
@@ -846,12 +989,17 @@ describe 'Order', ->
                 offerCurrency: 'BTC'
                 offerPrice: amount4
                 offerAmount: amount300
+              doneSpy = sinon.spy()
+              order.on 'done', doneSpy
               fillSpy = sinon.spy()
               order.on 'fill', fillSpy
               tradeSpy = sinon.spy()
               order.on 'trade', tradeSpy
               
               order.match(@order).should.be.true
+
+              doneSpy.should.not.have.been.called
+              @doneSpy.should.have.been.calledOnce
 
               fillSpy.should.have.been.calledOnce
               fillSpy.firstCall.args[0].order.should.equal order
@@ -885,12 +1033,17 @@ describe 'Order', ->
                 offerCurrency: 'BTC'
                 bidPrice: amountPoint25
                 bidAmount: amount1000
+              doneSpy = sinon.spy()
+              order.on 'done', doneSpy
               fillSpy = sinon.spy()
               order.on 'fill', fillSpy
               tradeSpy = sinon.spy()
               order.on 'trade', tradeSpy
               
               order.match(@order).should.be.false
+
+              doneSpy.should.have.been.calledOnce
+              @doneSpy.should.have.been.calledOnce
 
               fillSpy.should.have.been.calledOnce
               fillSpy.firstCall.args[0].order.should.equal order
@@ -923,12 +1076,17 @@ describe 'Order', ->
                 offerCurrency: 'BTC'
                 bidPrice: amountPoint25
                 bidAmount: amount500
+              doneSpy = sinon.spy()
+              order.on 'done', doneSpy
               fillSpy = sinon.spy()
               order.on 'fill', fillSpy
               tradeSpy = sinon.spy()
               order.on 'trade', tradeSpy
               
               order.match(@order).should.be.false
+
+              doneSpy.should.have.been.calledOnce
+              @doneSpy.should.not.have.been.called
 
               fillSpy.should.have.been.calledOnce
               fillSpy.firstCall.args[0].order.should.equal order
@@ -961,12 +1119,17 @@ describe 'Order', ->
                 offerCurrency: 'BTC'
                 bidPrice: amountPoint25
                 bidAmount: amount1500
+              doneSpy = sinon.spy()
+              order.on 'done', doneSpy
               fillSpy = sinon.spy()
               order.on 'fill', fillSpy
               tradeSpy = sinon.spy()
               order.on 'trade', tradeSpy
               
               order.match(@order).should.be.true
+
+              doneSpy.should.not.have.been.called
+              @doneSpy.should.have.been.calledOnce
 
               fillSpy.should.have.been.calledOnce
               fillSpy.firstCall.args[0].order.should.equal order
@@ -999,6 +1162,8 @@ describe 'Order', ->
           offerCurrency: 'EUR'
           bidPrice: amount5     # 0.2
           bidAmount: amount200  # 1000
+        @doneSpy = sinon.spy()
+        @order.on 'done', @doneSpy
         @fillSpy = sinon.spy()
         @order.on 'fill', @fillSpy
         @tradeSpy = sinon.spy()
@@ -1016,12 +1181,17 @@ describe 'Order', ->
                 offerCurrency: 'BTC'
                 offerPrice: amount4
                 offerAmount: amount200
+              doneSpy = sinon.spy()
+              order.on 'done', doneSpy
               fillSpy = sinon.spy()
               order.on 'fill', fillSpy
               tradeSpy = sinon.spy()
               order.on 'trade', tradeSpy
               
               order.match(@order).should.be.false
+
+              doneSpy.should.have.been.calledOnce
+              @doneSpy.should.have.been.calledOnce
 
               fillSpy.should.have.been.calledOnce
               fillSpy.firstCall.args[0].order.should.equal order
@@ -1054,12 +1224,17 @@ describe 'Order', ->
                 offerCurrency: 'BTC'
                 offerPrice: amount4
                 offerAmount: amount100
+              doneSpy = sinon.spy()
+              order.on 'done', doneSpy
               fillSpy = sinon.spy()
               order.on 'fill', fillSpy
               tradeSpy = sinon.spy()
               order.on 'trade', tradeSpy
               
               order.match(@order).should.be.false
+
+              doneSpy.should.have.been.calledOnce
+              @doneSpy.should.not.have.been.called
 
               fillSpy.should.have.been.calledOnce
               fillSpy.firstCall.args[0].order.should.equal order
@@ -1092,12 +1267,17 @@ describe 'Order', ->
                 offerCurrency: 'BTC'
                 offerPrice: amount4
                 offerAmount: amount300
+              doneSpy = sinon.spy()
+              order.on 'done', doneSpy
               fillSpy = sinon.spy()
               order.on 'fill', fillSpy
               tradeSpy = sinon.spy()
               order.on 'trade', tradeSpy
               
               order.match(@order).should.be.true
+
+              doneSpy.should.not.have.been.called
+              @doneSpy.should.have.been.calledOnce
 
               fillSpy.should.have.been.calledOnce
               fillSpy.firstCall.args[0].order.should.equal order
@@ -1131,12 +1311,17 @@ describe 'Order', ->
                 offerCurrency: 'BTC'
                 bidPrice: amountPoint25
                 bidAmount: amount1000
+              doneSpy = sinon.spy()
+              order.on 'done', doneSpy
               fillSpy = sinon.spy()
               order.on 'fill', fillSpy
               tradeSpy = sinon.spy()
               order.on 'trade', tradeSpy
               
               order.match(@order).should.be.false
+
+              doneSpy.should.have.been.calledOnce
+              @doneSpy.should.have.been.calledOnce
 
               fillSpy.should.have.been.calledOnce
               fillSpy.firstCall.args[0].order.should.equal order
@@ -1169,12 +1354,17 @@ describe 'Order', ->
                 offerCurrency: 'BTC'
                 bidPrice: amountPoint25
                 bidAmount: amount500
+              doneSpy = sinon.spy()
+              order.on 'done', doneSpy
               fillSpy = sinon.spy()
               order.on 'fill', fillSpy
               tradeSpy = sinon.spy()
               order.on 'trade', tradeSpy
               
               order.match(@order).should.be.false
+
+              doneSpy.should.have.been.calledOnce
+              @doneSpy.should.not.have.been.called
 
               fillSpy.should.have.been.calledOnce
               fillSpy.firstCall.args[0].order.should.equal order
@@ -1207,12 +1397,17 @@ describe 'Order', ->
                 offerCurrency: 'BTC'
                 bidPrice: amountPoint25
                 bidAmount: amount1500
+              doneSpy = sinon.spy()
+              order.on 'done', doneSpy
               fillSpy = sinon.spy()
               order.on 'fill', fillSpy
               tradeSpy = sinon.spy()
               order.on 'trade', tradeSpy
               
               order.match(@order).should.be.true
+
+              doneSpy.should.not.have.been.called
+              @doneSpy.should.have.been.calledOnce
 
               fillSpy.should.have.been.calledOnce
               fillSpy.firstCall.args[0].order.should.equal order
@@ -1235,20 +1430,387 @@ describe 'Order', ->
               @tradeSpy.firstCall.args[0].price.compareTo(amount5).should.equal 0
               @tradeSpy.firstCall.args[0].amount.compareTo(amount200).should.equal 0
 
-  describe '#export', ->
-    it 'should export the state of the order as a JSON stringifiable object that can be used to initialise a new order in the exact same state', ->
-      order = new Order
-        id: '123456789'
-        timestamp: '987654321'
-        account: 'name'
-        bidCurrency: 'BTC'
-        offerCurrency: 'EUR'
-        bidPrice: amount100
-        bidAmount: amount100
-      state = order.export()
-      json = JSON.stringify state
-      newOrder = new Order
-        state: JSON.parse(json)
-      newOrder.equals(order).should.be.true
+  describe '#add', ->
+    beforeEach ->
+      @bidOrder = newBidOrder amountPoint2
+      @higherBidOrder = newBidOrder amount1
+      @evenHigherBidOrder = newBidOrder amount2
+      @equalBidOrder = newBidOrder amountPoint2
+      @secondEqualBidOrder = newBidOrder amountPoint2
+      @offerOrder = newOfferOrder amount5
+      @higherOfferOrder = newOfferOrder amount1
+      @evenHigherOfferOrder = newOfferOrder amountPoint5
+      @equalOfferOrder = newOfferOrder amount5
+      @secondEqualOfferOrder = newOfferOrder amount5
 
+    describe 'only bids', ->
+      describe 'on a book entry with no lower or higher orders', ->
+        describe 'an entry with a higher bid price', ->
+          it 'should set the higher entry to the Order being added and set the parent on the added Order', ->
+            @bidOrder.add @higherBidOrder
+            expect(@bidOrder.parent).to.not.be.ok
+            expect(@bidOrder.lower).to.not.be.ok
+            @bidOrder.higher.should.equal @higherBidOrder
+            @higherBidOrder.parent.should.equal @bidOrder
+            expect(@higherBidOrder.lower).to.not.be.ok
+            expect(@higherBidOrder.higher).to.not.be.ok
+
+        describe 'an entry with the same or lower bid price', ->
+          it 'should set the lower entry to the Order being added and set the parent on the added Order', ->
+            @bidOrder.add @equalBidOrder
+            expect(@bidOrder.parent).to.not.be.ok
+            @bidOrder.lower.should.equal @equalBidOrder
+            expect(@bidOrder.higher).to.not.be.ok
+            @equalBidOrder.parent.should.equal @bidOrder
+            expect(@equalBidOrder.lower).to.not.be.ok
+            expect(@equalBidOrder.higher).to.not.be.ok
+
+      describe 'on a book entry with both higher and lower orders', ->
+        beforeEach ->
+          @bidOrder.add @equalBidOrder
+          @bidOrder.add @higherBidOrder
+          # override the book entry add methods so we can check if they get called
+          @lowerAddSpy = sinon.spy()
+          @higherAddSpy = sinon.spy()
+          @equalBidOrder.add = @lowerAddSpy
+          @higherBidOrder.add = @higherAddSpy
+
+        describe 'an entry with a higher bid price', ->
+          it 'should call the add method of the higher Order', ->
+            @bidOrder.add @evenHigherBidOrder
+            @lowerAddSpy.should.not.have.been.called
+            @higherAddSpy.should.have.been.calledWith @evenHigherBidOrder
+
+        describe 'an entry with the same or lower bid price', ->
+          it 'should call the add method of the lower Order', ->
+            @bidOrder.add @secondEqualBidOrder
+            @lowerAddSpy.should.have.been.calledWith @secondEqualBidOrder
+            @higherAddSpy.should.not.have.been.called
+
+    describe 'only offers', ->
+      describe 'on a book entry with no lower or higher orders', ->
+        describe 'an entry with a higher bid price', ->
+          it 'should set the higher entry to the Order being added and set the parent on the added Order', ->
+            @offerOrder.add @higherOfferOrder
+            expect(@offerOrder.parent).to.not.be.ok
+            expect(@offerOrder.lower).to.not.be.ok
+            @offerOrder.higher.should.equal @higherOfferOrder
+            @higherOfferOrder.parent.should.equal @offerOrder
+            expect(@higherOfferOrder.lower).to.not.be.ok
+            expect(@higherOfferOrder.higher).to.not.be.ok
+
+        describe 'an entry with the same or lower bid price', ->
+          it 'should set the lower entry to the Order being added and set the parent on the added Order', ->
+            @offerOrder.add @equalOfferOrder
+            expect(@offerOrder.parent).to.not.be.ok
+            @offerOrder.lower.should.equal @equalOfferOrder
+            expect(@offerOrder.higher).to.not.be.ok
+            @equalOfferOrder.parent.should.equal @offerOrder
+            expect(@equalOfferOrder.lower).to.not.be.ok
+            expect(@equalOfferOrder.higher).to.not.be.ok
+
+      describe 'on a book entry with both higher and lower orders', ->
+        beforeEach ->
+          @offerOrder.add @equalOfferOrder
+          @offerOrder.add @higherOfferOrder
+          # override the book entry add methods so we can check if they get called
+          @lowerAddSpy = sinon.spy()
+          @higherAddSpy = sinon.spy()
+          @equalOfferOrder.add = @lowerAddSpy
+          @higherOfferOrder.add = @higherAddSpy
+
+        describe 'an entry with a higher bid price', ->
+          it 'should call the add method of the higher Order', ->
+            @offerOrder.add @evenHigherOfferOrder
+            @lowerAddSpy.should.not.have.been.called
+            @higherAddSpy.should.have.been.calledWith @evenHigherOfferOrder
+
+        describe 'an entry with the same or lower bid price', ->
+          it 'should call the add method of the lower Order', ->
+            @offerOrder.add @secondEqualOfferOrder
+            @lowerAddSpy.should.have.been.calledWith @secondEqualOfferOrder
+            @higherAddSpy.should.not.have.been.called
+
+    describe 'an offer to bids', ->
+      describe 'on a book entry with no lower or higher orders', ->
+        describe 'an entry with a higher bid price', ->
+          it 'should set the higher entry to the Order being added and set the parent on the added Order', ->
+            @bidOrder.add @higherOfferOrder
+            expect(@bidOrder.parent).to.not.be.ok
+            expect(@bidOrder.lower).to.not.be.ok
+            @bidOrder.higher.should.equal @higherOfferOrder
+            @higherOfferOrder.parent.should.equal @bidOrder
+            expect(@higherOfferOrder.lower).to.not.be.ok
+            expect(@higherOfferOrder.higher).to.not.be.ok
+
+        describe 'an entry with the same or lower bid price', ->
+          it 'should set the lower entry to the Order being added and set the parent on the added Order', ->
+            @bidOrder.add @equalOfferOrder
+            expect(@bidOrder.parent).to.not.be.ok
+            @bidOrder.lower.should.equal @equalOfferOrder
+            expect(@bidOrder.higher).to.not.be.ok
+            @equalOfferOrder.parent.should.equal @bidOrder
+            expect(@equalOfferOrder.lower).to.not.be.ok
+            expect(@equalOfferOrder.higher).to.not.be.ok
+
+      describe 'on a book entry with both higher and lower orders', ->
+        beforeEach ->
+          @bidOrder.add @equalBidOrder
+          @bidOrder.add @higherBidOrder
+          # override the book entry add methods so we can check if they get called
+          @lowerAddSpy = sinon.spy()
+          @higherAddSpy = sinon.spy()
+          @equalBidOrder.add = @lowerAddSpy
+          @higherBidOrder.add = @higherAddSpy
+
+        describe 'an entry with a higher bid price', ->
+          it 'should call the add method of the higher Order', ->
+            @bidOrder.add @evenHigherOfferOrder
+            @lowerAddSpy.should.not.have.been.called
+            @higherAddSpy.should.have.been.calledWith @evenHigherOfferOrder
+
+        describe 'an entry with the same or lower bid price', ->
+          it 'should call the add method of the lower Order', ->
+            @bidOrder.add @secondEqualOfferOrder
+            @lowerAddSpy.should.have.been.calledWith @secondEqualOfferOrder
+            @higherAddSpy.should.not.have.been.called
+
+    describe 'a bid to offers', ->
+      describe 'on a book entry with no lower or higher orders', ->
+        describe 'an entry with a higher bid price', ->
+          it 'should set the higher entry to the Order being added and set the parent on the added Order', ->
+            @offerOrder.add @higherBidOrder
+            expect(@offerOrder.parent).to.not.be.ok
+            expect(@offerOrder.lower).to.not.be.ok
+            @offerOrder.higher.should.equal @higherBidOrder
+            @higherBidOrder.parent.should.equal @offerOrder
+            expect(@higherBidOrder.lower).to.not.be.ok
+            expect(@higherBidOrder.higher).to.not.be.ok
+
+        describe 'an entry with the same or lower bid price', ->
+          it 'should set the lower entry to the Order being added and set the parent on the added Order', ->
+            @offerOrder.add @equalBidOrder
+            expect(@offerOrder.parent).to.not.be.ok
+            @offerOrder.lower.should.equal @equalBidOrder
+            expect(@offerOrder.higher).to.not.be.ok
+            @equalBidOrder.parent.should.equal @offerOrder
+            expect(@equalBidOrder.lower).to.not.be.ok
+            expect(@equalBidOrder.higher).to.not.be.ok
+
+      describe 'on a book entry with both higher and lower orders', ->
+        beforeEach ->
+          @offerOrder.add @equalOfferOrder
+          @offerOrder.add @higherOfferOrder
+          # override the book entry add methods so we can check if they get called
+          @lowerAddSpy = sinon.spy()
+          @higherAddSpy = sinon.spy()
+          @equalOfferOrder.add = @lowerAddSpy
+          @higherOfferOrder.add = @higherAddSpy
+
+        describe 'an entry with a higher bid price', ->
+          it 'should call the add method of the higher Order', ->
+            @offerOrder.add @evenHigherBidOrder
+            @lowerAddSpy.should.not.have.been.called
+            @higherAddSpy.should.have.been.calledWith @evenHigherBidOrder
+
+        describe 'an entry with the same or lower bid price', ->
+          it 'should call the add method of the lower Order', ->
+            @offerOrder.add @secondEqualBidOrder
+            @lowerAddSpy.should.have.been.calledWith @secondEqualBidOrder
+            @higherAddSpy.should.not.have.been.called
+
+  describe '#addLowest', ->
+    describe 'with no lower Order', ->
+      it 'should set the lower Order to the given Order regardless of the bidPrice', ->
+        order1 = newBidOrder amount1
+        order2 = newBidOrder amount2
+        order1.addLowest order2
+        order1.lower.should.equal order2
+        order2.parent.should.equal order1
+
+    describe 'with a lower Order', ->
+      it 'should call addLowest with the given Order regardless of the bidPrice', ->
+        order1 = newBidOrder amount1
+        order2 = newBidOrder amount2
+        order3 = newBidOrder amount3
+        order2.add order1
+        addLowestSpy = sinon.spy()
+        order1.addLowest = addLowestSpy
+        order2.addLowest order3
+        addLowestSpy.should.have.been.calledWith(order3)
+
+  describe '#delete', ->
+    beforeEach ->
+      @bidOrder1 = newBidOrder amount1
+      @bidOrder2 = newBidOrder amount2
+      @bidOrder3 = newBidOrder amount3
+      @bidOrder4 = newBidOrder amount4
+      @bidOrder5 = newBidOrder amount5
+      @bidOrder6 = newBidOrder amount6
+      @bidOrder7 = newBidOrder amount7
+      @bidOrder8 = newBidOrder amount8
+
+    describe 'a Order with a lower parent but no lower or higher', ->
+      it 'should delete the parent higher Order', ->
+        @bidOrder2.add @bidOrder3
+        @bidOrder2.add @bidOrder1
+        @bidOrder3.delete()
+        @bidOrder2.lower.should.equal @bidOrder1
+        expect(@bidOrder2.higher).to.not.be.ok
+
+    describe 'a Order with a higher parent but no lower or higher', ->
+      it 'should delete the parent lower Order', ->
+        @bidOrder2.add @bidOrder3
+        @bidOrder2.add @bidOrder1
+        @bidOrder1.delete()
+        expect(@bidOrder2.lower).to.not.be.ok
+        @bidOrder2.higher.should.equal @bidOrder3
+
+    describe 'a Order with a lower parent and a lower but no higher Order', ->
+      it 'should set the parent higher to the lower Order and return the lower Order', ->
+        @bidOrder4.add @bidOrder6
+        @bidOrder4.add @bidOrder5
+        @bidOrder4.add @bidOrder3
+        order = @bidOrder6.delete()
+        order.should.equal @bidOrder5
+        @bidOrder4.lower.should.equal @bidOrder3
+        @bidOrder5.parent.should.equal @bidOrder4
+        @bidOrder4.higher.should.equal @bidOrder5
+
+    describe 'a Order with a lower parent and a higher but no lower Order', ->
+      it 'should set the parent higher to the higher Order and return the higher Order', ->
+        @bidOrder4.add @bidOrder6
+        @bidOrder4.add @bidOrder7
+        @bidOrder4.add @bidOrder3
+        order = @bidOrder6.delete()
+        order.should.equal @bidOrder7
+        @bidOrder4.lower.should.equal @bidOrder3
+        @bidOrder7.parent.should.equal @bidOrder4
+        @bidOrder4.higher.should.equal @bidOrder7
+
+    describe 'a Order with a lower parent and both higher and lower BookEntries', ->
+      it 'should set the parent higher to the higher Order, call addLowest on the higher Order with the lower Order and return the higher Order', ->
+        addLowestSpy = sinon.spy()
+        @bidOrder7.addLowest = addLowestSpy
+        @bidOrder4.add @bidOrder6
+        @bidOrder4.add @bidOrder7
+        @bidOrder4.add @bidOrder5
+        @bidOrder4.add @bidOrder3
+        order = @bidOrder6.delete()
+        order.should.equal @bidOrder7
+        @bidOrder4.lower.should.equal @bidOrder3
+        @bidOrder7.parent.should.equal @bidOrder4
+        @bidOrder4.higher.should.equal @bidOrder7
+        addLowestSpy.should.have.been.calledWith @bidOrder5
+
+    describe 'a Order with a higher parent and a lower but no higher Order', ->
+      it 'should set the parent lower to the lower Order and return the lower Order', ->
+        @bidOrder4.add @bidOrder2
+        @bidOrder4.add @bidOrder1
+        @bidOrder4.add @bidOrder5
+        order = @bidOrder2.delete()
+        order.should.equal @bidOrder1
+        @bidOrder4.lower.should.equal @bidOrder1
+        @bidOrder1.parent.should.equal @bidOrder4
+        @bidOrder4.higher.should.equal @bidOrder5
+
+    describe 'a Order with a higher parent and a higher but no lower Order', ->
+      it 'should set the parent lower to the higher Order and return the higher Order', ->
+        @bidOrder4.add @bidOrder2
+        @bidOrder4.add @bidOrder3
+        @bidOrder4.add @bidOrder5
+        order = @bidOrder2.delete()
+        order.should.equal @bidOrder3
+        @bidOrder4.lower.should.equal @bidOrder3
+        @bidOrder3.parent.should.equal @bidOrder4
+        @bidOrder4.higher.should.equal @bidOrder5
+
+    describe 'a Order with a higher parent and both higher and lower BookEntries', ->
+      it 'should set the parent lower to the higher Order, call addLowest on the higher Order with the lower Order and return the higher Order', ->
+        addLowestSpy = sinon.spy()
+        @bidOrder3.addLowest = addLowestSpy
+        @bidOrder4.add @bidOrder2
+        @bidOrder4.add @bidOrder3
+        @bidOrder4.add @bidOrder5
+        @bidOrder4.add @bidOrder1
+        order = @bidOrder2.delete()
+        order.should.equal @bidOrder3
+        @bidOrder4.lower.should.equal @bidOrder3
+        @bidOrder3.parent.should.equal @bidOrder4
+        @bidOrder4.higher.should.equal @bidOrder5
+        addLowestSpy.should.have.been.calledWith @bidOrder1
+
+    describe 'a Order with no parent and a lower but no higher Order', ->
+      it 'should return the lower Order', ->
+        @bidOrder4.add @bidOrder2
+        order = @bidOrder4.delete()
+        order.should.equal @bidOrder2
+        expect(@bidOrder2.parent).to.not.be.ok
+
+    describe 'a Order with no parent and a higher but no lower Order', ->
+      it 'should return the higher Order', ->
+        @bidOrder4.add @bidOrder6
+        order = @bidOrder4.delete()
+        order.should.equal @bidOrder6
+        expect(@bidOrder6.parent).to.not.be.ok
+
+    describe 'a Order with no parent and both higher and lower BookEntries', ->
+      it 'should call addLowest on the higher Order with the lower Order and return the higher Order', ->
+        addLowestSpy = sinon.spy()
+        @bidOrder6.addLowest = addLowestSpy
+        @bidOrder4.add @bidOrder2
+        @bidOrder4.add @bidOrder6
+        order = @bidOrder4.delete()
+        order.should.equal @bidOrder6
+        expect(@bidOrder6.parent).to.not.be.ok
+        addLowestSpy.should.have.been.calledWith @bidOrder2
+
+  describe '#getHighest', ->
+    describe 'with no higher Order', ->
+      it 'should return itself', ->
+        order = newBidOrder amount1
+        order.getHighest().should.equal order
+
+    describe 'with a higher Order', ->
+      it 'should call getHighest on the higher entry and return the result', ->
+        order1 = newBidOrder amount1
+        order2 = newBidOrder amount2
+        order1.add order2
+        order2.getHighest = sinon.stub().returns 'stub'
+        order1.getHighest().should.equal 'stub'
+
+  describe '#export', ->
+    it 'should export the state of a tree of orders as a JSON stringifiable object that can be used to initialise a new tree of orders in the exact same state and populate a collection of orders keyed by id', ->
+      order1 = newBidOrder amount1, '1'
+      order2 = newBidOrder amount2, '2'
+      order3 = newBidOrder amount3, '3'
+      order4 = newBidOrder amount4, '4'
+      order5 = newBidOrder amount5, '5'
+      order6 = newBidOrder amount6, '6'
+      order7 = newBidOrder amount7, '7'
+      order8 = newBidOrder amount8, '8'
+
+      order4.add order2
+      order4.add order6
+      order4.add order3
+      order4.add order1
+      order4.add order5
+      order4.add order7
+      order4.add order8
+
+      orders = Object.create null
+      state = order4.export()
+      json = JSON.stringify state
+      order = new Order
+        state: JSON.parse json
+        orders: orders
+      orders['1'].equals(order1).should.be.true
+      orders['2'].equals(order2).should.be.true
+      orders['3'].equals(order3).should.be.true
+      orders['4'].equals(order4).should.be.true
+      orders['5'].equals(order5).should.be.true
+      orders['6'].equals(order6).should.be.true
+      orders['7'].equals(order7).should.be.true
+      orders['8'].equals(order8).should.be.true
+      order.equals(order4).should.be.true
 

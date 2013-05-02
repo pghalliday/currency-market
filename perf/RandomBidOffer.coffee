@@ -82,14 +82,8 @@ module.exports = class RandomBidOffer
     startTime = process.hrtime()
     @iterations.forEach (iteration) =>
       # cancel all the outstanding orders
-      entries = @market.books['EUR']['BTC'].entries
-      Object.keys(entries).forEach (id) =>
-        @market.cancel
-          id: nextTransactionId()
-          timestamp: TIMESTAMP
-          order: id
-      entries = @market.books['BTC']['EUR'].entries
-      Object.keys(entries).forEach (id) =>
+      orders = @market.orders
+      for id, order of orders
         @market.cancel
           id: nextTransactionId()
           timestamp: TIMESTAMP
