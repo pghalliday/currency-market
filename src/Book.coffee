@@ -10,7 +10,7 @@ module.exports = class Book
           orders: params.orders
         @highest = @head.getHighest()
         for id, order of params.orders
-          order.on 'done', (fill) =>
+          order.on 'done', =>
             @cancel order
 
   export: =>
@@ -34,7 +34,7 @@ module.exports = class Book
     else
       @head = order
       @highest = order
-    order.on 'done', (fill) =>
+    order.on 'done', =>
       @cancel order
   
   cancel: (order) =>

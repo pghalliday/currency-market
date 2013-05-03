@@ -165,7 +165,6 @@ module.exports = class Order extends EventEmitter
     @offerAmount = @offerAmount.subtract offerAmount
     @bidAmount = @offerAmount.multiply @offerPrice
     @emit 'fill', 
-      order: @
       offerAmount: offerAmount
       bidAmount: bidAmount
       fundsUnlocked: offerAmount
@@ -176,7 +175,6 @@ module.exports = class Order extends EventEmitter
     fundsUnlocked = @offerAmount.subtract newOfferAmount
     @offerAmount = newOfferAmount
     @emit 'fill',
-      order: @
       offerAmount: offerAmount
       bidAmount: bidAmount
       fundsUnlocked: fundsUnlocked
@@ -186,7 +184,6 @@ module.exports = class Order extends EventEmitter
     @bidAmount = Amount.ZERO
     @offerAmount = Amount.ZERO
     @emit 'fill', 
-      order: @
       offerAmount: offerAmount
       bidAmount: bidAmount
       fundsUnlocked: fundsUnlocked
