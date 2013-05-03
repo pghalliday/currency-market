@@ -12,9 +12,34 @@ amountPoint01 = new Amount '0.01'
 amount5 = new Amount '5'
 amount10 = new Amount '10'
 amount15 = new Amount '15'
+amount25 = new Amount '25'
+amount50 = new Amount '50'
 amount100 = new Amount '100'
+amount150 = new Amount '150'
+amount200 = new Amount '200'
+amount300 = new Amount '300'
 amount500 = new Amount '500'
 amount1000 = new Amount '1000'
+
+newOffer = (id, currency, amount) ->
+  new Order
+    id: id
+    timestamp: '987654321'
+    account: 'name'
+    bidCurrency: 'EUR'
+    offerCurrency: currency
+    offerAmount: amount
+    offerPrice: amount100
+
+newBid = (id, currency, amount) ->
+  new Order
+    id: id
+    timestamp: '987654321'
+    account: 'name'
+    bidCurrency: currency
+    offerCurrency: 'EUR'
+    bidAmount: amount
+    bidPrice: amount150
 
 describe 'Account', ->
   it 'should instantiate with collections of orders and balances matching the supported currencies', ->
@@ -72,20 +97,12 @@ describe 'Account', ->
           'USD'
           'BTC'
         ]      
-      @account.balances['EUR'].deposit new Amount '300'
-      @account.balances['EUR'].lock new Amount '100'
-      @account.balances['USD'].deposit new Amount '200'
-      @account.balances['USD'].lock new Amount '50'
-      @account.balances['BTC'].deposit new Amount '50'
-      @account.balances['BTC'].lock new Amount '25'
-      @account.orders['1'] = new Order
-        id: '1'
-        timestamp: '1'
-        account: '123456789'
-        offerCurrency: 'EUR'
-        bidCurrency: 'BTC'
-        bidPrice: new Amount '100'
-        bidAmount: new Amount '10'
+      @account.balances['EUR'].deposit amount300
+      @account.submit newOffer '1', 'EUR', amount100
+      @account.balances['USD'].deposit amount200
+      @account.submit newOffer '2', 'USD', amount50
+      @account.balances['BTC'].deposit amount50
+      @account.submit newOffer '3', 'BTC', amount25
 
     it 'should return true if 2 accounts are equal', ->
       account = new Account
@@ -96,20 +113,12 @@ describe 'Account', ->
           'USD'
           'BTC'
         ]      
-      account.balances['EUR'].deposit new Amount '300'
-      account.balances['EUR'].lock new Amount '100'
-      account.balances['USD'].deposit new Amount '200'
-      account.balances['USD'].lock new Amount '50'
-      account.balances['BTC'].deposit new Amount '50'
-      account.balances['BTC'].lock new Amount '25'
-      account.orders['1'] = new Order
-        id: '1'
-        timestamp: '1'
-        account: '123456789'
-        offerCurrency: 'EUR'
-        bidCurrency: 'BTC'
-        bidPrice: new Amount '100'
-        bidAmount: new Amount '10'
+      account.balances['EUR'].deposit amount300
+      account.submit newOffer '1', 'EUR', amount100
+      account.balances['USD'].deposit amount200
+      account.submit newOffer '2', 'USD', amount50
+      account.balances['BTC'].deposit amount50
+      account.submit newOffer '3', 'BTC', amount25
       account.equals(@account).should.be.true
       @account.equals(account).should.be.true
 
@@ -122,20 +131,12 @@ describe 'Account', ->
           'USD'
           'BTC'
         ]      
-      account.orders['1'] = new Order
-        id: '1'
-        timestamp: '1'
-        account: '123456789'
-        offerCurrency: 'EUR'
-        bidCurrency: 'BTC'
-        bidPrice: new Amount '100'
-        bidAmount: new Amount '10'
-      account.balances['EUR'].deposit new Amount '300'
-      account.balances['EUR'].lock new Amount '100'
-      account.balances['USD'].deposit new Amount '200'
-      account.balances['USD'].lock new Amount '50'
-      account.balances['BTC'].deposit new Amount '50'
-      account.balances['BTC'].lock new Amount '25'
+      account.balances['EUR'].deposit amount300
+      account.submit newOffer '1', 'EUR', amount100
+      account.balances['USD'].deposit amount200
+      account.submit newOffer '2', 'USD', amount50
+      account.balances['BTC'].deposit amount50
+      account.submit newOffer '3', 'BTC', amount25
       account.equals(@account).should.be.false
       @account.equals(account).should.be.false
 
@@ -148,20 +149,12 @@ describe 'Account', ->
           'USD'
           'BTC'
         ]      
-      account.orders['1'] = new Order
-        id: '1'
-        timestamp: '1'
-        account: '123456789'
-        offerCurrency: 'EUR'
-        bidCurrency: 'BTC'
-        bidPrice: new Amount '100'
-        bidAmount: new Amount '10'
-      account.balances['EUR'].deposit new Amount '300'
-      account.balances['EUR'].lock new Amount '100'
-      account.balances['USD'].deposit new Amount '200'
-      account.balances['USD'].lock new Amount '50'
-      account.balances['BTC'].deposit new Amount '50'
-      account.balances['BTC'].lock new Amount '25'
+      account.balances['EUR'].deposit amount300
+      account.submit newOffer '1', 'EUR', amount100
+      account.balances['USD'].deposit amount200
+      account.submit newOffer '2', 'USD', amount50
+      account.balances['BTC'].deposit amount50
+      account.submit newOffer '3', 'BTC', amount25
       account.equals(@account).should.be.false
       @account.equals(account).should.be.false
 
@@ -174,54 +167,14 @@ describe 'Account', ->
           'USD'
           'BTC'
         ]
-      account.balances['EUR'].deposit new Amount '300'
-      account.balances['EUR'].lock new Amount '100'
-      account.balances['USD'].deposit new Amount '200'
-      account.balances['USD'].lock new Amount '50'
-      account.balances['BTC'].deposit new Amount '50'
-      account.balances['BTC'].lock new Amount '25'
+      account.balances['EUR'].deposit amount300
+      account.submit newOffer '1', 'EUR', amount100
+      account.balances['USD'].deposit amount200
+      account.submit newOffer '2', 'USD', amount50
+      account.balances['BTC'].deposit amount50
       account.equals(@account).should.be.false
       @account.equals(account).should.be.false
-      account.orders['1'] = new Order
-        id: '1'
-        timestamp: '1'
-        account: '123456789'
-        offerCurrency: 'EUR'
-        bidCurrency: 'BTC'
-        bidPrice: new Amount '100'
-        bidAmount: new Amount '1' # different bid amount
-      account.equals(@account).should.be.false
-      @account.equals(account).should.be.false
-      account = new Account
-        id: '123456789'
-        timestamp: '987654321'
-        currencies: [
-          'EUR'
-          'USD'
-          'BTC'
-        ]
-      account.balances['EUR'].deposit new Amount '300'
-      account.balances['EUR'].lock new Amount '100'
-      account.balances['USD'].deposit new Amount '200'
-      account.balances['USD'].lock new Amount '50'
-      account.balances['BTC'].deposit new Amount '50'
-      account.balances['BTC'].lock new Amount '25'
-      account.orders['1'] = new Order
-        id: '1'
-        timestamp: '1'
-        account: '123456789'
-        offerCurrency: 'EUR'
-        bidCurrency: 'BTC'
-        bidPrice: new Amount '100'
-        bidAmount: new Amount '10' # different bid amount
-      account.orders['2'] = new Order
-        id: '2'
-        timestamp: '1'
-        account: '123456789'
-        offerCurrency: 'EUR'
-        bidCurrency: 'BTC'
-        bidPrice: new Amount '100'
-        bidAmount: new Amount '10'
+      account.submit newOffer '3', 'BTC', amount50
       account.equals(@account).should.be.false
       @account.equals(account).should.be.false
 
@@ -234,20 +187,12 @@ describe 'Account', ->
           'USD'
           'BTC'
         ]      
-      account.orders['1'] = new Order
-        id: '1'
-        timestamp: '1'
-        account: '123456789'
-        offerCurrency: 'EUR'
-        bidCurrency: 'BTC'
-        bidPrice: new Amount '100'
-        bidAmount: new Amount '10'
-      account.balances['EUR'].deposit new Amount '300'
-      account.balances['EUR'].lock new Amount '50'
-      account.balances['USD'].deposit new Amount '200'
-      account.balances['USD'].lock new Amount '50'
-      account.balances['BTC'].deposit new Amount '50'
-      account.balances['BTC'].lock new Amount '25'
+      account.balances['EUR'].deposit amount300
+      account.submit newOffer '1', 'EUR', amount50
+      account.balances['USD'].deposit amount200
+      account.submit newOffer '2', 'USD', amount50
+      account.balances['BTC'].deposit amount50
+      account.submit newOffer '3', 'BTC', amount25
       account.equals(@account).should.be.false
       @account.equals(account).should.be.false
       account = new Account
@@ -258,20 +203,12 @@ describe 'Account', ->
           'USD'
           'BTC'
         ]      
-      account.orders['1'] = new Order
-        id: '1'
-        timestamp: '1'
-        account: '123456789'
-        offerCurrency: 'EUR'
-        bidCurrency: 'BTC'
-        bidPrice: new Amount '100'
-        bidAmount: new Amount '10'
-      account.balances['EUR'].deposit new Amount '300'
-      account.balances['EUR'].lock new Amount '100'
-      account.balances['USD'].deposit new Amount '150'
-      account.balances['USD'].lock new Amount '50'
-      account.balances['BTC'].deposit new Amount '50'
-      account.balances['BTC'].lock new Amount '25'
+      account.balances['EUR'].deposit amount300
+      account.submit newOffer '1', 'EUR', amount100
+      account.balances['USD'].deposit amount150
+      account.submit newOffer '2', 'USD', amount50
+      account.balances['BTC'].deposit amount50
+      account.submit newOffer '3', 'BTC', amount25
       account.equals(@account).should.be.false
       @account.equals(account).should.be.false
       account = new Account
@@ -282,20 +219,6 @@ describe 'Account', ->
           'USD'
           'BTC'
         ]      
-      account.orders['1'] = new Order
-        id: '1'
-        timestamp: '1'
-        account: '123456789'
-        offerCurrency: 'EUR'
-        bidCurrency: 'BTC'
-        bidPrice: new Amount '100'
-        bidAmount: new Amount '10'
-      account.balances['EUR'].deposit new Amount '300'
-      account.balances['EUR'].lock new Amount '100'
-      account.balances['USD'].deposit new Amount '200'
-      account.balances['USD'].lock new Amount '50'
-      account.balances['BTC'].deposit new Amount '50'
-      account.balances['BTC'].lock new Amount '50'
       account.equals(@account).should.be.false
       @account.equals(account).should.be.false
 
@@ -309,15 +232,15 @@ describe 'Account', ->
           'USD'
           'BTC'
         ]
-      account.balances['EUR'].deposit new Amount '1000'
+      account.balances['EUR'].deposit amount1000
       order = new Order
         id: '1'
         timestamp: '1'
         account: '123456789'
         offerCurrency: 'EUR'
         bidCurrency: 'BTC'
-        bidPrice: new Amount '100'
-        bidAmount: new Amount '10'
+        bidPrice: amount100
+        bidAmount: amount10
       account.submit order
       account.orders['1'].should.equal order
       account.balances['EUR'].lockedFunds.compareTo(amount1000).should.equal 0
@@ -332,7 +255,7 @@ describe 'Account', ->
             'USD'
             'BTC'
           ]
-        @account.balances['EUR'].deposit new Amount '1000'
+        @account.balances['EUR'].deposit amount1000
         @order = new Order
           id: '1'
           timestamp: '1'
@@ -381,15 +304,15 @@ describe 'Account', ->
           'USD'
           'BTC'
         ]
-      account.balances['EUR'].deposit new Amount '1000'
+      account.balances['EUR'].deposit amount1000
       order = new Order
         id: '1'
         timestamp: '1'
         account: '123456789'
         offerCurrency: 'EUR'
         bidCurrency: 'BTC'
-        bidPrice: new Amount '100'
-        bidAmount: new Amount '10'
+        bidPrice: amount100
+        bidAmount: amount10
       account.submit order
       account.cancel order
       expect(@account.orders['1']).to.not.be.ok

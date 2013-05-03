@@ -20,19 +20,22 @@ module.exports = class Balance
   deposit: (amount) =>
     @funds = @funds.add(amount)
 
-  lock: (amount) =>
-    newLockedFunds = @lockedFunds.add(amount)
+  submitOffer: (order) =>
+    newLockedFunds = @lockedFunds.add order.offerAmount
     if newLockedFunds.compareTo(@funds) > 0
       throw new Error('Cannot lock funds that are not available')
     else
       @lockedFunds = newLockedFunds
+      order.on 'fill', (fill) =>
+        @lockedFunds = @lockedFunds.subtract fill.fundsUnlocked
+        @funds = @funds.subtract fill.offerAmount
 
-  unlock: (amount) =>
-    newLockedFunds = @lockedFunds.subtract(amount)
-    if newLockedFunds.compareTo(Amount.ZERO) < 0
-      throw new Error('Cannot unlock funds that are not locked')
-    else
-      @lockedFunds = newLockedFunds
+  submitBid: (order) =>
+    order.on 'fill', (fill) =>
+      @funds = @funds.add fill.bidAmount
+
+  cancel: (order) =>
+    @lockedFunds = @lockedFunds.subtract order.offerAmount    
 
   withdraw: (amount) =>
     newFunds = @funds.subtract(amount)

@@ -69,17 +69,14 @@ module.exports = class Account
     return equal
 
   submit: (order) =>
-    @balances[order.offerCurrency].lock order.offerAmount
+    @balances[order.offerCurrency].submitOffer order
+    @balances[order.bidCurrency].submitBid order
     @orders[order.id] = order
-    order.on 'fill', (fill) =>
-      @balances[order.offerCurrency].unlock fill.fundsUnlocked
-      @balances[order.offerCurrency].withdraw fill.offerAmount
-      @balances[order.bidCurrency].deposit fill.bidAmount
     order.on 'done', =>
       delete @orders[order.id]
 
   cancel: (order) =>
     delete @orders[order.id]
-    @balances[order.offerCurrency].unlock order.offerAmount
+    @balances[order.offerCurrency].cancel order
    
 
