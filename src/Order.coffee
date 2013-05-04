@@ -63,21 +63,6 @@ module.exports = class Order extends EventEmitter
       else
           throw new Error('Must specify either bid amount and price or offer amount and price')
 
-  export: =>
-    params = Object.create null
-    params.id = @id
-    params.timestamp = @timestamp
-    params.account = @account
-    params.bidCurrency = @bidCurrency
-    params.offerCurrency = @offerCurrency
-    if @bidPrice
-      params.bidPrice = @bidPrice
-      params.bidAmount = @bidAmount
-    else
-      params.offerPrice = @offerPrice
-      params.offerAmount = @offerAmount
-    return params
-
   partialOffer = (bidAmount, offerAmount) ->
     @offerAmount = @offerAmount.subtract offerAmount
     @bidAmount = @offerAmount.multiply @offerPrice
