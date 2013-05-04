@@ -53,12 +53,16 @@ describe 'Balance', ->
       balance.funds.compareTo(amount350).should.equal 0
 
   describe '#submitOffer', ->
-    it 'should lock the offer amount', ->
+    it 'should lock the offer amount and record the offer in the offers collection', ->
       balance = new Balance()
       balance.deposit amount200
-      balance.submitOffer newOffer '1', amount50
+      offer1 = newOffer '1', amount50
+      balance.submitOffer offer1
+      balance.offers['1'].should.equals offer1
       balance.lockedFunds.compareTo(amount50).should.equal 0
-      balance.submitOffer newOffer '2', amount100
+      offer2 = newOffer '2', amount100
+      balance.submitOffer offer2
+      balance.offers['2'].should.equals offer2
       balance.lockedFunds.compareTo(amount150).should.equal 0
 
     it 'should throw an error if there are not enough funds available to satisfy the order', ->
@@ -84,6 +88,22 @@ describe 'Balance', ->
         balance.lockedFunds.compareTo(Amount.ZERO).should.equal 0
         balance.funds.compareTo(amount150).should.equal 0
 
+    describe 'when a done event fires', ->
+      it 'should remove the offer from the offers collection', ->
+        balance = new Balance()
+        balance.deposit amount200
+        offer = newOffer '1', amount50
+        balance.submitOffer offer
+        bid = newBid '2', amount25
+        bid.match offer
+        balance.lockedFunds.compareTo(amount25).should.equal 0
+        balance.funds.compareTo(amount175).should.equal 0
+        bid = newBid '3', amount50
+        bid.match offer
+        balance.lockedFunds.compareTo(Amount.ZERO).should.equal 0
+        balance.funds.compareTo(amount150).should.equal 0
+        expect(balance.offers['1']).to.not.be.ok
+
   describe '#submitBid', ->
     it 'should wait for a fill event and deposit the correct amount of funds', ->
       balance = new Balance()
@@ -95,13 +115,14 @@ describe 'Balance', ->
       balance.funds.compareTo(amount225).should.equal 0
 
   describe '#cancel', ->
-    it 'should unlock the offer amount', ->
+    it 'should unlock the offer amount and remove the offer from the offers collection', ->
       balance = new Balance()
       balance.deposit amount200
       offer = newOffer '1', amount50
       balance.submitOffer offer
       balance.cancel offer
       balance.lockedFunds.compareTo(Amount.ZERO).should.equal 0
+      expect(balance.offers['1']).to.not.be.ok
 
   describe '#withdraw', ->
     it 'should subtract the withdrawn amount from the funds', ->
@@ -124,38 +145,3 @@ describe 'Balance', ->
       expect ->
         balance.withdraw amount100
       .to.throw('Cannot withdraw funds that are not available')
-
-  describe '#equals', ->
-    beforeEach ->
-      @balance = new Balance()
-      @balance.deposit amount200
-      @balance.submitOffer newOffer '1', amount50
-
-    it 'should return true if 2 balances are equal', ->
-      balance = new Balance()
-      balance.deposit amount200
-      balance.submitOffer newOffer '1', amount50
-      @balance.equals(balance).should.be.true
-
-    it 'should return false if the locked funds are different', ->
-      balance = new Balance()
-      balance.deposit amount200
-      balance.submitOffer newOffer '1', amount100
-      @balance.equals(balance).should.be.false
-
-    it 'should return false if the funds are different', ->
-      balance = new Balance()
-      balance.deposit amount100
-      balance.submitOffer newOffer '1', amount50
-      @balance.equals(balance).should.be.false
-
-  describe '#export', ->
-    it 'should export the state of the balance as a JSON stringifiable object that can be used to initialise a new Account in the exact same state', ->
-      balance = new Balance()
-      balance.deposit amount200
-      balance.submitOffer newOffer '1', amount50
-      state = balance.export()
-      json = JSON.stringify state
-      newBalance = new Balance
-        state: JSON.parse(json)
-      newBalance.equals(balance).should.be.true

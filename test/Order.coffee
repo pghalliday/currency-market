@@ -25,6 +25,7 @@ amount25 = new Amount '25'
 amount50 = new Amount '50'
 amount75 = new Amount '75'
 amount60 = new Amount '60'
+amount99 = new Amount '99'
 amount100 = new Amount '100'
 amount101 = new Amount '101'
 amount125 = new Amount '125'
@@ -330,287 +331,6 @@ describe 'Order', ->
     expect(order.parent).to.not.be.ok
     expect(order.lower).to.not.be.ok
     expect(order.higher).to.not.be.ok
-
-  describe '#equals', ->
-    it 'should return true if the orders are identical', ->
-      order1 = new Order
-        id: '123456789'
-        timestamp: '987654321'
-        account: 'name'
-        bidCurrency: 'BTC'
-        offerCurrency: 'EUR'
-        bidPrice: amount100
-        bidAmount: amount50
-      order2 = new Order
-        id: '123456789'
-        timestamp: '987654321'
-        account: 'name'
-        bidCurrency: 'BTC'
-        offerCurrency: 'EUR'
-        bidPrice: amount100
-        bidAmount: amount50
-      order1.equals(order2).should.be.true
-
-    describe 'with trees of orders', ->
-      beforeEach ->
-        @bidOrder1a = newBidOrder amount1
-        @bidOrder1b = newBidOrder amount1
-        @bidOrder2a = newBidOrder amount2
-        @bidOrder2b = newBidOrder amount2
-        @bidOrder3a = newBidOrder amount3
-        @bidOrder3b = newBidOrder amount3
-        @bidOrder4a = newBidOrder amount4
-        @bidOrder4b = newBidOrder amount4
-        @bidOrder5a = newBidOrder amount5
-        @bidOrder5b = newBidOrder amount5
-        @bidOrder6a = newBidOrder amount6
-        @bidOrder6b = newBidOrder amount6
-        @bidOrder7a = newBidOrder amount7
-        @bidOrder7b = newBidOrder amount7
-        @bidOrder8a = newBidOrder amount8
-        @bidOrder8b = newBidOrder amount8
-
-      it 'should return true if 2 trees are the same', ->
-        @bidOrder4a.equals(@bidOrder4b).should.be.true
-
-        @bidOrder4a.add @bidOrder5a
-        @bidOrder4b.add @bidOrder5b
-        @bidOrder4a.equals(@bidOrder4b).should.be.true
-
-        @bidOrder4a.add @bidOrder3a
-        @bidOrder4b.add @bidOrder3b
-        @bidOrder4a.equals(@bidOrder4b).should.be.true
-
-        @bidOrder4a.add @bidOrder2a
-        @bidOrder4b.add @bidOrder2b
-        @bidOrder4a.equals(@bidOrder4b).should.be.true
-
-        @bidOrder4a.add @bidOrder1a
-        @bidOrder4b.add @bidOrder1b
-        @bidOrder4a.equals(@bidOrder4b).should.be.true
-
-        @bidOrder4a.add @bidOrder8a
-        @bidOrder4b.add @bidOrder8b
-        @bidOrder4a.equals(@bidOrder4b).should.be.true
-
-        @bidOrder4a.add @bidOrder6a
-        @bidOrder4b.add @bidOrder6b
-        @bidOrder4a.equals(@bidOrder4b).should.be.true
-
-        @bidOrder4a.add @bidOrder7a
-        @bidOrder4b.add @bidOrder7b
-        @bidOrder4a.equals(@bidOrder4b).should.be.true
-
-      it 'should return false if the trees are different', ->
-        @bidOrder4a.equals(@bidOrder5b).should.be.false
-
-        @bidOrder4a.add @bidOrder5a
-        @bidOrder4a.equals(@bidOrder4b).should.be.false
-        @bidOrder4b.equals(@bidOrder4a).should.be.false
-
-        @bidOrder4b.add @bidOrder6b
-        @bidOrder4a.equals(@bidOrder4b).should.be.false
-        @bidOrder4b.equals(@bidOrder4a).should.be.false
-
-        @bidOrder3a.add @bidOrder2a
-        @bidOrder3a.equals(@bidOrder3b).should.be.false
-        @bidOrder3b.equals(@bidOrder3a).should.be.false
-
-        @bidOrder3b.add @bidOrder1b
-        @bidOrder3a.equals(@bidOrder3b).should.be.false
-        @bidOrder3b.equals(@bidOrder3a).should.be.false
-
-    it 'should return false if the orders have different IDs', ->
-      order1 = new Order
-        id: '123456789'
-        timestamp: '987654321'
-        account: 'name'
-        bidCurrency: 'BTC'
-        offerCurrency: 'EUR'
-        bidPrice: amount100
-        bidAmount: amount50
-      order2 = new Order
-        id: '123456790'
-        timestamp: '987654321'
-        account: 'name'
-        bidCurrency: 'BTC'
-        offerCurrency: 'EUR'
-        bidPrice: amount100
-        bidAmount: amount50
-      order1.equals(order2).should.be.false
-
-    it 'should return false if the orders have different timestamps', ->
-      order1 = new Order
-        id: '123456789'
-        timestamp: '987654321'
-        account: 'name'
-        bidCurrency: 'BTC'
-        offerCurrency: 'EUR'
-        bidPrice: amount100
-        bidAmount: amount50
-      order2 = new Order
-        id: '123456789'
-        timestamp: '987654322'
-        account: 'name'
-        bidCurrency: 'BTC'
-        offerCurrency: 'EUR'
-        bidPrice: amount100
-        bidAmount: amount50
-      order1.equals(order2).should.be.false
-
-    it 'should return false if the orders have different accounts', ->
-      order1 = new Order
-        id: '123456789'
-        timestamp: '987654321'
-        account: 'name'
-        bidCurrency: 'BTC'
-        offerCurrency: 'EUR'
-        bidPrice: amount100
-        bidAmount: amount50
-      order2 = new Order
-        id: '123456789'
-        timestamp: '987654321'
-        account: 'another name'
-        bidCurrency: 'BTC'
-        offerCurrency: 'EUR'
-        bidPrice: amount100
-        bidAmount: amount50
-      order1.equals(order2).should.be.false
-
-    it 'should return false if the orders have different bid currencies', ->
-      order1 = new Order
-        id: '123456789'
-        timestamp: '987654321'
-        account: 'name'
-        bidCurrency: 'BTC'
-        offerCurrency: 'EUR'
-        bidPrice: amount100
-        bidAmount: amount50
-      order2 = new Order
-        id: '123456789'
-        timestamp: '987654321'
-        account: 'name'
-        bidCurrency: 'USD'
-        offerCurrency: 'EUR'
-        bidPrice: amount100
-        bidAmount: amount50
-      order1.equals(order2).should.be.false
-
-    it 'should return false if the orders have different offer currencies', ->
-      order1 = new Order
-        id: '123456789'
-        timestamp: '987654321'
-        account: 'name'
-        bidCurrency: 'BTC'
-        offerCurrency: 'EUR'
-        bidPrice: amount100
-        bidAmount: amount50
-      order2 = new Order
-        id: '123456789'
-        timestamp: '987654321'
-        account: 'name'
-        bidCurrency: 'BTC'
-        offerCurrency: 'USD'
-        bidPrice: amount100
-        bidAmount: amount50
-      order1.equals(order2).should.be.false
-
-    describe 'with bid orders', ->
-      it 'should return false if the orders have different prices', ->
-        order1 = new Order
-          id: '123456789'
-          timestamp: '987654321'
-          account: 'name'
-          bidCurrency: 'BTC'
-          offerCurrency: 'EUR'
-          bidPrice: amount100
-          bidAmount: amount50
-        order2 = new Order
-          id: '123456789'
-          timestamp: '987654321'
-          account: 'name'
-          bidCurrency: 'BTC'
-          offerCurrency: 'EUR'
-          bidPrice: amount150
-          bidAmount: amount50
-        order1.equals(order2).should.be.false
-
-      it 'should return false if the orders have different amounts', ->
-        order1 = new Order
-          id: '123456789'
-          timestamp: '987654321'
-          account: 'name'
-          bidCurrency: 'BTC'
-          offerCurrency: 'EUR'
-          bidPrice: amount100
-          bidAmount: amount50
-        order2 = new Order
-          id: '123456789'
-          timestamp: '987654321'
-          account: 'name'
-          bidCurrency: 'BTC'
-          offerCurrency: 'EUR'
-          bidPrice: amount100
-          bidAmount: amount100
-        order1.equals(order2).should.be.false
-
-    describe 'with offer orders', ->
-      it 'should return false if the orders have different prices', ->
-        order1 = new Order
-          id: '123456789'
-          timestamp: '987654321'
-          account: 'name'
-          bidCurrency: 'BTC'
-          offerCurrency: 'EUR'
-          offerPrice: amount100
-          offerAmount: amount50
-        order2 = new Order
-          id: '123456789'
-          timestamp: '987654321'
-          account: 'name'
-          bidCurrency: 'BTC'
-          offerCurrency: 'EUR'
-          offerPrice: amount150
-          offerAmount: amount50
-        order1.equals(order2).should.be.false
-
-      it 'should return false if the orders have different amounts', ->
-        order1 = new Order
-          id: '123456789'
-          timestamp: '987654321'
-          account: 'name'
-          bidCurrency: 'BTC'
-          offerCurrency: 'EUR'
-          offerPrice: amount100
-          offerAmount: amount50
-        order2 = new Order
-          id: '123456789'
-          timestamp: '987654321'
-          account: 'name'
-          bidCurrency: 'BTC'
-          offerCurrency: 'EUR'
-          offerPrice: amount100
-          offerAmount: amount100
-        order1.equals(order2).should.be.false
-
-  it 'should return false if the orders are different types', ->
-      order1 = new Order
-        id: '123456789'
-        timestamp: '987654321'
-        account: 'name'
-        bidCurrency: 'BTC'
-        offerCurrency: 'EUR'
-        offerPrice: amount100
-        offerAmount: amount50
-      order2 = new Order
-        id: '123456789'
-        timestamp: '987654321'
-        account: 'name'
-        bidCurrency: 'BTC'
-        offerCurrency: 'EUR'
-        bidPrice: amount100
-        bidAmount: amount100
-      order1.equals(order2).should.be.false
 
   describe '#match', ->
     describe 'where the existing (right) order is an offer', ->
@@ -1744,37 +1464,43 @@ describe 'Order', ->
         order1.getHighest().should.equal 'stub'
 
   describe '#export', ->
-    it 'should export the state of a tree of orders as a JSON stringifiable object that can be used to initialise a new tree of orders in the exact same state and populate a collection of orders keyed by id', ->
-      order1 = newBidOrder amount1, '1'
-      order2 = newBidOrder amount2, '2'
-      order3 = newBidOrder amount3, '3'
-      order4 = newBidOrder amount4, '4'
-      order5 = newBidOrder amount5, '5'
-      order6 = newBidOrder amount6, '6'
-      order7 = newBidOrder amount7, '7'
-      order8 = newBidOrder amount8, '8'
+    it 'should export the an order so that a new order can be constructed with the same fields', ->
+      bid = new Order
+        id: '1'
+        timestamp: '2'
+        account: 'Peter'
+        bidCurrency: 'BTC'
+        offerCurrency: 'EUR'
+        bidPrice: amount100
+        bidAmount: amount50
 
-      order4.add order2
-      order4.add order6
-      order4.add order3
-      order4.add order1
-      order4.add order5
-      order4.add order7
-      order4.add order8
+      offer = new Order
+        id: '3'
+        timestamp: '4'
+        account: 'Paul'
+        bidCurrency: 'EUR'
+        offerCurrency: 'BTC'
+        offerPrice: amount99
+        offerAmount: amount100
 
-      orders = Object.create null
-      state = order4.export()
-      json = JSON.stringify state
-      order = new Order
-        state: JSON.parse json
-        orders: orders
-      orders['1'].equals(order1).should.be.true
-      orders['2'].equals(order2).should.be.true
-      orders['3'].equals(order3).should.be.true
-      orders['4'].equals(order4).should.be.true
-      orders['5'].equals(order5).should.be.true
-      orders['6'].equals(order6).should.be.true
-      orders['7'].equals(order7).should.be.true
-      orders['8'].equals(order8).should.be.true
-      order.equals(order4).should.be.true
+      params = bid.export()
+      order = new Order params
+      order.id.should.equal bid.id
+      order.timestamp.should.equal bid.timestamp
+      order.account.should.equal bid.account
+      order.bidCurrency.should.equal bid.bidCurrency
+      order.offerCurrency.should.equal bid.offerCurrency
+      order.bidPrice.compareTo(bid.bidPrice).should.equal 0
+      order.bidAmount.compareTo(bid.bidAmount).should.equal 0
+      order.offerAmount.compareTo(bid.offerAmount).should.equal 0
 
+      params = offer.export()
+      order = new Order params
+      order.id.should.equal offer.id
+      order.timestamp.should.equal offer.timestamp
+      order.account.should.equal offer.account
+      order.bidCurrency.should.equal offer.bidCurrency
+      order.offerCurrency.should.equal offer.offerCurrency
+      order.offerPrice.compareTo(offer.offerPrice).should.equal 0
+      order.offerAmount.compareTo(offer.offerAmount).should.equal 0
+      order.bidAmount.compareTo(offer.bidAmount).should.equal 0

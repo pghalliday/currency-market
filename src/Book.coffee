@@ -1,23 +1,7 @@
 Amount = require './Amount'
-Order = require './Order'
 
 module.exports = class Book
-  constructor: (params) ->
-    if params
-      if params.state.head
-        @head = new Order
-          state: params.state.head
-          orders: params.orders
-        @highest = @head.getHighest()
-        for id, order of params.orders
-          order.on 'done', =>
-            @cancel order
-
-  export: =>
-    state = Object.create null
-    if @head
-      state.head = @head.export()
-    return state
+  constructor: ->
 
   submit: (order) =>
     if @head
@@ -55,24 +39,3 @@ module.exports = class Book
         @head = newHead
       else
         delete @head
-
-  equals: (book) =>
-    if @head
-      if book.head
-        if !@head.equals book.head
-          return false
-      else
-        return false
-    else
-      if book.head
-        return false
-    if @highest
-      if book.highest
-        if !@highest.equals book.highest
-          return false
-      else
-        return false
-    else
-      if book.highest
-        return false
-    return true

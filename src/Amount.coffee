@@ -11,15 +11,8 @@ module.exports = class Amount
         @value = new Big value
       catch e
         throw new Error('String initializer cannot be parsed to a number')
-    else if value.state
-      @value = new Big value.state.value
     else
       throw new Error('Must intialize from string')
-
-  export: =>
-    state = Object.create null
-    state.value = @value.toString()
-    return state
 
   compareTo: (amount) =>
     if amount instanceof Amount

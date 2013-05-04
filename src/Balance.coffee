@@ -2,20 +2,9 @@ Amount = require('./Amount')
 
 module.exports = class Balance
   constructor: (params) ->
-    if typeof params == 'undefined'
-      @funds = Amount.ZERO
-      @lockedFunds = Amount.ZERO
-    else
-      @funds = new Amount 
-        state: params.state.funds
-      @lockedFunds = new Amount
-        state: params.state.lockedFunds
-
-  export: =>
-    state = Object.create null
-    state.funds = @funds.export()
-    state.lockedFunds = @lockedFunds.export()
-    return state
+    @offers = Object.create null
+    @funds = Amount.ZERO
+    @lockedFunds = Amount.ZERO
 
   deposit: (amount) =>
     @funds = @funds.add(amount)
@@ -25,10 +14,13 @@ module.exports = class Balance
     if newLockedFunds.compareTo(@funds) > 0
       throw new Error('Cannot lock funds that are not available')
     else
+      @offers[order.id] = order
       @lockedFunds = newLockedFunds
       order.on 'fill', (fill) =>
         @lockedFunds = @lockedFunds.subtract fill.fundsUnlocked
         @funds = @funds.subtract fill.offerAmount
+      order.on 'done', =>
+        delete @offers[order.id]
 
   submitBid: (order) =>
     order.on 'fill', (fill) =>
@@ -36,6 +28,7 @@ module.exports = class Balance
 
   cancel: (order) =>
     @lockedFunds = @lockedFunds.subtract order.offerAmount    
+    delete @offers[order.id]
 
   withdraw: (amount) =>
     newFunds = @funds.subtract(amount)
@@ -43,6 +36,3 @@ module.exports = class Balance
       throw new Error('Cannot withdraw funds that are not available')
     else
       @funds = newFunds
-
-  equals: (balance) =>
-    return @funds.compareTo(balance.funds) == 0 && @lockedFunds.compareTo(balance.lockedFunds) == 0

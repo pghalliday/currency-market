@@ -357,8 +357,8 @@ describe 'Market', ->
                   tradeSpy.firstCall.args[0].offer.should.equal @rightOrder
                   tradeSpy.firstCall.args[0].price.compareTo(amountPoint2).should.equal 0
                   tradeSpy.firstCall.args[0].amount.compareTo(amount1000).should.equal 0
-                  expect(@market.accounts['Peter'].orders['1']).to.not.be.ok
-                  expect(@market.accounts['Paul'].orders['2']).to.not.be.ok
+                  expect(@market.accounts['Peter'].balances['EUR'].offers['1']).to.not.be.ok
+                  expect(@market.accounts['Paul'].balances['BTC'].offers['2']).to.not.be.ok
                   @market.accounts['Peter'].balances['EUR'].funds.compareTo(amount1000).should.equal 0
                   @market.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
                   @market.accounts['Peter'].balances['BTC'].funds.compareTo(amount200).should.equal 0
@@ -386,8 +386,8 @@ describe 'Market', ->
                   tradeSpy.firstCall.args[0].offer.should.equal @rightOrder
                   tradeSpy.firstCall.args[0].price.compareTo(amountPoint2).should.equal 0
                   tradeSpy.firstCall.args[0].amount.compareTo(amount500).should.equal 0
-                  @market.accounts['Peter'].orders['1'].offerAmount.compareTo(amount500).should.equal 0
-                  expect(@market.accounts['Paul'].orders['2']).to.not.be.ok
+                  @market.accounts['Peter'].balances['EUR'].offers['1'].offerAmount.compareTo(amount500).should.equal 0
+                  expect(@market.accounts['Paul'].balances['BTC'].offers['2']).to.not.be.ok
                   @market.accounts['Peter'].balances['EUR'].funds.compareTo(amount1500).should.equal 0
                   @market.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(amount500).should.equal 0
                   @market.accounts['Peter'].balances['BTC'].funds.compareTo(amount100).should.equal 0
@@ -415,8 +415,8 @@ describe 'Market', ->
                   tradeSpy.firstCall.args[0].offer.should.equal @rightOrder
                   tradeSpy.firstCall.args[0].price.compareTo(amountPoint2).should.equal 0
                   tradeSpy.firstCall.args[0].amount.compareTo(amount1000).should.equal 0
-                  expect(@market.accounts['Peter'].orders['1']).to.not.be.ok
-                  @market.accounts['Paul'].orders['2'].bidAmount.compareTo(amount500).should.equal 0
+                  expect(@market.accounts['Peter'].balances['EUR'].offers['1']).to.not.be.ok
+                  @market.accounts['Paul'].balances['BTC'].offers['2'].bidAmount.compareTo(amount500).should.equal 0
                   @market.accounts['Peter'].balances['EUR'].funds.compareTo(amount1000).should.equal 0
                   @market.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
                   @market.accounts['Peter'].balances['BTC'].funds.compareTo(amount200).should.equal 0
@@ -445,8 +445,8 @@ describe 'Market', ->
                   tradeSpy.firstCall.args[0].offer.should.equal @rightOrder
                   tradeSpy.firstCall.args[0].price.compareTo(amountPoint2).should.equal 0
                   tradeSpy.firstCall.args[0].amount.compareTo(amount1000).should.equal 0
-                  expect(@market.accounts['Peter'].orders['1']).to.not.be.ok
-                  expect(@market.accounts['Paul'].orders['2']).to.not.be.ok
+                  expect(@market.accounts['Peter'].balances['EUR'].offers['1']).to.not.be.ok
+                  expect(@market.accounts['Paul'].balances['BTC'].offers['2']).to.not.be.ok
                   @market.accounts['Peter'].balances['EUR'].funds.compareTo(amount1000).should.equal 0
                   @market.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
                   @market.accounts['Peter'].balances['BTC'].funds.compareTo(amount200).should.equal 0
@@ -474,8 +474,8 @@ describe 'Market', ->
                   tradeSpy.firstCall.args[0].offer.should.equal @rightOrder
                   tradeSpy.firstCall.args[0].price.compareTo(amountPoint2).should.equal 0
                   tradeSpy.firstCall.args[0].amount.compareTo(amount500).should.equal 0
-                  @market.accounts['Peter'].orders['1'].offerAmount.compareTo(amount500).should.equal 0
-                  expect(@market.accounts['Paul'].orders['2']).to.not.be.ok
+                  @market.accounts['Peter'].balances['EUR'].offers['1'].offerAmount.compareTo(amount500).should.equal 0
+                  expect(@market.accounts['Paul'].balances['BTC'].offers['2']).to.not.be.ok
                   @market.accounts['Peter'].balances['EUR'].funds.compareTo(amount1500).should.equal 0
                   @market.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(amount500).should.equal 0
                   @market.accounts['Peter'].balances['BTC'].funds.compareTo(amount100).should.equal 0
@@ -503,8 +503,8 @@ describe 'Market', ->
                   tradeSpy.firstCall.args[0].offer.should.equal @rightOrder
                   tradeSpy.firstCall.args[0].price.compareTo(amountPoint2).should.equal 0
                   tradeSpy.firstCall.args[0].amount.compareTo(amount1000).should.equal 0
-                  expect(@market.accounts['Peter'].orders['1']).to.not.be.ok
-                  @market.accounts['Paul'].orders['2'].offerAmount.compareTo(amount100).should.equal 0
+                  expect(@market.accounts['Peter'].balances['EUR'].offers['1']).to.not.be.ok
+                  @market.accounts['Paul'].balances['BTC'].offers['2'].offerAmount.compareTo(amount100).should.equal 0
                   @market.accounts['Peter'].balances['EUR'].funds.compareTo(amount1000).should.equal 0
                   @market.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
                   @market.accounts['Peter'].balances['BTC'].funds.compareTo(amount200).should.equal 0
@@ -534,8 +534,8 @@ describe 'Market', ->
                 tradeSpy.firstCall.args[0].offer.should.equal @rightOrder
                 tradeSpy.firstCall.args[0].price.compareTo(amountPoint2).should.equal 0
                 tradeSpy.firstCall.args[0].amount.compareTo(amount1000).should.equal 0
-                expect(@market.accounts['Peter'].orders['1']).to.not.be.ok
-                expect(@market.accounts['Paul'].orders['2']).to.not.be.ok
+                expect(@market.accounts['Peter'].balances['EUR'].offers['1']).to.not.be.ok
+                expect(@market.accounts['Paul'].balances['BTC'].offers['2']).to.not.be.ok
                 @market.accounts['Peter'].balances['EUR'].funds.compareTo(amount1000).should.equal 0
                 @market.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
                 @market.accounts['Peter'].balances['BTC'].funds.compareTo(amount200).should.equal 0
@@ -563,8 +563,8 @@ describe 'Market', ->
                 tradeSpy.firstCall.args[0].offer.should.equal @rightOrder
                 tradeSpy.firstCall.args[0].price.compareTo(amountPoint2).should.equal 0
                 tradeSpy.firstCall.args[0].amount.compareTo(amount500).should.equal 0
-                @market.accounts['Peter'].orders['1'].offerAmount.compareTo(amount500).should.equal 0
-                expect(@market.accounts['Paul'].orders['2']).to.not.be.ok
+                @market.accounts['Peter'].balances['EUR'].offers['1'].offerAmount.compareTo(amount500).should.equal 0
+                expect(@market.accounts['Paul'].balances['BTC'].offers['2']).to.not.be.ok
                 @market.accounts['Peter'].balances['EUR'].funds.compareTo(amount1500).should.equal 0
                 @market.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(amount500).should.equal 0
                 @market.accounts['Peter'].balances['BTC'].funds.compareTo(amount100).should.equal 0
@@ -592,8 +592,8 @@ describe 'Market', ->
                 tradeSpy.firstCall.args[0].offer.should.equal @rightOrder
                 tradeSpy.firstCall.args[0].price.compareTo(amountPoint2).should.equal 0
                 tradeSpy.firstCall.args[0].amount.compareTo(amount1000).should.equal 0
-                expect(@market.accounts['Peter'].orders['1']).to.not.be.ok
-                @market.accounts['Paul'].orders['2'].offerAmount.compareTo(amount100).should.equal 0
+                expect(@market.accounts['Peter'].balances['EUR'].offers['1']).to.not.be.ok
+                @market.accounts['Paul'].balances['BTC'].offers['2'].offerAmount.compareTo(amount100).should.equal 0
                 @market.accounts['Peter'].balances['EUR'].funds.compareTo(amount1000).should.equal 0
                 @market.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
                 @market.accounts['Peter'].balances['BTC'].funds.compareTo(amount200).should.equal 0
@@ -622,8 +622,8 @@ describe 'Market', ->
                 tradeSpy.firstCall.args[0].offer.should.equal @rightOrder
                 tradeSpy.firstCall.args[0].price.compareTo(amountPoint2).should.equal 0
                 tradeSpy.firstCall.args[0].amount.compareTo(amount1000).should.equal 0
-                expect(@market.accounts['Peter'].orders['1']).to.not.be.ok
-                expect(@market.accounts['Paul'].orders['2']).to.not.be.ok
+                expect(@market.accounts['Peter'].balances['EUR'].offers['1']).to.not.be.ok
+                expect(@market.accounts['Paul'].balances['BTC'].offers['2']).to.not.be.ok
                 @market.accounts['Peter'].balances['EUR'].funds.compareTo(amount1000).should.equal 0
                 @market.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
                 @market.accounts['Peter'].balances['BTC'].funds.compareTo(amount200).should.equal 0
@@ -651,8 +651,8 @@ describe 'Market', ->
                 tradeSpy.firstCall.args[0].offer.should.equal @rightOrder
                 tradeSpy.firstCall.args[0].price.compareTo(amountPoint2).should.equal 0
                 tradeSpy.firstCall.args[0].amount.compareTo(amount500).should.equal 0
-                @market.accounts['Peter'].orders['1'].offerAmount.compareTo(amount500).should.equal 0
-                expect(@market.accounts['Paul'].orders['2']).to.not.be.ok
+                @market.accounts['Peter'].balances['EUR'].offers['1'].offerAmount.compareTo(amount500).should.equal 0
+                expect(@market.accounts['Paul'].balances['BTC'].offers['2']).to.not.be.ok
                 @market.accounts['Peter'].balances['EUR'].funds.compareTo(amount1500).should.equal 0
                 @market.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(amount500).should.equal 0
                 @market.accounts['Peter'].balances['BTC'].funds.compareTo(amount100).should.equal 0
@@ -680,8 +680,8 @@ describe 'Market', ->
                 tradeSpy.firstCall.args[0].offer.should.equal @rightOrder
                 tradeSpy.firstCall.args[0].price.compareTo(amountPoint2).should.equal 0
                 tradeSpy.firstCall.args[0].amount.compareTo(amount1000).should.equal 0
-                expect(@market.accounts['Peter'].orders['1']).to.not.be.ok
-                @market.accounts['Paul'].orders['2'].bidAmount.compareTo(amount500).should.equal 0
+                expect(@market.accounts['Peter'].balances['EUR'].offers['1']).to.not.be.ok
+                @market.accounts['Paul'].balances['BTC'].offers['2'].bidAmount.compareTo(amount500).should.equal 0
                 @market.accounts['Peter'].balances['EUR'].funds.compareTo(amount1000).should.equal 0
                 @market.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
                 @market.accounts['Peter'].balances['BTC'].funds.compareTo(amount200).should.equal 0
@@ -723,8 +723,8 @@ describe 'Market', ->
                 tradeSpy.firstCall.args[0].offer.should.equal leftOrder
                 tradeSpy.firstCall.args[0].price.compareTo(amount5).should.equal 0
                 tradeSpy.firstCall.args[0].amount.compareTo(amount200).should.equal 0
-                expect(@market.accounts['Peter'].orders['1']).to.not.be.ok
-                expect(@market.accounts['Paul'].orders['2']).to.not.be.ok
+                expect(@market.accounts['Peter'].balances['EUR'].offers['1']).to.not.be.ok
+                expect(@market.accounts['Paul'].balances['BTC'].offers['2']).to.not.be.ok
                 @market.accounts['Peter'].balances['EUR'].funds.compareTo(amount1000).should.equal 0
                 @market.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
                 @market.accounts['Peter'].balances['BTC'].funds.compareTo(amount200).should.equal 0
@@ -752,8 +752,8 @@ describe 'Market', ->
                 tradeSpy.firstCall.args[0].offer.should.equal leftOrder
                 tradeSpy.firstCall.args[0].price.compareTo(amount5).should.equal 0
                 tradeSpy.firstCall.args[0].amount.compareTo(amount100).should.equal 0
-                @market.accounts['Peter'].orders['1'].bidAmount.compareTo(amount100).should.equal 0
-                expect(@market.accounts['Paul'].orders['2']).to.not.be.ok
+                @market.accounts['Peter'].balances['EUR'].offers['1'].bidAmount.compareTo(amount100).should.equal 0
+                expect(@market.accounts['Paul'].balances['BTC'].offers['2']).to.not.be.ok
                 @market.accounts['Peter'].balances['EUR'].funds.compareTo(amount1500).should.equal 0
                 @market.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(amount500).should.equal 0
                 @market.accounts['Peter'].balances['BTC'].funds.compareTo(amount100).should.equal 0
@@ -781,8 +781,8 @@ describe 'Market', ->
                 tradeSpy.firstCall.args[0].offer.should.equal leftOrder
                 tradeSpy.firstCall.args[0].price.compareTo(amount5).should.equal 0
                 tradeSpy.firstCall.args[0].amount.compareTo(amount200).should.equal 0
-                expect(@market.accounts['Peter'].orders['1']).to.not.be.ok
-                @market.accounts['Paul'].orders['2'].offerAmount.compareTo(amount100).should.equal 0
+                expect(@market.accounts['Peter'].balances['EUR'].offers['1']).to.not.be.ok
+                @market.accounts['Paul'].balances['BTC'].offers['2'].offerAmount.compareTo(amount100).should.equal 0
                 @market.accounts['Peter'].balances['EUR'].funds.compareTo(amount1000).should.equal 0
                 @market.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
                 @market.accounts['Peter'].balances['BTC'].funds.compareTo(amount200).should.equal 0
@@ -811,8 +811,8 @@ describe 'Market', ->
                 tradeSpy.firstCall.args[0].offer.should.equal leftOrder
                 tradeSpy.firstCall.args[0].price.compareTo(amount5).should.equal 0
                 tradeSpy.firstCall.args[0].amount.compareTo(amount200).should.equal 0
-                expect(@market.accounts['Peter'].orders['1']).to.not.be.ok
-                expect(@market.accounts['Paul'].orders['2']).to.not.be.ok
+                expect(@market.accounts['Peter'].balances['EUR'].offers['1']).to.not.be.ok
+                expect(@market.accounts['Paul'].balances['BTC'].offers['2']).to.not.be.ok
                 @market.accounts['Peter'].balances['EUR'].funds.compareTo(amount1000).should.equal 0
                 @market.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
                 @market.accounts['Peter'].balances['BTC'].funds.compareTo(amount200).should.equal 0
@@ -840,8 +840,8 @@ describe 'Market', ->
                 tradeSpy.firstCall.args[0].offer.should.equal leftOrder
                 tradeSpy.firstCall.args[0].price.compareTo(amount5).should.equal 0
                 tradeSpy.firstCall.args[0].amount.compareTo(amount100).should.equal 0
-                @market.accounts['Peter'].orders['1'].bidAmount.compareTo(amount100).should.equal 0
-                expect(@market.accounts['Paul'].orders['2']).to.not.be.ok
+                @market.accounts['Peter'].balances['EUR'].offers['1'].bidAmount.compareTo(amount100).should.equal 0
+                expect(@market.accounts['Paul'].balances['BTC'].offers['2']).to.not.be.ok
                 @market.accounts['Peter'].balances['EUR'].funds.compareTo(amount1500).should.equal 0
                 @market.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(amount500).should.equal 0
                 @market.accounts['Peter'].balances['BTC'].funds.compareTo(amount100).should.equal 0
@@ -869,8 +869,8 @@ describe 'Market', ->
                 tradeSpy.firstCall.args[0].offer.should.equal leftOrder
                 tradeSpy.firstCall.args[0].price.compareTo(amount5).should.equal 0
                 tradeSpy.firstCall.args[0].amount.compareTo(amount200).should.equal 0
-                expect(@market.accounts['Peter'].orders['1']).to.not.be.ok
-                @market.accounts['Paul'].orders['2'].bidAmount.compareTo(amount500).should.equal 0
+                expect(@market.accounts['Peter'].balances['EUR'].offers['1']).to.not.be.ok
+                @market.accounts['Paul'].balances['BTC'].offers['2'].bidAmount.compareTo(amount500).should.equal 0
                 @market.accounts['Peter'].balances['EUR'].funds.compareTo(amount1000).should.equal 0
                 @market.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
                 @market.accounts['Peter'].balances['BTC'].funds.compareTo(amount200).should.equal 0
@@ -959,11 +959,11 @@ describe 'Market', ->
           tradeSpy.thirdCall.args[0].offer.should.equal @rightOrder3
           tradeSpy.thirdCall.args[0].price.compareTo(amountPoint5).should.equal 0
           tradeSpy.thirdCall.args[0].amount.compareTo(amount250).should.equal 0
-          expect(@market.accounts['Peter'].orders['1']).to.not.be.ok
-          expect(@market.accounts['Peter'].orders['2']).to.not.be.ok
-          @market.accounts['Peter'].orders['3'].offerAmount.compareTo(amount250).should.equal 0
-          @market.accounts['Peter'].orders[amount4].offerAmount.compareTo(amount500).should.equal 0
-          expect(@market.accounts['Paul'].orders[amount5]).to.not.be.ok
+          expect(@market.accounts['Peter'].balances['EUR'].offers['1']).to.not.be.ok
+          expect(@market.accounts['Peter'].balances['EUR'].offers['2']).to.not.be.ok
+          @market.accounts['Peter'].balances['EUR'].offers['3'].offerAmount.compareTo(amount250).should.equal 0
+          @market.accounts['Peter'].balances['EUR'].offers[amount4].offerAmount.compareTo(amount500).should.equal 0
+          expect(@market.accounts['Paul'].balances['BTC'].offers[amount5]).to.not.be.ok
           @market.accounts['Peter'].balances['EUR'].funds.compareTo(amount750).should.equal 0
           @market.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(amount750).should.equal 0
           @market.accounts['Peter'].balances['BTC'].funds.compareTo(amount350).should.equal 0
@@ -999,11 +999,11 @@ describe 'Market', ->
           tradeSpy.thirdCall.args[0].offer.should.equal @rightOrder3
           tradeSpy.thirdCall.args[0].price.compareTo(amountPoint5).should.equal 0
           tradeSpy.thirdCall.args[0].amount.compareTo(amount500).should.equal 0
-          expect(@market.accounts['Peter'].orders['1']).to.not.be.ok
-          expect(@market.accounts['Peter'].orders['2']).to.not.be.ok
-          expect(@market.accounts['Peter'].orders['3']).to.not.be.ok
-          @market.accounts['Peter'].orders[amount4].offerAmount.compareTo(amount500).should.equal 0
-          @market.accounts['Paul'].orders[amount5].bidAmount.compareTo(amount250).should.equal 0
+          expect(@market.accounts['Peter'].balances['EUR'].offers['1']).to.not.be.ok
+          expect(@market.accounts['Peter'].balances['EUR'].offers['2']).to.not.be.ok
+          expect(@market.accounts['Peter'].balances['EUR'].offers['3']).to.not.be.ok
+          @market.accounts['Peter'].balances['EUR'].offers[amount4].offerAmount.compareTo(amount500).should.equal 0
+          @market.accounts['Paul'].balances['BTC'].offers[amount5].bidAmount.compareTo(amount250).should.equal 0
           @market.accounts['Peter'].balances['EUR'].funds.compareTo(amount500).should.equal 0
           @market.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(amount500).should.equal 0
           @market.accounts['Peter'].balances['BTC'].funds.compareTo(amount475).should.equal 0
@@ -1220,7 +1220,10 @@ describe 'Market', ->
       @market.cancel
         id: '123456791'
         timestamp: '987654350'
-        order: '123456789'
+        order:
+          id: '123456789'
+          account: 'Peter'
+          offerCurrency: 'EUR'
       account.balances['EUR'].lockedFunds.compareTo(amount100).should.equal 0
 
     it 'should remove the order from the orders collection and from the correct book, record the last transaction ID and emit an cancellation event', ->
@@ -1260,408 +1263,37 @@ describe 'Market', ->
       cancellation1 = 
         id: '123456795'
         timestamp: '987654349'
-        order: '123456793'
+        order:
+          id: '123456793'
+          account: 'Peter'
+          offerCurrency: 'EUR'
       @market.cancel cancellation1
       @market.lastTransaction.should.equal '123456795'
-      expect(@market.accounts['Peter'].orders['123456793']).to.not.be.ok
+      expect(@market.accounts['Peter'].balances['EUR'].offers['123456793']).to.not.be.ok
       expect(@market.books['BTC']['EUR'].highest).to.not.be.ok
-      expect(@market.orders['123456793']).to.not.be.ok
       cancellation2 = 
         id: '123456796'
         timestamp: '987654350'
-        order: '123456794'
+        order:
+          id: '123456794'
+          account: 'Paul'
+          offerCurrency: 'BTC'
       @market.cancel cancellation2
       @market.lastTransaction.should.equal '123456796'
-      expect(@market.accounts['Peter'].orders['123456794']).to.not.be.ok
+      expect(@market.accounts['Paul'].balances['BTC'].offers['123456794']).to.not.be.ok
       expect(@market.books['EUR']['BTC'].highest).to.not.be.ok
-      expect(@market.orders['123456794']).to.not.be.ok
       cancellationSpy.should.have.been.calledTwice
       cancellationSpy.firstCall.args[0].should.equal cancellation1
       cancellationSpy.secondCall.args[0].should.equal cancellation2
 
     it 'should throw an error if the order cannot be found', ->
+      @market.register newAccount 'Peter'
       expect =>
         @market.cancel
           id: '123456795'
           timestamp: '987654349'
-          order: '123456793'
+          order:
+            id: '123456789'
+            account: 'Peter'
+            offerCurrency: 'EUR'          
       .to.throw('Order cannot be found')
-
-  describe '#equals', ->
-    beforeEach ->
-      @market1 = new Market
-        currencies: [
-          'EUR'
-          'USD'
-          'BTC'
-        ]
-      @market1.register newAccount 'Peter'
-      @market1.register newAccount 'Paul'
-      @market1.deposit
-        id: '123456790'
-        timestamp: '987654322'
-        account: 'Peter'
-        currency: 'EUR'
-        amount: amount2000
-      @market1.deposit
-        id: '123456790'
-        timestamp: '987654322'
-        account: 'Paul'
-        currency: 'BTC'
-        amount: amount1000
-      @market1.submit new Order
-        id: '1'
-        timestamp: '1'
-        account: 'Peter'
-        bidCurrency: 'BTC'
-        offerCurrency: 'EUR'
-        offerPrice: amountPoint2
-        offerAmount: amount500
-      @market1.submit new Order
-        id: '2'
-        timestamp: '2'
-        account: 'Peter'
-        bidCurrency: 'BTC'
-        offerCurrency: 'EUR'
-        offerPrice: amountPoint25
-        offerAmount: amount500
-      @market1.submit new Order
-        id: '3'
-        timestamp: '3'
-        account: 'Peter'
-        bidCurrency: 'BTC'
-        offerCurrency: 'EUR'
-        offerPrice: amountPoint5
-        offerAmount: amount500
-      @market1.submit new Order
-        id: '4'
-        timestamp: '4'
-        account: 'Peter'
-        bidCurrency: 'BTC'
-        offerCurrency: 'EUR'
-        offerPrice: amount1
-        offerAmount: amount500
-
-    it 'should return true if 2 markets are equal', ->
-      market2 = new Market
-        currencies: [
-          'EUR'
-          'USD'
-          'BTC'
-        ]
-      market2.register newAccount 'Peter'
-      market2.register newAccount 'Paul'
-      market2.deposit
-        id: '123456790'
-        timestamp: '987654322'
-        account: 'Peter'
-        currency: 'EUR'
-        amount: amount2000
-      market2.deposit
-        id: '123456790'
-        timestamp: '987654322'
-        account: 'Paul'
-        currency: 'BTC'
-        amount: amount1000
-      market2.submit new Order
-        id: '1'
-        timestamp: '1'
-        account: 'Peter'
-        bidCurrency: 'BTC'
-        offerCurrency: 'EUR'
-        offerPrice: amountPoint2
-        offerAmount: amount500
-      market2.submit new Order
-        id: '2'
-        timestamp: '2'
-        account: 'Peter'
-        bidCurrency: 'BTC'
-        offerCurrency: 'EUR'
-        offerPrice: amountPoint25
-        offerAmount: amount500
-      market2.submit new Order
-        id: '3'
-        timestamp: '3'
-        account: 'Peter'
-        bidCurrency: 'BTC'
-        offerCurrency: 'EUR'
-        offerPrice: amountPoint5
-        offerAmount: amount500
-      market2.submit new Order
-        id: '4'
-        timestamp: '4'
-        account: 'Peter'
-        bidCurrency: 'BTC'
-        offerCurrency: 'EUR'
-        offerPrice: amount1
-        offerAmount: amount500
-      market2.equals(@market1).should.be.true
-
-    it 'should return false if the last transaction is different', ->
-      market2 = new Market
-        currencies: [
-          'EUR'
-          'USD'
-          'BTC'
-        ]
-      market2.register newAccount 'Peter'
-      market2.register newAccount 'Paul'
-      market2.deposit
-        id: '123456790'
-        timestamp: '987654322'
-        account: 'Peter'
-        currency: 'EUR'
-        amount: amount2000
-      market2.deposit
-        id: '123456790'
-        timestamp: '987654322'
-        account: 'Paul'
-        currency: 'BTC'
-        amount: amount1000
-      market2.submit new Order
-        id: '1'
-        timestamp: '1'
-        account: 'Peter'
-        bidCurrency: 'BTC'
-        offerCurrency: 'EUR'
-        offerPrice: amountPoint2
-        offerAmount: amount500
-      market2.submit new Order
-        id: '2'
-        timestamp: '2'
-        account: 'Peter'
-        bidCurrency: 'BTC'
-        offerCurrency: 'EUR'
-        offerPrice: amountPoint25
-        offerAmount: amount500
-      market2.submit new Order
-        id: '3'
-        timestamp: '3'
-        account: 'Peter'
-        bidCurrency: 'BTC'
-        offerCurrency: 'EUR'
-        offerPrice: amountPoint5
-        offerAmount: amount500
-      market2.submit new Order
-        id: '4'
-        timestamp: '4'
-        account: 'Peter'
-        bidCurrency: 'BTC'
-        offerCurrency: 'EUR'
-        offerPrice: amount1
-        offerAmount: amount500
-      market2.lastTransaction = amount5
-      market2.equals(@market1).should.be.false
-      delete market2.lastTransaction
-      market2.equals(@market1).should.be.false
-
-    it 'should return false if the currencies list is different', ->
-      market2 = new Market
-        currencies: [
-          'EUR'
-          'BTC'
-        ]
-      market2.register newAccount 'Peter'
-      market2.register newAccount 'Paul'
-      market2.deposit
-        id: '123456790'
-        timestamp: '987654322'
-        account: 'Peter'
-        currency: 'EUR'
-        amount: amount2000
-      market2.deposit
-        id: '123456790'
-        timestamp: '987654322'
-        account: 'Paul'
-        currency: 'BTC'
-        amount: amount1000
-      market2.submit new Order
-        id: '1'
-        timestamp: '1'
-        account: 'Peter'
-        bidCurrency: 'BTC'
-        offerCurrency: 'EUR'
-        offerPrice: amountPoint2
-        offerAmount: amount500
-      market2.submit new Order
-        id: '2'
-        timestamp: '2'
-        account: 'Peter'
-        bidCurrency: 'BTC'
-        offerCurrency: 'EUR'
-        offerPrice: amountPoint25
-        offerAmount: amount500
-      market2.submit new Order
-        id: '3'
-        timestamp: '3'
-        account: 'Peter'
-        bidCurrency: 'BTC'
-        offerCurrency: 'EUR'
-        offerPrice: amountPoint5
-        offerAmount: amount500
-      market2.submit new Order
-        id: '4'
-        timestamp: '4'
-        account: 'Peter'
-        bidCurrency: 'BTC'
-        offerCurrency: 'EUR'
-        offerPrice: amount1
-        offerAmount: amount500
-      market2.equals(@market1).should.be.false
-
-    it 'should return false if the accounts are different', ->
-      market2 = new Market
-        currencies: [
-          'EUR'
-          'USD'
-          'BTC'
-        ]
-      market2.register newAccount 'Peter'
-      market2.register newAccount 'Paul'
-      market2.deposit
-        id: '123456790'
-        timestamp: '987654322'
-        account: 'Peter'
-        currency: 'EUR'
-        amount: amount2500 # different EUR balance
-      market2.deposit
-        id: '123456790'
-        timestamp: '987654322'
-        account: 'Paul'
-        currency: 'BTC'
-        amount: amount1000
-      market2.submit new Order
-        id: '1'
-        timestamp: '1'
-        account: 'Peter'
-        bidCurrency: 'BTC'
-        offerCurrency: 'EUR'
-        offerPrice: amountPoint2
-        offerAmount: amount500
-      market2.submit new Order
-        id: '2'
-        timestamp: '2'
-        account: 'Peter'
-        bidCurrency: 'BTC'
-        offerCurrency: 'EUR'
-        offerPrice: amountPoint25
-        offerAmount: amount500
-      market2.submit new Order
-        id: '3'
-        timestamp: '3'
-        account: 'Peter'
-        bidCurrency: 'BTC'
-        offerCurrency: 'EUR'
-        offerPrice: amountPoint5
-        offerAmount: amount500
-      market2.submit new Order
-        id: '4'
-        timestamp: '4'
-        account: 'Peter'
-        bidCurrency: 'BTC'
-        offerCurrency: 'EUR'
-        offerPrice: amount1
-        offerAmount: amount500
-      market2.equals(@market1).should.be.false
-
-    it 'should return false if the orders or books are different', ->
-      market2 = new Market
-        currencies: [
-          'EUR'
-          'USD'
-          'BTC'
-        ]
-      market2.register newAccount 'Peter'
-      market2.register newAccount 'Paul'
-      market2.deposit
-        id: '123456790'
-        timestamp: '987654322'
-        account: 'Peter'
-        currency: 'EUR'
-        amount: amount2000
-      market2.deposit
-        id: '123456790'
-        timestamp: '987654322'
-        account: 'Paul'
-        currency: 'BTC'
-        amount: amount1000
-      market2.submit new Order
-        id: '1'
-        timestamp: '1'
-        account: 'Peter'
-        bidCurrency: 'BTC'
-        offerCurrency: 'EUR'
-        offerPrice: amountPoint2
-        offerAmount: amount500
-      market2.submit new Order
-        id: '2'
-        timestamp: '2'
-        account: 'Peter'
-        bidCurrency: 'BTC'
-        offerCurrency: 'EUR'
-        offerPrice: amountPoint25
-        offerAmount: amount500
-      market2.submit new Order
-        id: '3'
-        timestamp: '3'
-        account: 'Peter'
-        bidCurrency: 'BTC'
-        offerCurrency: 'EUR'
-        offerPrice: amountPoint5
-        offerAmount: amount500
-      # one less order
-      market2.equals(@market1).should.be.false
-
-  describe '#export', ->
-    it 'should export the state of the market as a JSON stringifiable object that can be used to initialise a new Market in the exact same state', ->
-      @market.register newAccount 'Peter'
-      @market.register newAccount 'Paul'
-      @market.deposit
-        id: '123456790'
-        timestamp: '987654322'
-        account: 'Peter'
-        currency: 'EUR'
-        amount: amount2000
-      @market.deposit
-        id: '123456790'
-        timestamp: '987654322'
-        account: 'Paul'
-        currency: 'BTC'
-        amount: amount1000
-      @market.submit new Order
-        id: '1'
-        timestamp: '1'
-        account: 'Peter'
-        bidCurrency: 'BTC'
-        offerCurrency: 'EUR'
-        offerPrice: amountPoint2
-        offerAmount: amount500
-      @market.submit new Order
-        id: '2'
-        timestamp: '2'
-        account: 'Peter'
-        bidCurrency: 'BTC'
-        offerCurrency: 'EUR'
-        offerPrice: amountPoint25
-        offerAmount: amount500
-      @market.submit new Order
-        id: '3'
-        timestamp: '3'
-        account: 'Peter'
-        bidCurrency: 'BTC'
-        offerCurrency: 'EUR'
-        offerPrice: amountPoint5
-        offerAmount: amount500
-      @market.submit new Order
-        id: '4'
-        timestamp: '4'
-        account: 'Peter'
-        bidCurrency: 'BTC'
-        offerCurrency: 'EUR'
-        offerPrice: amount1
-        offerAmount: amount500
-      state = @market.export()
-      json = JSON.stringify state
-      newMarket = new Market
-        state: JSON.parse(json)
-      newMarket.equals(@market).should.be.true

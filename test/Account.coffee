@@ -42,7 +42,7 @@ newBid = (id, currency, amount) ->
     bidPrice: amount150
 
 describe 'Account', ->
-  it 'should instantiate with collections of orders and balances matching the supported currencies', ->
+  it 'should instantiate with a collection of balances matching the supported currencies', ->
     account = new Account
       id: '123456789'
       timestamp: '987654321'
@@ -56,7 +56,6 @@ describe 'Account', ->
     account.balances['EUR'].should.be.an.instanceOf(Balance)
     account.balances['USD'].should.be.an.instanceOf(Balance)
     account.balances['BTC'].should.be.an.instanceOf(Balance)
-    Object.keys(account.orders).should.be.empty
 
   it 'should throw an error if no id is present', ->
     expect =>
@@ -87,141 +86,6 @@ describe 'Account', ->
         timestamp: '987654321'
     .to.throw('Must supply currencies')   
 
-  describe '#equals', ->
-    beforeEach ->
-      @account = new Account
-        id: '123456789'
-        timestamp: '987654321'
-        currencies: [
-          'EUR'
-          'USD'
-          'BTC'
-        ]      
-      @account.balances['EUR'].deposit amount300
-      @account.submit newOffer '1', 'EUR', amount100
-      @account.balances['USD'].deposit amount200
-      @account.submit newOffer '2', 'USD', amount50
-      @account.balances['BTC'].deposit amount50
-      @account.submit newOffer '3', 'BTC', amount25
-
-    it 'should return true if 2 accounts are equal', ->
-      account = new Account
-        id: '123456789'
-        timestamp: '987654321'
-        currencies: [
-          'EUR'
-          'USD'
-          'BTC'
-        ]      
-      account.balances['EUR'].deposit amount300
-      account.submit newOffer '1', 'EUR', amount100
-      account.balances['USD'].deposit amount200
-      account.submit newOffer '2', 'USD', amount50
-      account.balances['BTC'].deposit amount50
-      account.submit newOffer '3', 'BTC', amount25
-      account.equals(@account).should.be.true
-      @account.equals(account).should.be.true
-
-    it 'should return false if the ids are different', ->
-      account = new Account
-        id: '123456790'
-        timestamp: '987654321'
-        currencies: [
-          'EUR'
-          'USD'
-          'BTC'
-        ]      
-      account.balances['EUR'].deposit amount300
-      account.submit newOffer '1', 'EUR', amount100
-      account.balances['USD'].deposit amount200
-      account.submit newOffer '2', 'USD', amount50
-      account.balances['BTC'].deposit amount50
-      account.submit newOffer '3', 'BTC', amount25
-      account.equals(@account).should.be.false
-      @account.equals(account).should.be.false
-
-    it 'should return false if the timestamps are different', ->
-      account = new Account
-        id: '123456789'
-        timestamp: '987654322'
-        currencies: [
-          'EUR'
-          'USD'
-          'BTC'
-        ]      
-      account.balances['EUR'].deposit amount300
-      account.submit newOffer '1', 'EUR', amount100
-      account.balances['USD'].deposit amount200
-      account.submit newOffer '2', 'USD', amount50
-      account.balances['BTC'].deposit amount50
-      account.submit newOffer '3', 'BTC', amount25
-      account.equals(@account).should.be.false
-      @account.equals(account).should.be.false
-
-    it 'should return false if the orders are different', ->
-      account = new Account
-        id: '123456789'
-        timestamp: '987654321'
-        currencies: [
-          'EUR'
-          'USD'
-          'BTC'
-        ]
-      account.balances['EUR'].deposit amount300
-      account.submit newOffer '1', 'EUR', amount100
-      account.balances['USD'].deposit amount200
-      account.submit newOffer '2', 'USD', amount50
-      account.balances['BTC'].deposit amount50
-      account.equals(@account).should.be.false
-      @account.equals(account).should.be.false
-      account.submit newOffer '3', 'BTC', amount50
-      account.equals(@account).should.be.false
-      @account.equals(account).should.be.false
-
-    it 'should return false if a balance is different', ->
-      account = new Account
-        id: '123456789'
-        timestamp: '987654322'
-        currencies: [
-          'EUR'
-          'USD'
-          'BTC'
-        ]      
-      account.balances['EUR'].deposit amount300
-      account.submit newOffer '1', 'EUR', amount50
-      account.balances['USD'].deposit amount200
-      account.submit newOffer '2', 'USD', amount50
-      account.balances['BTC'].deposit amount50
-      account.submit newOffer '3', 'BTC', amount25
-      account.equals(@account).should.be.false
-      @account.equals(account).should.be.false
-      account = new Account
-        id: '123456789'
-        timestamp: '987654322'
-        currencies: [
-          'EUR'
-          'USD'
-          'BTC'
-        ]      
-      account.balances['EUR'].deposit amount300
-      account.submit newOffer '1', 'EUR', amount100
-      account.balances['USD'].deposit amount150
-      account.submit newOffer '2', 'USD', amount50
-      account.balances['BTC'].deposit amount50
-      account.submit newOffer '3', 'BTC', amount25
-      account.equals(@account).should.be.false
-      @account.equals(account).should.be.false
-      account = new Account
-        id: '123456789'
-        timestamp: '987654322'
-        currencies: [
-          'EUR'
-          'USD'
-          'BTC'
-        ]      
-      account.equals(@account).should.be.false
-      @account.equals(account).should.be.false
-
   describe '#submit', ->
     it 'should add an order to the orders collection and lock the appropriate funds', ->
       account = new Account
@@ -242,7 +106,7 @@ describe 'Account', ->
         bidPrice: amount100
         bidAmount: amount10
       account.submit order
-      account.orders['1'].should.equal order
+      account.balances['EUR'].offers['1'].should.equal order
       account.balances['EUR'].lockedFunds.compareTo(amount1000).should.equal 0
 
     describe 'when the order fill event fires', ->
@@ -276,7 +140,7 @@ describe 'Account', ->
           offerPrice: amount100
           offerAmount: amount5
         order.match @order
-        @account.orders['1'].should.equal @order
+        @account.balances['EUR'].offers['1'].should.equal @order
         @account.balances['EUR'].lockedFunds.compareTo(amount500).should.equal 0
         @account.balances['EUR'].funds.compareTo(amount500).should.equal 0
         @account.balances['BTC'].funds.compareTo(amount5).should.equal 0
@@ -291,7 +155,7 @@ describe 'Account', ->
           offerPrice: amount100
           offerAmount: amount15
         order.match @order
-        expect(@account.orders['1']).to.not.be.ok
+        expect(@account.balances['EUR'].offers['1']).to.not.be.ok
         @account.balances['EUR'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
 
   describe '#cancel', ->
@@ -315,35 +179,5 @@ describe 'Account', ->
         bidAmount: amount10
       account.submit order
       account.cancel order
-      expect(@account.orders['1']).to.not.be.ok
+      expect(@account.balances['EUR'].offers['1']).to.not.be.ok
       account.balances['EUR'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
-
-  describe '#export', ->
-    it 'should export the state of the account as a JSON stringifiable object that can be used to initialise a new Account in the exact same state', ->
-      orders = Object.create null
-      order = new Order
-        id: '1'
-        timestamp: '1'
-        account: '123456789'
-        offerCurrency: 'EUR'
-        bidCurrency: 'BTC'
-        bidPrice: amount100
-        bidAmount: amount10
-      orders[order.id] = order     
-      account = new Account
-        id: '123456789'
-        timestamp: '987654322'
-        currencies: [
-          'EUR'
-          'USD'
-          'BTC'
-        ]
-      account.balances['EUR'].deposit amount1000
-      account.submit order
-      state = account.export()
-      json = JSON.stringify state
-      newAccount = new Account
-        state: JSON.parse(json)
-        orders: orders
-      newAccount.equals(account).should.be.true
-      newAccount.orders[order.id].should.equal order

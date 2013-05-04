@@ -141,15 +141,6 @@ describe 'Amount', ->
       amount2 = new Amount amount1.toString()
       amount1.compareTo(amount2).should.equal 0
 
-  describe '#export', ->
-    it 'should export the state of the Amount as a JSON stringifiable object that can be used to initialise a new Amount in the exact same state', ->
-      amount3 = new Amount('3')
-      state = amount3.export()
-      json = JSON.stringify state
-      newAmount = new Amount
-        state: JSON.parse(json)
-      newAmount.compareTo(amount3).should.equal 0
-
   describe 'ZERO', ->
     it 'should equal zero', ->
       Amount.ZERO.compareTo(new Amount('0')).should.equal(0)
