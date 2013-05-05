@@ -235,10 +235,12 @@ console.log('********************');
 console.log('');
 console.log(market.books['BTC']['EUR'].highest);
 
+//
+// TODO (see Roadmap)
+//
+
 // export the state (as an object that can be converted to JSON)
 var state  = market.export();
-
-// TODO (see Roadmap)
 
 // JSON stringify the state
 var json = JSON.stringify(state);
