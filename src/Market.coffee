@@ -3,7 +3,7 @@ Account = require('./Account')
 EventEmitter = require('events').EventEmitter
 
 module.exports = class Market extends EventEmitter
-  constructor: (params) ->
+  constructor: ->
     @accounts = Object.create null
     @books = Object.create null
 
