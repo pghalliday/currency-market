@@ -1,7 +1,8 @@
 Balance = require('./Balance')
 
 module.exports = class Account
-  constructor: ->
+  constructor: (id) ->
+    @id = id
     @balances = Object.create null
 
   getBalance: (currency) =>

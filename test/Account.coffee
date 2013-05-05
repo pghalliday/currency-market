@@ -43,6 +43,10 @@ newBid = (id, currency, amount) ->
     bidPrice: amount150
 
 describe 'Account', ->
+  it 'should instantiate and record the account ID', ->
+    account = new Account '1'
+    account.id.should.equal '1'
+
   describe '#submit', ->
     it 'should add an order to the orders collection and lock the appropriate funds', ->
       account = new Account()

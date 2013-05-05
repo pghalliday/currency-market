@@ -21,11 +21,7 @@ module.exports = class RandomBidOffer
   constructor: (params) ->
     @iterations = [1..params.iterations]
     @accounts = []
-    @market = new Market
-      currencies: [
-        'EUR'
-        'BTC'
-      ]
+    @market = new Market()
 
     # create the accounts and the random parameters in advance
     # so as not to skew the timings
@@ -34,13 +30,6 @@ module.exports = class RandomBidOffer
     @randomParameters = Object.create null
     [1..params.accounts].forEach =>
       accountId = nextTransactionId()
-      @market.register new Account
-        id: accountId
-        timestamp: TIMESTAMP
-        currencies: [
-          'EUR'
-          'BTC'
-        ]
       @randomParameters[accountId] = []
       @iterations.forEach (iteration) =>
         price = poisson params.price
@@ -56,7 +45,7 @@ module.exports = class RandomBidOffer
           bidPrice: bidPrice
           bidAmount: bidAmount
           requiredEUR: requiredEUR
-      @accounts.push @market.accounts[accountId]
+      @accounts.push @market.getAccount(accountId)
 
     @trades = 0
     @market.on 'trade', (trade) =>
@@ -82,12 +71,19 @@ module.exports = class RandomBidOffer
     startTime = process.hrtime()
     @iterations.forEach (iteration) =>
       # cancel all the outstanding orders
-      orders = @market.orders
-      for id, order of orders
-        @market.cancel
-          id: nextTransactionId()
-          timestamp: TIMESTAMP
-          order: id
+      @accounts.forEach (account) =>
+        eurOffers = account.getBalance('EUR').offers
+        btcOffers = account.getBalance('BTC').offers
+        for id, order of eurOffers
+          @market.cancel
+            id: nextTransactionId()
+            timestamp: TIMESTAMP
+            order: order
+        for id, order of btcOffers
+          @market.cancel
+            id: nextTransactionId()
+            timestamp: TIMESTAMP
+            order: order
 
       # withdraw funds, make deposits and place new orders
       @accounts.forEach (account) =>

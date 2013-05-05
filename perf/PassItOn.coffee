@@ -15,20 +15,9 @@ module.exports = class PassItOn
   constructor: (params) ->
     @iterations = [1..params.iterations]
     @accounts = []
-    @market = new Market
-      currencies: [
-        'EUR'
-        'BTC'
-      ]
+    @market = new Market()
     [1..params.accounts].forEach (index) =>
       accountId = nextTransactionId()
-      @market.register new Account
-        id: accountId
-        timestamp: TIMESTAMP
-        currencies: [
-          'EUR'
-          'BTC'
-        ]
       if index == 1
         # first account gets the EUR to pass round
         @market.deposit
@@ -45,7 +34,7 @@ module.exports = class PassItOn
           account: accountId
           currency: 'BTC'
           amount: new Amount '50'
-      @accounts.push @market.accounts[accountId]
+      @accounts.push accountId
 
     @trades = 0
     @market.on 'trade', (trade) =>
@@ -56,39 +45,39 @@ module.exports = class PassItOn
     @iterations.forEach =>
       lastAccount = null
       firstAccount = null
-      @accounts.forEach (account) =>
+      @accounts.forEach (accountId) =>
         if lastAccount
           # fulfill the order from the last account
           @market.submit new Order
             id: nextTransactionId()
             timestamp: TIMESTAMP
-            account: account.id
+            account: accountId
             bidCurrency: 'EUR'
             offerCurrency: 'BTC'
             offerPrice: new Amount '100'
             offerAmount: new Amount '50'          
         else
           # record this as the first account so we can complete the circle
-          firstAccount = account
+          firstAccount = accountId
 
         # order some BTC
         @market.submit new Order
           id: nextTransactionId()
           timestamp: TIMESTAMP
-          account: account.id
+          account: accountId
           bidCurrency: 'BTC'
           offerCurrency: 'EUR'
           bidPrice: new Amount '100'
           bidAmount: new Amount '50'
 
         # set the last account
-        lastAccount = account
+        lastAccount = accountId
 
       # now we can complete the circle and give the EUR back to the first account
       @market.submit new Order
         id: nextTransactionId()
         timestamp: TIMESTAMP
-        account: firstAccount.id
+        account: firstAccount
         bidCurrency: 'EUR'
         offerCurrency: 'BTC'
         offerPrice: new Amount '100'

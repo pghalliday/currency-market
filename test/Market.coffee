@@ -1157,6 +1157,7 @@ describe 'Market', ->
     it 'should return an Account object associated with the given ID', ->
       account1 = @market.getAccount 'Peter'
       account1.should.be.an.instanceOf Account
+      account1.id.should.equal 'Peter'
       account2 = @market.getAccount 'Peter'
       account2.should.equal account1
       account3 = @market.getAccount 'Paul'

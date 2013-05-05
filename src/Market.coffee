@@ -10,7 +10,7 @@ module.exports = class Market extends EventEmitter
   getAccount: (id) =>
     account = @accounts[id]
     if !account
-      @accounts[id] = account = new Account()
+      @accounts[id] = account = new Account id
     return account
 
   getBook: (bidCurrency, offerCurrency) =>
