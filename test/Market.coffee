@@ -1171,3 +1171,48 @@ describe 'Market', ->
       book2.should.equal book1
       book3 = @market.getBook 'BTC', 'EUR'
       book3.should.not.equal book1
+
+  describe '#export', ->
+    it.skip 'should return a JSON stringifiable object containing a snapshot of the market', ->
+      @market.deposit
+        id: '123456791'
+        timestamp: '987654322'
+        account: 'Peter'
+        currency: 'EUR'
+        amount: amount200
+      @market.deposit
+        id: '123456792'
+        timestamp: '987654322'
+        account: 'Paul'
+        currency: 'BTC'
+        amount: amount4950
+      @market.submit new Order
+        id: '123456793'
+        timestamp: '987654321'
+        account: 'Peter'
+        bidCurrency: 'BTC'
+        offerCurrency: 'EUR'
+        offerPrice: amount100
+        offerAmount: amount50
+      @market.submit new Order
+        id: '123456794'
+        timestamp: '987654322'
+        account: 'Paul'
+        bidCurrency: 'EUR'
+        offerCurrency: 'BTC'
+        bidPrice: amount99
+        bidAmount: amount50
+      json = JSON.stringify @market.export()
+      object = JSON.parse json
+      object.lastTransaction.should.equal @market.lastTransaction
+      for id, account of object.accounts
+        account.should.deep.equal @market.getAccount(id).export()
+      for id of @market.accounts
+        object.accounts[id].should.be.ok
+      for bidCurrency, books of object.books
+        for offerCurrency, book of books
+          book.should.deep.equal @market.getBook(bidCurrency, offerCurrency).export()
+      for bidCurrency, books of @market.books
+        for offerCurrency of books
+          object.books[bidCurrency][offerCurrency].should.be.ok
+

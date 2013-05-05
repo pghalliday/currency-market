@@ -284,3 +284,73 @@ describe 'Book', ->
       @book.highest.should.equal(@order7)
       @book.cancel(@order7)
       expect(@book.highest).to.not.be.ok
+
+  describe '#export', ->
+    it.skip 'should return a JSON stringifiable array containing a sorted list of orders in the book with the highest first', ->
+      book = new Book()
+      #
+      #                       1
+      #                      / \
+      #                     /   \
+      #                    /     \
+      #                   /       \
+      #                  /         \
+      #                 3           2
+      #                / \         / \
+      #               /   \       /   \
+      #              7     6     5     4
+      #             / \   / \   / \   / \
+      #            8   9 10 11 12 13 14 15
+      #
+      order1 = newOrder('1', amount50)
+      book.submit(order1)
+      order2 = newOrder('2', amount51)
+      book.submit(order2)
+      order3 = newOrder('3', amount49)
+      book.submit(order3)
+      order4 = newOrder('4', amount52)
+      book.submit(order4)
+      order5 = newOrder('5', amount50Point5)
+      book.submit(order5)
+      order6 = newOrder('6', amount49Point5)
+      book.submit(order6)
+      order7 = newOrder('7', amount48Point5)
+      book.submit(order7)
+      order8 = newOrder('8', amount48Point5) # is equal to but should be placed lower than order 7
+      book.submit(order8)
+      order9 = newOrder('9', amount48Point75)
+      book.submit(order9)
+      order10 = newOrder('10', amount49Point5) # is equal to but should be placed lower than order 6
+      book.submit(order10)
+      order11 = newOrder('11', amount49Point75)
+      book.submit(order11)
+      order12 = newOrder('12', amount50Point5) # is equal to but should be placed lower than order 5
+      book.submit(order12)
+      order13 = newOrder('13', amount50Point75)
+      book.submit(order13)
+      order14 = newOrder('14', amount52) # is equal to but should be placed lower than order 4
+      book.submit(order14)
+      order15 = newOrder('15', amount53)
+      book.submit(order15)
+      json = JSON.stringify book.export()
+      array = JSON.parse json
+      array.should.deep.equal [
+        order15.export()
+        order4.export()
+        order14.export()
+        order2.export()
+        order13.export()
+        order5.export()
+        order12.export()
+        order1.export()
+        order11.export()
+        order6.export()
+        order10.export()
+        order3.export()
+        order9.export()
+        order7.export()
+        order8.export()
+      ]
+
+
+

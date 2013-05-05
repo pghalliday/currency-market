@@ -22,7 +22,17 @@ amount6 = new Amount '6'
 amount7 = new Amount '7'
 amount8 = new Amount '8'
 amount25 = new Amount '25'
+amount48Point5 = new Amount '48.5'
+amount48Point75 = new Amount '48.75'
+amount49 = new Amount '49'
+amount49Point5 = new Amount '49.5'
+amount49Point75 = new Amount '49.75'
 amount50 = new Amount '50'
+amount50Point5 = new Amount '50.5'
+amount50Point75 = new Amount '50.75'
+amount51 = new Amount '51'
+amount52 = new Amount '52'
+amount53 = new Amount '53'
 amount75 = new Amount '75'
 amount60 = new Amount '60'
 amount99 = new Amount '99'
@@ -1334,7 +1344,7 @@ describe 'Order', ->
       @bidOrder7 = newBidOrder amount7
       @bidOrder8 = newBidOrder amount8
 
-    describe 'a Order with a lower parent but no lower or higher', ->
+    describe 'an Order with a lower parent but no lower or higher', ->
       it 'should delete the parent higher Order', ->
         @bidOrder2.add @bidOrder3
         @bidOrder2.add @bidOrder1
@@ -1342,7 +1352,7 @@ describe 'Order', ->
         @bidOrder2.lower.should.equal @bidOrder1
         expect(@bidOrder2.higher).to.not.be.ok
 
-    describe 'a Order with a higher parent but no lower or higher', ->
+    describe 'an Order with a higher parent but no lower or higher', ->
       it 'should delete the parent lower Order', ->
         @bidOrder2.add @bidOrder3
         @bidOrder2.add @bidOrder1
@@ -1350,7 +1360,7 @@ describe 'Order', ->
         expect(@bidOrder2.lower).to.not.be.ok
         @bidOrder2.higher.should.equal @bidOrder3
 
-    describe 'a Order with a lower parent and a lower but no higher Order', ->
+    describe 'an Order with a lower parent and a lower but no higher Order', ->
       it 'should set the parent higher to the lower Order and return the lower Order', ->
         @bidOrder4.add @bidOrder6
         @bidOrder4.add @bidOrder5
@@ -1361,7 +1371,7 @@ describe 'Order', ->
         @bidOrder5.parent.should.equal @bidOrder4
         @bidOrder4.higher.should.equal @bidOrder5
 
-    describe 'a Order with a lower parent and a higher but no lower Order', ->
+    describe 'an Order with a lower parent and a higher but no lower Order', ->
       it 'should set the parent higher to the higher Order and return the higher Order', ->
         @bidOrder4.add @bidOrder6
         @bidOrder4.add @bidOrder7
@@ -1372,7 +1382,7 @@ describe 'Order', ->
         @bidOrder7.parent.should.equal @bidOrder4
         @bidOrder4.higher.should.equal @bidOrder7
 
-    describe 'a Order with a lower parent and both higher and lower BookEntries', ->
+    describe 'an Order with a lower parent and both higher and lower BookEntries', ->
       it 'should set the parent higher to the higher Order, call addLowest on the higher Order with the lower Order and return the higher Order', ->
         addLowestSpy = sinon.spy()
         @bidOrder7.addLowest = addLowestSpy
@@ -1387,7 +1397,7 @@ describe 'Order', ->
         @bidOrder4.higher.should.equal @bidOrder7
         addLowestSpy.should.have.been.calledWith @bidOrder5
 
-    describe 'a Order with a higher parent and a lower but no higher Order', ->
+    describe 'an Order with a higher parent and a lower but no higher Order', ->
       it 'should set the parent lower to the lower Order and return the lower Order', ->
         @bidOrder4.add @bidOrder2
         @bidOrder4.add @bidOrder1
@@ -1398,7 +1408,7 @@ describe 'Order', ->
         @bidOrder1.parent.should.equal @bidOrder4
         @bidOrder4.higher.should.equal @bidOrder5
 
-    describe 'a Order with a higher parent and a higher but no lower Order', ->
+    describe 'an Order with a higher parent and a higher but no lower Order', ->
       it 'should set the parent lower to the higher Order and return the higher Order', ->
         @bidOrder4.add @bidOrder2
         @bidOrder4.add @bidOrder3
@@ -1409,7 +1419,7 @@ describe 'Order', ->
         @bidOrder3.parent.should.equal @bidOrder4
         @bidOrder4.higher.should.equal @bidOrder5
 
-    describe 'a Order with a higher parent and both higher and lower BookEntries', ->
+    describe 'an Order with a higher parent and both higher and lower BookEntries', ->
       it 'should set the parent lower to the higher Order, call addLowest on the higher Order with the lower Order and return the higher Order', ->
         addLowestSpy = sinon.spy()
         @bidOrder3.addLowest = addLowestSpy
@@ -1424,21 +1434,21 @@ describe 'Order', ->
         @bidOrder4.higher.should.equal @bidOrder5
         addLowestSpy.should.have.been.calledWith @bidOrder1
 
-    describe 'a Order with no parent and a lower but no higher Order', ->
+    describe 'an Order with no parent and a lower but no higher Order', ->
       it 'should return the lower Order', ->
         @bidOrder4.add @bidOrder2
         order = @bidOrder4.delete()
         order.should.equal @bidOrder2
         expect(@bidOrder2.parent).to.not.be.ok
 
-    describe 'a Order with no parent and a higher but no lower Order', ->
+    describe 'an Order with no parent and a higher but no lower Order', ->
       it 'should return the higher Order', ->
         @bidOrder4.add @bidOrder6
         order = @bidOrder4.delete()
         order.should.equal @bidOrder6
         expect(@bidOrder6.parent).to.not.be.ok
 
-    describe 'a Order with no parent and both higher and lower BookEntries', ->
+    describe 'an Order with no parent and both higher and lower BookEntries', ->
       it 'should call addLowest on the higher Order with the lower Order and return the higher Order', ->
         addLowestSpy = sinon.spy()
         @bidOrder6.addLowest = addLowestSpy
@@ -1462,3 +1472,115 @@ describe 'Order', ->
         order1.add order2
         order2.getHighest = sinon.stub().returns 'stub'
         order1.getHighest().should.equal 'stub'
+
+  describe '#export', ->
+    it 'should return a JSON stringifiable object containing a snapshot of the order', ->
+      order = new Order
+        id: '123456789'
+        timestamp: '987654321'
+        account: 'name'
+        bidCurrency: 'BTC'
+        offerCurrency: 'EUR'
+        bidPrice: amount100
+        bidAmount: amount50
+      json = JSON.stringify order.export()
+      object = JSON.parse json
+      order.id.should.equal object.id
+      order.timestamp.should.equal object.timestamp
+      order.account.should.equal object.account
+      order.bidCurrency.should.equal object.bidCurrency
+      order.offerCurrency.should.equal object.offerCurrency
+      order.bidPrice.compareTo(new Amount object.bidPrice).should.equal 0
+      order.bidAmount.compareTo(new Amount object.bidAmount).should.equal 0
+      expect(object.offerPrice).to.not.be.ok
+      expect(object.offerAmount).to.not.be.ok
+      order = new Order
+        id: '123456789'
+        timestamp: '987654321'
+        account: 'name'
+        bidCurrency: 'EUR'
+        offerCurrency: 'BTC'
+        offerPrice: amount100
+        offerAmount: amount50
+      json = JSON.stringify order.export()
+      object = JSON.parse json
+      order.id.should.equal object.id
+      order.timestamp.should.equal object.timestamp
+      order.account.should.equal object.account
+      order.bidCurrency.should.equal object.bidCurrency
+      order.offerCurrency.should.equal object.offerCurrency
+      order.offerPrice.compareTo(new Amount object.offerPrice).should.equal 0
+      order.offerAmount.compareTo(new Amount object.offerAmount).should.equal 0
+      expect(object.bidPrice).to.not.be.ok
+      expect(object.bidAmount).to.not.be.ok
+
+  describe '#exportList', ->
+    it.skip 'should push exported orders onto the supplied array starting with itself and working back through lower orders', ->
+      #
+      #                       1
+      #                      / \
+      #                     /   \
+      #                    /     \
+      #                   /       \
+      #                  /         \
+      #                 3           2
+      #                / \         / \
+      #               /   \       /   \
+      #              7     6     5     4
+      #             / \   / \   / \   / \
+      #            8   9 10 11 12 13 14 15
+      #
+      order1 = newBidOrder amount50
+      order2 = newBidOrder amount51
+      order1.add order2
+      order3 = newBidOrder amount49
+      order1.add order3
+      order4 = newBidOrder amount52
+      order1.add order4
+      order5 = newBidOrder amount50Point5
+      order1.add order5
+      order6 = newBidOrder amount49Point5
+      order1.add order6
+      order7 = newBidOrder amount48Point5
+      order1.add order7
+      order8 = newBidOrder amount48Point5 # is equal to but should be placed lower than order 7
+      order1.add order8
+      order9 = newBidOrder amount48Point75
+      order1.add order9
+      order10 = newBidOrder amount49Point5 # is equal to but should be placed lower than order 6
+      order1.add order10
+      order11 = newBidOrder amount49Point75
+      order1.add order11
+      order12 = newBidOrder amount50Point5 # is equal to but should be placed lower than order 5
+      order1.add order12
+      order13 = newBidOrder amount50Point75
+      order1.add order13
+      order14 = newBidOrder amount52 # is equal to but should be placed lower than order 4
+      order1.add order14
+      order15 = newBidOrder amount53
+      order1.add order15
+      array = []
+      order15.exportList array
+      json = JSON.stringify array
+      array = JSON.parse json
+      array.should.deep.equal [
+        order15.export()
+        order4.export()
+        order14.export()
+        order2.export()
+        order13.export()
+        order5.export()
+        order12.export()
+        order1.export()
+        order11.export()
+        order6.export()
+        order10.export()
+        order3.export()
+        order9.export()
+        order7.export()
+        order8.export()
+      ]
+
+
+
+

@@ -129,7 +129,6 @@ describe 'Balance', ->
       balance = new Balance()
       balance.deposit amount200
       balance.submitOffer newOffer '1', amount50
-      balance.lockedFunds.compareTo(amount50).should.equal 0
       balance.submitOffer newOffer '2', amount100
       balance.withdraw amount25
       balance.funds.compareTo(amount175).should.equal 0
@@ -140,8 +139,24 @@ describe 'Balance', ->
       balance = new Balance()
       balance.deposit amount200
       balance.submitOffer newOffer '1', amount50
-      balance.lockedFunds.compareTo(amount50).should.equal 0
       balance.submitOffer newOffer '2', amount100
       expect ->
         balance.withdraw amount100
       .to.throw('Cannot withdraw funds that are not available')
+
+  describe '#export', ->
+    it 'should return a JSON stringifiable object containing a snapshot of the balance', ->
+      balance = new Balance()
+      balance.deposit amount200
+      balance.submitOffer newOffer '1', amount50
+      balance.submitOffer newOffer '2', amount100
+      json = JSON.stringify balance.export()
+      object = JSON.parse json
+      balance.funds.compareTo(new Amount object.funds).should.equal 0
+      balance.lockedFunds.compareTo(new Amount object.lockedFunds).should.equal 0
+      for id, order of object.offers
+        order.should.deep.equal balance.offers[id].export()
+      for id of balance.offers
+        object.offers[id].should.be.ok
+
+

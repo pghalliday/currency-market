@@ -23,3 +23,10 @@ module.exports = class Account
   cancel: (order) =>
     @getBalance(order.offerCurrency).cancel order
 
+  export: =>
+    object = Object.create null
+    object.id = @id
+    object.balances = Object.create null
+    for currency, balance of @balances
+      object.balances[currency] = balance.export()
+    return object

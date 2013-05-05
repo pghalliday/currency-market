@@ -308,3 +308,29 @@ module.exports = class Order extends EventEmitter
       return @higher.getHighest()
     else
       return @
+
+  export: =>
+    object = Object.create null
+    object.id = @id
+    object.timestamp = @timestamp
+    object.account = @account
+    object.bidCurrency = @bidCurrency
+    object.offerCurrency = @offerCurrency
+    if @bidPrice
+      object.bidPrice = @bidPrice.toString()
+      object.bidAmount = @bidAmount.toString()
+    else
+      object.offerPrice = @offerPrice.toString()
+      object.offerAmount = @offerAmount.toString()
+    return object
+
+  exportList: (array) =>
+    array.push @export()
+    if @lower
+      @lower.getHighest().exportList array
+    if @parent
+      if @parent.higher == @
+        array.push @parent.export()
+        if @parent.lower
+          @parent.lower.getHighest().exportList array
+

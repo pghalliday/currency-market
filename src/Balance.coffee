@@ -36,3 +36,12 @@ module.exports = class Balance
       throw new Error('Cannot withdraw funds that are not available')
     else
       @funds = newFunds
+
+  export: =>
+    object = Object.create null
+    object.funds = @funds.toString()
+    object.lockedFunds = @lockedFunds.toString()
+    object.offers = Object.create null
+    for id, order of @offers
+      object.offers[id] = order.export()
+    return object

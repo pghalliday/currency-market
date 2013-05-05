@@ -176,3 +176,20 @@ describe 'Account', ->
           amount: amount100
       .to.throw('Cannot withdraw funds that are not available')
 
+  describe '#export', ->
+    it 'should return a JSON stringifiable object containing a snapshot of the account', ->
+      account = new Account '123456789'
+      account.deposit
+        currency: 'BTC'
+        amount: amount200
+      account.submit newOffer '1', 'BTC', amount50
+      account.submit newOffer '2', 'BTC', amount100
+      json = JSON.stringify account.export()
+      object = JSON.parse json
+      object.id.should.equal account.id
+      for currency, balance of object.balances
+        balance.should.deep.equal account.getBalance(currency).export()
+      for currency of account.balances
+        object.balances[currency].should.be.ok
+
+

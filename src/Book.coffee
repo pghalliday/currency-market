@@ -39,3 +39,9 @@ module.exports = class Book
         @head = newHead
       else
         delete @head
+
+  export: =>
+    array = []
+    if @highest
+      @highest.exportList array
+    return array
