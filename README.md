@@ -28,27 +28,9 @@ var Amount = require('currency-market').Amount;
 var Order = require('currency-market').Order;
 
 // instantiate a market
-var market = new Market({
-  currencies: [
-    'EUR',
-    'USD',
-    'BTC'
-  ]
-});
+var market = new Market();
 
 // register for events
-market.on('account', function(account) {
-  console.log('');
-  console.log('********************');
-  console.log('********************');
-  console.log('');
-  console.log('Account');
-  console.log('');
-  console.log('********************');
-  console.log('********************');
-  console.log('');
-  console.log(account);
-});
 market.on('deposit', function(deposit) {
   console.log('');
   console.log('********************');
@@ -110,42 +92,22 @@ market.on('trade', function(trade) {
   console.log(trade);
 });
 
-// add accounts
-market.register(new Account({
+// make deposits
+market.deposit({
   // All IDs are intended to be the transaction IDs and as such
   // should be globally unique. If not unique then the lastTransaction
   // field may be rendered meaningless preventing restoration from a 
   // saved transaction log.
   // Additionally these IDs are used to key collections so strange behaviour
   // may result if they are not unique
-  id: '100000',
+  id: '100002',
   // Although the timestamp is not used internally, it is required
   // so that any functionality hanging off the events can replicate
   // their time relative behaviour in case a Market has to be restored
   // from a transaction log
-  timestamp: '1366758222',
-  currencies: [
-    'EUR',
-    'USD',
-    'BTC'
-  ]
-}));
-market.register(new Account({
-  id: '100001',
-  timestamp: '1366758223',
-  currencies: [
-    'EUR',
-    'USD',
-    'BTC'
-  ]
-}));
-
-// make deposits
-market.deposit({
-  id: '100002',
   timestamp: '1366758224',
-  // Note that the acount field should be set to the ID of the account.
-  // This is one of the instances whre the transaction ID is used as a key
+  // Note that the acount field should be set to the unique ID of the account.
+  // Accounts will be created and initialised on first reference
   account: '100000',
   currency: 'EUR',
   amount: new Amount('5000')
@@ -216,10 +178,6 @@ market.submit(new Order({
 market.cancel({
   id: '100010',
   timestamp: '1366758232',
-  // The Order instance must exactly match the current state
-  // of the order being cancelled. This example will match 
-  // because 250 BTC was already traded on this order. This is
-  // another instance where the transaction ID is used as a key
   order: new Order({
     id: '100006',
     timestamp: '1366758228',
@@ -280,6 +238,8 @@ console.log(market.books['BTC']['EUR'].highest);
 // export the state (as an object that can be converted to JSON)
 var state  = market.export();
 
+// TODO (see Roadmap)
+
 // JSON stringify the state
 var json = JSON.stringify(state);
 console.log('');
@@ -294,9 +254,7 @@ console.log('');
 console.log(json);
 
 // initialise an identical market from the state
-var anotherMarket = new Market({
-  state: JSON.parse(json)
-});
+var anotherMarket = new Market(JSON.parse(json));
 
 // Retrieve the last transaction ID processed 
 console.log('');
@@ -311,6 +269,7 @@ console.log('********************');
 
 ## Roadmap
 
+- Export and import the market state to and from JSON
 - List orders by account
 - List orders by book (in order)
 - Instant orders
