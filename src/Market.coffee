@@ -1,39 +1,34 @@
 Book = require('./Book')
+Account = require('./Account')
 EventEmitter = require('events').EventEmitter
 
 module.exports = class Market extends EventEmitter
   constructor: (params) ->
     @accounts = Object.create null
     @books = Object.create null
-    @currencies = params.currencies
-    @currencies.forEach (offerCurrency) =>
-      @books[offerCurrency] = Object.create null
-      @currencies.forEach (bidCurrency) =>
-        if bidCurrency != offerCurrency
-          @books[offerCurrency][bidCurrency] = new Book()
 
-  register: (account) =>
-    if @accounts[account.id]
-      throw new Error('Account already exists')
-    else
-      @accounts[account.id] = account
-      @lastTransaction = account.id
-      @emit 'account', account
+  getAccount: (id) =>
+    account = @accounts[id]
+    if !account
+      @accounts[id] = account = new Account()
+    return account
+
+  getBook: (bidCurrency, offerCurrency) =>
+    books = @books[bidCurrency]
+    if !books
+      @books[bidCurrency] = books = Object.create null
+    book = books[offerCurrency]
+    if !book
+      books[offerCurrency] = book = new Book()
+    return book
 
   deposit: (deposit) =>
     if deposit.id
       if deposit.timestamp
-        account = @accounts[deposit.account]
-        if account
-          balance = account.balances[deposit.currency]
-          if balance
-            balance.deposit(deposit.amount)
-            @lastTransaction = deposit.id
-            @emit 'deposit', deposit
-          else
-            throw new Error('Currency is not supported')
-        else
-          throw new Error 'Account does not exist'
+        account = @getAccount(deposit.account)
+        account.deposit deposit
+        @lastTransaction = deposit.id
+        @emit 'deposit', deposit
       else
         throw new Error 'Must supply timestamp'
     else
@@ -42,17 +37,10 @@ module.exports = class Market extends EventEmitter
   withdraw: (withdrawal) =>
     if withdrawal.id
       if withdrawal.timestamp
-        account = @accounts[withdrawal.account]
-        if account
-          balance = account.balances[withdrawal.currency]
-          if balance
-            balance.withdraw(withdrawal.amount)
-            @lastTransaction = withdrawal.id
-            @emit 'withdrawal', withdrawal
-          else
-            throw new Error('Currency is not supported')
-        else
-          throw new Error('Account does not exist')
+        account = @getAccount(withdrawal.account)
+        account.withdraw withdrawal
+        @lastTransaction = withdrawal.id
+        @emit 'withdrawal', withdrawal
       else
         throw new Error 'Must supply timestamp'
     else
@@ -70,34 +58,25 @@ module.exports = class Market extends EventEmitter
           execute leftBook, rightBook
 
   submit: (order) =>
-    account = @accounts[order.account]
-    if account
-      books = @books[order.bidCurrency]
-      if books
-        book = books[order.offerCurrency]
-        if book
-          account.submit order
-          book.submit order
-          @lastTransaction = order.id
-          # forward trade events from the order
-          order.on 'trade', (trade) =>
-            @emit 'trade', trade
-          # emit an order added event
-          @emit 'order', order
-          # check the books to see if any orders can be executed
-          execute book, @books[order.offerCurrency][order.bidCurrency]
-        else
-          throw new Error('Offer currency is not supported')
-      else
-        throw new Error('Bid currency is not supported')
-    else
-      throw new Error('Account does not exist')
+    account = @getAccount(order.account)
+    book = @getBook(order.bidCurrency, order.offerCurrency)
+    account.submit order
+    book.submit order
+    @lastTransaction = order.id
+    # forward trade events from the order
+    order.on 'trade', (trade) =>
+      @emit 'trade', trade
+    # emit an order added event
+    @emit 'order', order
+    # check the books to see if any orders can be executed
+    execute book, @getBook(order.offerCurrency, order.bidCurrency)
 
   cancel: (cancellation) =>
-    order = @accounts[cancellation.order.account].balances[cancellation.order.offerCurrency].offers[cancellation.order.id]
+    account = @getAccount cancellation.order.account
+    order = account.getBalance(cancellation.order.offerCurrency).offers[cancellation.order.id]
     if order
-      @books[order.bidCurrency][order.offerCurrency].cancel order
-      @accounts[order.account].cancel order
+      @getBook(order.bidCurrency, order.offerCurrency).cancel order
+      account.cancel order
       @lastTransaction = cancellation.id
       @emit 'cancellation', cancellation
     else

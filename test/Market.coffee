@@ -43,56 +43,16 @@ amount2000 = new Amount '2000'
 amount2500 = new Amount '2500'
 amount4950 = new Amount '4950'
 
-newAccount = (id) ->
-  new Account
-    id: id
-    timestamp: '987654321'
-    currencies: [
-      'EUR'
-      'USD'
-      'BTC'
-    ]
-
 describe 'Market', ->
   beforeEach ->
-    @market = new Market
-      currencies: [
-        'EUR'
-        'USD'
-        'BTC'
-      ]
+    @market = new Market()
 
-  it 'should instantiate with collections of accounts and books matching the supported currencies', ->
+  it 'should instantiate with empty collections of accounts and books', ->
     Object.keys(@market.accounts).should.be.empty
-    @market.books['EUR']['BTC'].should.be.an.instanceOf(Book)
-    @market.books['EUR']['USD'].should.be.an.instanceOf(Book)
-    @market.books['USD']['EUR'].should.be.an.instanceOf(Book)
-    @market.books['BTC']['EUR'].should.be.an.instanceOf(Book)
-    @market.books['USD']['EUR'].should.be.an.instanceOf(Book)
-    @market.books['EUR']['USD'].should.be.an.instanceOf(Book)
-
-  describe '#register', ->
-    it 'should submit an account to the market, record the last transaction ID and emit an account event', ->
-      accountSpy = sinon.spy()
-      @market.on 'account', accountSpy
-
-      account = newAccount '123456789'
-      @market.register account
-      @market.lastTransaction.should.equal '123456789'
-      account = @market.accounts['123456789']
-      account.should.equal account
-      accountSpy.should.have.been.calledOnce
-      accountSpy.firstCall.args[0].should.equal account
-
-    it 'should throw an error if the account already exists', ->
-      @market.register newAccount '123456789'
-      expect =>
-        @market.register newAccount '123456789'
-      .to.throw('Account already exists')
+    Object.keys(@market.books).should.be.empty
 
   describe '#deposit', ->
     it 'should throw an error if no transaction ID is given', ->
-      @market.register newAccount 'Peter'
       expect =>
         @market.deposit
           timestamp: '987654322'
@@ -102,7 +62,6 @@ describe 'Market', ->
       .to.throw('Must supply transaction ID')
 
     it 'should throw an error if no timestamp is given', ->
-      @market.register newAccount 'Peter'
       expect =>
         @market.deposit
           id: '123456790'
@@ -115,11 +74,10 @@ describe 'Market', ->
       depositSpy = sinon.spy()
       @market.on 'deposit', depositSpy
 
-      @market.register newAccount 'Peter'
-      account = @market.accounts['Peter']
-      account.balances['EUR'].funds.compareTo(Amount.ZERO).should.equal(0)
-      account.balances['USD'].funds.compareTo(Amount.ZERO).should.equal(0)
-      account.balances['BTC'].funds.compareTo(Amount.ZERO).should.equal(0)
+      account = @market.getAccount('Peter')
+      account.getBalance('EUR').funds.compareTo(Amount.ZERO).should.equal(0)
+      account.getBalance('USD').funds.compareTo(Amount.ZERO).should.equal(0)
+      account.getBalance('BTC').funds.compareTo(Amount.ZERO).should.equal(0)
       deposit = 
         id: '123456790'
         timestamp: '987654322'
@@ -128,36 +86,14 @@ describe 'Market', ->
         amount: amount50
       @market.deposit deposit
       @market.lastTransaction.should.equal '123456790'
-      account.balances['EUR'].funds.compareTo(Amount.ZERO).should.equal(0)
-      account.balances['USD'].funds.compareTo(Amount.ZERO).should.equal(0)
-      account.balances['BTC'].funds.compareTo(amount50).should.equal(0)
+      account.getBalance('EUR').funds.compareTo(Amount.ZERO).should.equal(0)
+      account.getBalance('USD').funds.compareTo(Amount.ZERO).should.equal(0)
+      account.getBalance('BTC').funds.compareTo(amount50).should.equal(0)
       depositSpy.should.have.been.calledOnce
       depositSpy.firstCall.args[0].should.equal deposit
 
-    it 'should throw an error if the account does not exist', ->
-      expect =>
-        @market.deposit
-          id: '123456790'
-          timestamp: '987654322'
-          account: 'Peter',
-          currency: 'BTC',
-          amount: amount50
-      .to.throw('Account does not exist')
-
-    it 'should throw an error if the currency is not supported', ->
-      @market.register newAccount 'Peter'
-      expect =>
-        @market.deposit
-          id: '123456790'
-          timestamp: '987654322'
-          account: 'Peter'
-          currency: 'CAD'
-          amount: amount50
-      .to.throw('Currency is not supported')
-
   describe '#withdraw', ->
     it 'should throw an error if no transaction ID is given', ->
-      @market.register newAccount 'Peter'
       @market.deposit
         id: '123456790'
         timestamp: '987654322'
@@ -173,7 +109,6 @@ describe 'Market', ->
       .to.throw('Must supply transaction ID')
 
     it 'should throw an error if no timestamp is given', ->
-      @market.register newAccount 'Peter'
       @market.deposit
         id: '123456790'
         timestamp: '987654322'
@@ -192,8 +127,7 @@ describe 'Market', ->
       withdrawalSpy = sinon.spy()
       @market.on 'withdrawal', withdrawalSpy
 
-      @market.register newAccount 'Peter'
-      account = @market.accounts['Peter']
+      account = @market.getAccount('Peter')
       @market.deposit
         id: '123456790'
         timestamp: '987654322'
@@ -208,35 +142,13 @@ describe 'Market', ->
         amount: amount50
       @market.withdraw withdrawal
       @market.lastTransaction.should.equal '123456791'
-      account.balances['BTC'].funds.compareTo(amount150).should.equal(0)
+      account.getBalance('BTC').funds.compareTo(amount150).should.equal(0)
       withdrawalSpy.should.have.been.calledOnce
       withdrawalSpy.firstCall.args[0].should.equal withdrawal
 
-    it 'should throw an error if the account does not exist', ->
-      expect =>
-        @market.withdraw
-          id: '123456790'
-          timestamp: '987654322'
-          account: 'Peter'
-          currency: 'BTC'
-          amount: amount50
-      .to.throw('Account does not exist')
-
-    it 'should throw an error if the currency is not supported', ->
-      @market.register newAccount 'Peter'
-      expect =>
-        @market.withdraw
-          id: '123456790'
-          timestamp: '987654322'
-          account: 'Peter'
-          currency: 'CAD'
-          amount: amount50
-      .to.throw('Currency is not supported')
-
   describe '#submit', ->
     it 'should lock the correct funds in the correct account', ->
-      @market.register newAccount 'Peter'
-      account = @market.accounts['Peter']
+      account = @market.getAccount('Peter')
       @market.deposit
         id: '123456790'
         timestamp: '987654322'
@@ -259,14 +171,12 @@ describe 'Market', ->
         offerCurrency: 'EUR'
         offerPrice: amount100
         offerAmount: amount100        
-      account.balances['EUR'].lockedFunds.compareTo(amount150).should.equal(0)
+      account.getBalance('EUR').lockedFunds.compareTo(amount150).should.equal(0)
 
     it 'should record an order, submit it to the correct book, record the last transaction ID and emit an order event', ->
       orderSpy = sinon.spy()
       @market.on 'order', orderSpy
 
-      @market.register newAccount 'Peter'
-      @market.register newAccount 'Paul'
       @market.deposit
         id: '123456791'
         timestamp: '987654322'
@@ -289,7 +199,7 @@ describe 'Market', ->
         offerAmount: amount50
       @market.submit order1
       @market.lastTransaction.should.equal '123456793'
-      @market.books['BTC']['EUR'].highest.id.should.equal('123456793')
+      @market.getBook('BTC', 'EUR').highest.id.should.equal('123456793')
       order2 = new Order
         id: '123456794'
         timestamp: '987654322'
@@ -300,7 +210,7 @@ describe 'Market', ->
         bidAmount: amount50
       @market.submit order2
       @market.lastTransaction.should.equal '123456794'
-      @market.books['EUR']['BTC'].highest.id.should.equal('123456794')
+      @market.getBook('EUR', 'BTC').highest.id.should.equal('123456794')
 
       orderSpy.should.have.been.calledTwice
       orderSpy.firstCall.args[0].should.equal order1
@@ -308,8 +218,6 @@ describe 'Market', ->
 
     describe 'while executing orders', ->
       beforeEach ->
-        @market.register newAccount 'Peter'
-        @market.register newAccount 'Paul'
         @market.deposit
           id: '123456790'
           timestamp: '987654322'
@@ -357,14 +265,14 @@ describe 'Market', ->
                   tradeSpy.firstCall.args[0].offer.should.equal @rightOrder
                   tradeSpy.firstCall.args[0].price.compareTo(amountPoint2).should.equal 0
                   tradeSpy.firstCall.args[0].amount.compareTo(amount1000).should.equal 0
-                  expect(@market.accounts['Peter'].balances['EUR'].offers['1']).to.not.be.ok
-                  expect(@market.accounts['Paul'].balances['BTC'].offers['2']).to.not.be.ok
-                  @market.accounts['Peter'].balances['EUR'].funds.compareTo(amount1000).should.equal 0
-                  @market.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
-                  @market.accounts['Peter'].balances['BTC'].funds.compareTo(amount200).should.equal 0
-                  @market.accounts['Paul'].balances['EUR'].funds.compareTo(amount1000).should.equal 0
-                  @market.accounts['Paul'].balances['BTC'].funds.compareTo(amount200).should.equal 0
-                  @market.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
+                  expect(@market.getAccount('Peter').getBalance('EUR').offers['1']).to.not.be.ok
+                  expect(@market.getAccount('Paul').getBalance('BTC').offers['2']).to.not.be.ok
+                  @market.getAccount('Peter').getBalance('EUR').funds.compareTo(amount1000).should.equal 0
+                  @market.getAccount('Peter').getBalance('EUR').lockedFunds.compareTo(Amount.ZERO).should.equal 0
+                  @market.getAccount('Peter').getBalance('BTC').funds.compareTo(amount200).should.equal 0
+                  @market.getAccount('Paul').getBalance('EUR').funds.compareTo(amount1000).should.equal 0
+                  @market.getAccount('Paul').getBalance('BTC').funds.compareTo(amount200).should.equal 0
+                  @market.getAccount('Paul').getBalance('BTC').lockedFunds.compareTo(Amount.ZERO).should.equal 0
 
             describe 'and the right order is offering more than the left order is bidding', ->
                 it 'should trade the amount the left order is offering and emit a trade event', ->
@@ -386,14 +294,14 @@ describe 'Market', ->
                   tradeSpy.firstCall.args[0].offer.should.equal @rightOrder
                   tradeSpy.firstCall.args[0].price.compareTo(amountPoint2).should.equal 0
                   tradeSpy.firstCall.args[0].amount.compareTo(amount500).should.equal 0
-                  @market.accounts['Peter'].balances['EUR'].offers['1'].offerAmount.compareTo(amount500).should.equal 0
-                  expect(@market.accounts['Paul'].balances['BTC'].offers['2']).to.not.be.ok
-                  @market.accounts['Peter'].balances['EUR'].funds.compareTo(amount1500).should.equal 0
-                  @market.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(amount500).should.equal 0
-                  @market.accounts['Peter'].balances['BTC'].funds.compareTo(amount100).should.equal 0
-                  @market.accounts['Paul'].balances['EUR'].funds.compareTo(amount500).should.equal 0
-                  @market.accounts['Paul'].balances['BTC'].funds.compareTo(amount300).should.equal 0
-                  @market.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
+                  @market.getAccount('Peter').getBalance('EUR').offers['1'].offerAmount.compareTo(amount500).should.equal 0
+                  expect(@market.getAccount('Paul').getBalance('BTC').offers['2']).to.not.be.ok
+                  @market.getAccount('Peter').getBalance('EUR').funds.compareTo(amount1500).should.equal 0
+                  @market.getAccount('Peter').getBalance('EUR').lockedFunds.compareTo(amount500).should.equal 0
+                  @market.getAccount('Peter').getBalance('BTC').funds.compareTo(amount100).should.equal 0
+                  @market.getAccount('Paul').getBalance('EUR').funds.compareTo(amount500).should.equal 0
+                  @market.getAccount('Paul').getBalance('BTC').funds.compareTo(amount300).should.equal 0
+                  @market.getAccount('Paul').getBalance('BTC').lockedFunds.compareTo(Amount.ZERO).should.equal 0
 
             describe 'and the right order is offering less than the left order is bidding', ->
                 it 'should trade the amount the right order is offering and emit a trade event', ->
@@ -415,14 +323,14 @@ describe 'Market', ->
                   tradeSpy.firstCall.args[0].offer.should.equal @rightOrder
                   tradeSpy.firstCall.args[0].price.compareTo(amountPoint2).should.equal 0
                   tradeSpy.firstCall.args[0].amount.compareTo(amount1000).should.equal 0
-                  expect(@market.accounts['Peter'].balances['EUR'].offers['1']).to.not.be.ok
-                  @market.accounts['Paul'].balances['BTC'].offers['2'].bidAmount.compareTo(amount500).should.equal 0
-                  @market.accounts['Peter'].balances['EUR'].funds.compareTo(amount1000).should.equal 0
-                  @market.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
-                  @market.accounts['Peter'].balances['BTC'].funds.compareTo(amount200).should.equal 0
-                  @market.accounts['Paul'].balances['EUR'].funds.compareTo(amount1000).should.equal 0
-                  @market.accounts['Paul'].balances['BTC'].funds.compareTo(amount200).should.equal 0
-                  @market.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(amount100).should.equal 0
+                  expect(@market.getAccount('Peter').getBalance('EUR').offers['1']).to.not.be.ok
+                  @market.getAccount('Paul').getBalance('BTC').offers['2'].bidAmount.compareTo(amount500).should.equal 0
+                  @market.getAccount('Peter').getBalance('EUR').funds.compareTo(amount1000).should.equal 0
+                  @market.getAccount('Peter').getBalance('EUR').lockedFunds.compareTo(Amount.ZERO).should.equal 0
+                  @market.getAccount('Peter').getBalance('BTC').funds.compareTo(amount200).should.equal 0
+                  @market.getAccount('Paul').getBalance('EUR').funds.compareTo(amount1000).should.equal 0
+                  @market.getAccount('Paul').getBalance('BTC').funds.compareTo(amount200).should.equal 0
+                  @market.getAccount('Paul').getBalance('BTC').lockedFunds.compareTo(amount100).should.equal 0
 
           describe 'and the left order is an offer', ->
             describe 'and the right order is offering exactly the amount the left order is offering', ->
@@ -445,14 +353,14 @@ describe 'Market', ->
                   tradeSpy.firstCall.args[0].offer.should.equal @rightOrder
                   tradeSpy.firstCall.args[0].price.compareTo(amountPoint2).should.equal 0
                   tradeSpy.firstCall.args[0].amount.compareTo(amount1000).should.equal 0
-                  expect(@market.accounts['Peter'].balances['EUR'].offers['1']).to.not.be.ok
-                  expect(@market.accounts['Paul'].balances['BTC'].offers['2']).to.not.be.ok
-                  @market.accounts['Peter'].balances['EUR'].funds.compareTo(amount1000).should.equal 0
-                  @market.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
-                  @market.accounts['Peter'].balances['BTC'].funds.compareTo(amount200).should.equal 0
-                  @market.accounts['Paul'].balances['EUR'].funds.compareTo(amount1000).should.equal 0
-                  @market.accounts['Paul'].balances['BTC'].funds.compareTo(amount200).should.equal 0
-                  @market.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
+                  expect(@market.getAccount('Peter').getBalance('EUR').offers['1']).to.not.be.ok
+                  expect(@market.getAccount('Paul').getBalance('BTC').offers['2']).to.not.be.ok
+                  @market.getAccount('Peter').getBalance('EUR').funds.compareTo(amount1000).should.equal 0
+                  @market.getAccount('Peter').getBalance('EUR').lockedFunds.compareTo(Amount.ZERO).should.equal 0
+                  @market.getAccount('Peter').getBalance('BTC').funds.compareTo(amount200).should.equal 0
+                  @market.getAccount('Paul').getBalance('EUR').funds.compareTo(amount1000).should.equal 0
+                  @market.getAccount('Paul').getBalance('BTC').funds.compareTo(amount200).should.equal 0
+                  @market.getAccount('Paul').getBalance('BTC').lockedFunds.compareTo(Amount.ZERO).should.equal 0
 
             describe 'and the right order is offering more than the left order is offering', ->
                 it 'should trade the amount the left order is offering and emit a trade event', ->
@@ -474,14 +382,14 @@ describe 'Market', ->
                   tradeSpy.firstCall.args[0].offer.should.equal @rightOrder
                   tradeSpy.firstCall.args[0].price.compareTo(amountPoint2).should.equal 0
                   tradeSpy.firstCall.args[0].amount.compareTo(amount500).should.equal 0
-                  @market.accounts['Peter'].balances['EUR'].offers['1'].offerAmount.compareTo(amount500).should.equal 0
-                  expect(@market.accounts['Paul'].balances['BTC'].offers['2']).to.not.be.ok
-                  @market.accounts['Peter'].balances['EUR'].funds.compareTo(amount1500).should.equal 0
-                  @market.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(amount500).should.equal 0
-                  @market.accounts['Peter'].balances['BTC'].funds.compareTo(amount100).should.equal 0
-                  @market.accounts['Paul'].balances['EUR'].funds.compareTo(amount500).should.equal 0
-                  @market.accounts['Paul'].balances['BTC'].funds.compareTo(amount300).should.equal 0
-                  @market.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
+                  @market.getAccount('Peter').getBalance('EUR').offers['1'].offerAmount.compareTo(amount500).should.equal 0
+                  expect(@market.getAccount('Paul').getBalance('BTC').offers['2']).to.not.be.ok
+                  @market.getAccount('Peter').getBalance('EUR').funds.compareTo(amount1500).should.equal 0
+                  @market.getAccount('Peter').getBalance('EUR').lockedFunds.compareTo(amount500).should.equal 0
+                  @market.getAccount('Peter').getBalance('BTC').funds.compareTo(amount100).should.equal 0
+                  @market.getAccount('Paul').getBalance('EUR').funds.compareTo(amount500).should.equal 0
+                  @market.getAccount('Paul').getBalance('BTC').funds.compareTo(amount300).should.equal 0
+                  @market.getAccount('Paul').getBalance('BTC').lockedFunds.compareTo(Amount.ZERO).should.equal 0
 
             describe 'and the right order is offering less than the left order is offering', ->
                 it 'should trade the amount the right order is offering and emit a trade event', ->
@@ -503,14 +411,14 @@ describe 'Market', ->
                   tradeSpy.firstCall.args[0].offer.should.equal @rightOrder
                   tradeSpy.firstCall.args[0].price.compareTo(amountPoint2).should.equal 0
                   tradeSpy.firstCall.args[0].amount.compareTo(amount1000).should.equal 0
-                  expect(@market.accounts['Peter'].balances['EUR'].offers['1']).to.not.be.ok
-                  @market.accounts['Paul'].balances['BTC'].offers['2'].offerAmount.compareTo(amount100).should.equal 0
-                  @market.accounts['Peter'].balances['EUR'].funds.compareTo(amount1000).should.equal 0
-                  @market.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
-                  @market.accounts['Peter'].balances['BTC'].funds.compareTo(amount200).should.equal 0
-                  @market.accounts['Paul'].balances['EUR'].funds.compareTo(amount1000).should.equal 0
-                  @market.accounts['Paul'].balances['BTC'].funds.compareTo(amount200).should.equal 0
-                  @market.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(amount100).should.equal 0
+                  expect(@market.getAccount('Peter').getBalance('EUR').offers['1']).to.not.be.ok
+                  @market.getAccount('Paul').getBalance('BTC').offers['2'].offerAmount.compareTo(amount100).should.equal 0
+                  @market.getAccount('Peter').getBalance('EUR').funds.compareTo(amount1000).should.equal 0
+                  @market.getAccount('Peter').getBalance('EUR').lockedFunds.compareTo(Amount.ZERO).should.equal 0
+                  @market.getAccount('Peter').getBalance('BTC').funds.compareTo(amount200).should.equal 0
+                  @market.getAccount('Paul').getBalance('EUR').funds.compareTo(amount1000).should.equal 0
+                  @market.getAccount('Paul').getBalance('BTC').funds.compareTo(amount200).should.equal 0
+                  @market.getAccount('Paul').getBalance('BTC').lockedFunds.compareTo(amount100).should.equal 0
 
         describe 'and the new (left) price is the better', ->
           describe 'and the left order is an offer', ->              
@@ -534,14 +442,14 @@ describe 'Market', ->
                 tradeSpy.firstCall.args[0].offer.should.equal @rightOrder
                 tradeSpy.firstCall.args[0].price.compareTo(amountPoint2).should.equal 0
                 tradeSpy.firstCall.args[0].amount.compareTo(amount1000).should.equal 0
-                expect(@market.accounts['Peter'].balances['EUR'].offers['1']).to.not.be.ok
-                expect(@market.accounts['Paul'].balances['BTC'].offers['2']).to.not.be.ok
-                @market.accounts['Peter'].balances['EUR'].funds.compareTo(amount1000).should.equal 0
-                @market.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
-                @market.accounts['Peter'].balances['BTC'].funds.compareTo(amount200).should.equal 0
-                @market.accounts['Paul'].balances['EUR'].funds.compareTo(amount1000).should.equal 0
-                @market.accounts['Paul'].balances['BTC'].funds.compareTo(amount200).should.equal 0
-                @market.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
+                expect(@market.getAccount('Peter').getBalance('EUR').offers['1']).to.not.be.ok
+                expect(@market.getAccount('Paul').getBalance('BTC').offers['2']).to.not.be.ok
+                @market.getAccount('Peter').getBalance('EUR').funds.compareTo(amount1000).should.equal 0
+                @market.getAccount('Peter').getBalance('EUR').lockedFunds.compareTo(Amount.ZERO).should.equal 0
+                @market.getAccount('Peter').getBalance('BTC').funds.compareTo(amount200).should.equal 0
+                @market.getAccount('Paul').getBalance('EUR').funds.compareTo(amount1000).should.equal 0
+                @market.getAccount('Paul').getBalance('BTC').funds.compareTo(amount200).should.equal 0
+                @market.getAccount('Paul').getBalance('BTC').lockedFunds.compareTo(Amount.ZERO).should.equal 0
 
             describe 'and the right order is offering more than the left order is offering multiplied by the right order price', ->
               it 'should trade the amount the left order is offering at the right order price and emit a trade event', ->
@@ -563,14 +471,14 @@ describe 'Market', ->
                 tradeSpy.firstCall.args[0].offer.should.equal @rightOrder
                 tradeSpy.firstCall.args[0].price.compareTo(amountPoint2).should.equal 0
                 tradeSpy.firstCall.args[0].amount.compareTo(amount500).should.equal 0
-                @market.accounts['Peter'].balances['EUR'].offers['1'].offerAmount.compareTo(amount500).should.equal 0
-                expect(@market.accounts['Paul'].balances['BTC'].offers['2']).to.not.be.ok
-                @market.accounts['Peter'].balances['EUR'].funds.compareTo(amount1500).should.equal 0
-                @market.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(amount500).should.equal 0
-                @market.accounts['Peter'].balances['BTC'].funds.compareTo(amount100).should.equal 0
-                @market.accounts['Paul'].balances['EUR'].funds.compareTo(amount500).should.equal 0
-                @market.accounts['Paul'].balances['BTC'].funds.compareTo(amount300).should.equal 0
-                @market.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
+                @market.getAccount('Peter').getBalance('EUR').offers['1'].offerAmount.compareTo(amount500).should.equal 0
+                expect(@market.getAccount('Paul').getBalance('BTC').offers['2']).to.not.be.ok
+                @market.getAccount('Peter').getBalance('EUR').funds.compareTo(amount1500).should.equal 0
+                @market.getAccount('Peter').getBalance('EUR').lockedFunds.compareTo(amount500).should.equal 0
+                @market.getAccount('Peter').getBalance('BTC').funds.compareTo(amount100).should.equal 0
+                @market.getAccount('Paul').getBalance('EUR').funds.compareTo(amount500).should.equal 0
+                @market.getAccount('Paul').getBalance('BTC').funds.compareTo(amount300).should.equal 0
+                @market.getAccount('Paul').getBalance('BTC').lockedFunds.compareTo(Amount.ZERO).should.equal 0
 
             describe 'and the right order is offering less than the left order is offering multiplied by the right order price', ->
               it 'should trade the amount the right order is offering at the right order price and emit a trade event', ->
@@ -592,14 +500,14 @@ describe 'Market', ->
                 tradeSpy.firstCall.args[0].offer.should.equal @rightOrder
                 tradeSpy.firstCall.args[0].price.compareTo(amountPoint2).should.equal 0
                 tradeSpy.firstCall.args[0].amount.compareTo(amount1000).should.equal 0
-                expect(@market.accounts['Peter'].balances['EUR'].offers['1']).to.not.be.ok
-                @market.accounts['Paul'].balances['BTC'].offers['2'].offerAmount.compareTo(amount100).should.equal 0
-                @market.accounts['Peter'].balances['EUR'].funds.compareTo(amount1000).should.equal 0
-                @market.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
-                @market.accounts['Peter'].balances['BTC'].funds.compareTo(amount200).should.equal 0
-                @market.accounts['Paul'].balances['EUR'].funds.compareTo(amount1000).should.equal 0
-                @market.accounts['Paul'].balances['BTC'].funds.compareTo(amount200).should.equal 0
-                @market.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(amount100).should.equal 0
+                expect(@market.getAccount('Peter').getBalance('EUR').offers['1']).to.not.be.ok
+                @market.getAccount('Paul').getBalance('BTC').offers['2'].offerAmount.compareTo(amount100).should.equal 0
+                @market.getAccount('Peter').getBalance('EUR').funds.compareTo(amount1000).should.equal 0
+                @market.getAccount('Peter').getBalance('EUR').lockedFunds.compareTo(Amount.ZERO).should.equal 0
+                @market.getAccount('Peter').getBalance('BTC').funds.compareTo(amount200).should.equal 0
+                @market.getAccount('Paul').getBalance('EUR').funds.compareTo(amount1000).should.equal 0
+                @market.getAccount('Paul').getBalance('BTC').funds.compareTo(amount200).should.equal 0
+                @market.getAccount('Paul').getBalance('BTC').lockedFunds.compareTo(amount100).should.equal 0
 
           describe 'and the left order is a bid', ->
             describe 'and the right order is offering exactly the amount that the left order is bidding', ->
@@ -622,14 +530,14 @@ describe 'Market', ->
                 tradeSpy.firstCall.args[0].offer.should.equal @rightOrder
                 tradeSpy.firstCall.args[0].price.compareTo(amountPoint2).should.equal 0
                 tradeSpy.firstCall.args[0].amount.compareTo(amount1000).should.equal 0
-                expect(@market.accounts['Peter'].balances['EUR'].offers['1']).to.not.be.ok
-                expect(@market.accounts['Paul'].balances['BTC'].offers['2']).to.not.be.ok
-                @market.accounts['Peter'].balances['EUR'].funds.compareTo(amount1000).should.equal 0
-                @market.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
-                @market.accounts['Peter'].balances['BTC'].funds.compareTo(amount200).should.equal 0
-                @market.accounts['Paul'].balances['EUR'].funds.compareTo(amount1000).should.equal 0
-                @market.accounts['Paul'].balances['BTC'].funds.compareTo(amount200).should.equal 0
-                @market.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
+                expect(@market.getAccount('Peter').getBalance('EUR').offers['1']).to.not.be.ok
+                expect(@market.getAccount('Paul').getBalance('BTC').offers['2']).to.not.be.ok
+                @market.getAccount('Peter').getBalance('EUR').funds.compareTo(amount1000).should.equal 0
+                @market.getAccount('Peter').getBalance('EUR').lockedFunds.compareTo(Amount.ZERO).should.equal 0
+                @market.getAccount('Peter').getBalance('BTC').funds.compareTo(amount200).should.equal 0
+                @market.getAccount('Paul').getBalance('EUR').funds.compareTo(amount1000).should.equal 0
+                @market.getAccount('Paul').getBalance('BTC').funds.compareTo(amount200).should.equal 0
+                @market.getAccount('Paul').getBalance('BTC').lockedFunds.compareTo(Amount.ZERO).should.equal 0
                 
             describe 'and the right order is offering more than the left order is bidding', ->
               it 'should trade the amount the left order is bidding at the right order price and emit a trade event', ->
@@ -651,14 +559,14 @@ describe 'Market', ->
                 tradeSpy.firstCall.args[0].offer.should.equal @rightOrder
                 tradeSpy.firstCall.args[0].price.compareTo(amountPoint2).should.equal 0
                 tradeSpy.firstCall.args[0].amount.compareTo(amount500).should.equal 0
-                @market.accounts['Peter'].balances['EUR'].offers['1'].offerAmount.compareTo(amount500).should.equal 0
-                expect(@market.accounts['Paul'].balances['BTC'].offers['2']).to.not.be.ok
-                @market.accounts['Peter'].balances['EUR'].funds.compareTo(amount1500).should.equal 0
-                @market.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(amount500).should.equal 0
-                @market.accounts['Peter'].balances['BTC'].funds.compareTo(amount100).should.equal 0
-                @market.accounts['Paul'].balances['EUR'].funds.compareTo(amount500).should.equal 0
-                @market.accounts['Paul'].balances['BTC'].funds.compareTo(amount300).should.equal 0
-                @market.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
+                @market.getAccount('Peter').getBalance('EUR').offers['1'].offerAmount.compareTo(amount500).should.equal 0
+                expect(@market.getAccount('Paul').getBalance('BTC').offers['2']).to.not.be.ok
+                @market.getAccount('Peter').getBalance('EUR').funds.compareTo(amount1500).should.equal 0
+                @market.getAccount('Peter').getBalance('EUR').lockedFunds.compareTo(amount500).should.equal 0
+                @market.getAccount('Peter').getBalance('BTC').funds.compareTo(amount100).should.equal 0
+                @market.getAccount('Paul').getBalance('EUR').funds.compareTo(amount500).should.equal 0
+                @market.getAccount('Paul').getBalance('BTC').funds.compareTo(amount300).should.equal 0
+                @market.getAccount('Paul').getBalance('BTC').lockedFunds.compareTo(Amount.ZERO).should.equal 0
                 
             describe 'and the right order is offering less than the left order is bidding', ->
               it 'should trade the amount the right order is offering at the right order price and emit a trade event', ->
@@ -680,14 +588,14 @@ describe 'Market', ->
                 tradeSpy.firstCall.args[0].offer.should.equal @rightOrder
                 tradeSpy.firstCall.args[0].price.compareTo(amountPoint2).should.equal 0
                 tradeSpy.firstCall.args[0].amount.compareTo(amount1000).should.equal 0
-                expect(@market.accounts['Peter'].balances['EUR'].offers['1']).to.not.be.ok
-                @market.accounts['Paul'].balances['BTC'].offers['2'].bidAmount.compareTo(amount500).should.equal 0
-                @market.accounts['Peter'].balances['EUR'].funds.compareTo(amount1000).should.equal 0
-                @market.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
-                @market.accounts['Peter'].balances['BTC'].funds.compareTo(amount200).should.equal 0
-                @market.accounts['Paul'].balances['EUR'].funds.compareTo(amount1000).should.equal 0
-                @market.accounts['Paul'].balances['BTC'].funds.compareTo(amount200).should.equal 0
-                @market.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(amount125).should.equal 0
+                expect(@market.getAccount('Peter').getBalance('EUR').offers['1']).to.not.be.ok
+                @market.getAccount('Paul').getBalance('BTC').offers['2'].bidAmount.compareTo(amount500).should.equal 0
+                @market.getAccount('Peter').getBalance('EUR').funds.compareTo(amount1000).should.equal 0
+                @market.getAccount('Peter').getBalance('EUR').lockedFunds.compareTo(Amount.ZERO).should.equal 0
+                @market.getAccount('Peter').getBalance('BTC').funds.compareTo(amount200).should.equal 0
+                @market.getAccount('Paul').getBalance('EUR').funds.compareTo(amount1000).should.equal 0
+                @market.getAccount('Paul').getBalance('BTC').funds.compareTo(amount200).should.equal 0
+                @market.getAccount('Paul').getBalance('BTC').lockedFunds.compareTo(amount125).should.equal 0
               
       describe 'where the existing (right) order is a bid', ->
         beforeEach ->
@@ -723,14 +631,14 @@ describe 'Market', ->
                 tradeSpy.firstCall.args[0].offer.should.equal leftOrder
                 tradeSpy.firstCall.args[0].price.compareTo(amount5).should.equal 0
                 tradeSpy.firstCall.args[0].amount.compareTo(amount200).should.equal 0
-                expect(@market.accounts['Peter'].balances['EUR'].offers['1']).to.not.be.ok
-                expect(@market.accounts['Paul'].balances['BTC'].offers['2']).to.not.be.ok
-                @market.accounts['Peter'].balances['EUR'].funds.compareTo(amount1000).should.equal 0
-                @market.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
-                @market.accounts['Peter'].balances['BTC'].funds.compareTo(amount200).should.equal 0
-                @market.accounts['Paul'].balances['EUR'].funds.compareTo(amount1000).should.equal 0
-                @market.accounts['Paul'].balances['BTC'].funds.compareTo(amount200).should.equal 0
-                @market.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
+                expect(@market.getAccount('Peter').getBalance('EUR').offers['1']).to.not.be.ok
+                expect(@market.getAccount('Paul').getBalance('BTC').offers['2']).to.not.be.ok
+                @market.getAccount('Peter').getBalance('EUR').funds.compareTo(amount1000).should.equal 0
+                @market.getAccount('Peter').getBalance('EUR').lockedFunds.compareTo(Amount.ZERO).should.equal 0
+                @market.getAccount('Peter').getBalance('BTC').funds.compareTo(amount200).should.equal 0
+                @market.getAccount('Paul').getBalance('EUR').funds.compareTo(amount1000).should.equal 0
+                @market.getAccount('Paul').getBalance('BTC').funds.compareTo(amount200).should.equal 0
+                @market.getAccount('Paul').getBalance('BTC').lockedFunds.compareTo(Amount.ZERO).should.equal 0
                 
             describe 'and the right order is bidding more than the left order is offering', ->
               it 'should trade the amount the left order is offering at the right order price and emit a trade event', ->
@@ -752,14 +660,14 @@ describe 'Market', ->
                 tradeSpy.firstCall.args[0].offer.should.equal leftOrder
                 tradeSpy.firstCall.args[0].price.compareTo(amount5).should.equal 0
                 tradeSpy.firstCall.args[0].amount.compareTo(amount100).should.equal 0
-                @market.accounts['Peter'].balances['EUR'].offers['1'].bidAmount.compareTo(amount100).should.equal 0
-                expect(@market.accounts['Paul'].balances['BTC'].offers['2']).to.not.be.ok
-                @market.accounts['Peter'].balances['EUR'].funds.compareTo(amount1500).should.equal 0
-                @market.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(amount500).should.equal 0
-                @market.accounts['Peter'].balances['BTC'].funds.compareTo(amount100).should.equal 0
-                @market.accounts['Paul'].balances['EUR'].funds.compareTo(amount500).should.equal 0
-                @market.accounts['Paul'].balances['BTC'].funds.compareTo(amount300).should.equal 0
-                @market.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
+                @market.getAccount('Peter').getBalance('EUR').offers['1'].bidAmount.compareTo(amount100).should.equal 0
+                expect(@market.getAccount('Paul').getBalance('BTC').offers['2']).to.not.be.ok
+                @market.getAccount('Peter').getBalance('EUR').funds.compareTo(amount1500).should.equal 0
+                @market.getAccount('Peter').getBalance('EUR').lockedFunds.compareTo(amount500).should.equal 0
+                @market.getAccount('Peter').getBalance('BTC').funds.compareTo(amount100).should.equal 0
+                @market.getAccount('Paul').getBalance('EUR').funds.compareTo(amount500).should.equal 0
+                @market.getAccount('Paul').getBalance('BTC').funds.compareTo(amount300).should.equal 0
+                @market.getAccount('Paul').getBalance('BTC').lockedFunds.compareTo(Amount.ZERO).should.equal 0
                 
             describe 'and the right order is bidding less than the left order is offering', ->
               it 'should trade the amount the right order is bidding at the right order price and emit a trade event', ->
@@ -781,14 +689,14 @@ describe 'Market', ->
                 tradeSpy.firstCall.args[0].offer.should.equal leftOrder
                 tradeSpy.firstCall.args[0].price.compareTo(amount5).should.equal 0
                 tradeSpy.firstCall.args[0].amount.compareTo(amount200).should.equal 0
-                expect(@market.accounts['Peter'].balances['EUR'].offers['1']).to.not.be.ok
-                @market.accounts['Paul'].balances['BTC'].offers['2'].offerAmount.compareTo(amount100).should.equal 0
-                @market.accounts['Peter'].balances['EUR'].funds.compareTo(amount1000).should.equal 0
-                @market.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
-                @market.accounts['Peter'].balances['BTC'].funds.compareTo(amount200).should.equal 0
-                @market.accounts['Paul'].balances['EUR'].funds.compareTo(amount1000).should.equal 0
-                @market.accounts['Paul'].balances['BTC'].funds.compareTo(amount200).should.equal 0
-                @market.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(amount100).should.equal 0
+                expect(@market.getAccount('Peter').getBalance('EUR').offers['1']).to.not.be.ok
+                @market.getAccount('Paul').getBalance('BTC').offers['2'].offerAmount.compareTo(amount100).should.equal 0
+                @market.getAccount('Peter').getBalance('EUR').funds.compareTo(amount1000).should.equal 0
+                @market.getAccount('Peter').getBalance('EUR').lockedFunds.compareTo(Amount.ZERO).should.equal 0
+                @market.getAccount('Peter').getBalance('BTC').funds.compareTo(amount200).should.equal 0
+                @market.getAccount('Paul').getBalance('EUR').funds.compareTo(amount1000).should.equal 0
+                @market.getAccount('Paul').getBalance('BTC').funds.compareTo(amount200).should.equal 0
+                @market.getAccount('Paul').getBalance('BTC').lockedFunds.compareTo(amount100).should.equal 0
 
           describe 'and the left order is a bid', ->
             describe 'and the right order is bidding exactly the amount that the left order is bidding multiplied by the right order price', ->
@@ -811,14 +719,14 @@ describe 'Market', ->
                 tradeSpy.firstCall.args[0].offer.should.equal leftOrder
                 tradeSpy.firstCall.args[0].price.compareTo(amount5).should.equal 0
                 tradeSpy.firstCall.args[0].amount.compareTo(amount200).should.equal 0
-                expect(@market.accounts['Peter'].balances['EUR'].offers['1']).to.not.be.ok
-                expect(@market.accounts['Paul'].balances['BTC'].offers['2']).to.not.be.ok
-                @market.accounts['Peter'].balances['EUR'].funds.compareTo(amount1000).should.equal 0
-                @market.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
-                @market.accounts['Peter'].balances['BTC'].funds.compareTo(amount200).should.equal 0
-                @market.accounts['Paul'].balances['EUR'].funds.compareTo(amount1000).should.equal 0
-                @market.accounts['Paul'].balances['BTC'].funds.compareTo(amount200).should.equal 0
-                @market.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
+                expect(@market.getAccount('Peter').getBalance('EUR').offers['1']).to.not.be.ok
+                expect(@market.getAccount('Paul').getBalance('BTC').offers['2']).to.not.be.ok
+                @market.getAccount('Peter').getBalance('EUR').funds.compareTo(amount1000).should.equal 0
+                @market.getAccount('Peter').getBalance('EUR').lockedFunds.compareTo(Amount.ZERO).should.equal 0
+                @market.getAccount('Peter').getBalance('BTC').funds.compareTo(amount200).should.equal 0
+                @market.getAccount('Paul').getBalance('EUR').funds.compareTo(amount1000).should.equal 0
+                @market.getAccount('Paul').getBalance('BTC').funds.compareTo(amount200).should.equal 0
+                @market.getAccount('Paul').getBalance('BTC').lockedFunds.compareTo(Amount.ZERO).should.equal 0
                 
             describe 'and the right order is bidding more than the left order is bidding multiplied by the right order price', ->
               it 'should trade the amount the left order is bidding at the right order price and emit a trade event', ->
@@ -840,14 +748,14 @@ describe 'Market', ->
                 tradeSpy.firstCall.args[0].offer.should.equal leftOrder
                 tradeSpy.firstCall.args[0].price.compareTo(amount5).should.equal 0
                 tradeSpy.firstCall.args[0].amount.compareTo(amount100).should.equal 0
-                @market.accounts['Peter'].balances['EUR'].offers['1'].bidAmount.compareTo(amount100).should.equal 0
-                expect(@market.accounts['Paul'].balances['BTC'].offers['2']).to.not.be.ok
-                @market.accounts['Peter'].balances['EUR'].funds.compareTo(amount1500).should.equal 0
-                @market.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(amount500).should.equal 0
-                @market.accounts['Peter'].balances['BTC'].funds.compareTo(amount100).should.equal 0
-                @market.accounts['Paul'].balances['EUR'].funds.compareTo(amount500).should.equal 0
-                @market.accounts['Paul'].balances['BTC'].funds.compareTo(amount300).should.equal 0
-                @market.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
+                @market.getAccount('Peter').getBalance('EUR').offers['1'].bidAmount.compareTo(amount100).should.equal 0
+                expect(@market.getAccount('Paul').getBalance('BTC').offers['2']).to.not.be.ok
+                @market.getAccount('Peter').getBalance('EUR').funds.compareTo(amount1500).should.equal 0
+                @market.getAccount('Peter').getBalance('EUR').lockedFunds.compareTo(amount500).should.equal 0
+                @market.getAccount('Peter').getBalance('BTC').funds.compareTo(amount100).should.equal 0
+                @market.getAccount('Paul').getBalance('EUR').funds.compareTo(amount500).should.equal 0
+                @market.getAccount('Paul').getBalance('BTC').funds.compareTo(amount300).should.equal 0
+                @market.getAccount('Paul').getBalance('BTC').lockedFunds.compareTo(Amount.ZERO).should.equal 0
                 
             describe 'and the right order is bidding less than the left order is bidding multiplied by the right order price', ->
               it 'should trade the amount the right order is bidding at the right order price and emit a trade event', ->
@@ -869,19 +777,17 @@ describe 'Market', ->
                 tradeSpy.firstCall.args[0].offer.should.equal leftOrder
                 tradeSpy.firstCall.args[0].price.compareTo(amount5).should.equal 0
                 tradeSpy.firstCall.args[0].amount.compareTo(amount200).should.equal 0
-                expect(@market.accounts['Peter'].balances['EUR'].offers['1']).to.not.be.ok
-                @market.accounts['Paul'].balances['BTC'].offers['2'].bidAmount.compareTo(amount500).should.equal 0
-                @market.accounts['Peter'].balances['EUR'].funds.compareTo(amount1000).should.equal 0
-                @market.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
-                @market.accounts['Peter'].balances['BTC'].funds.compareTo(amount200).should.equal 0
-                @market.accounts['Paul'].balances['EUR'].funds.compareTo(amount1000).should.equal 0
-                @market.accounts['Paul'].balances['BTC'].funds.compareTo(amount200).should.equal 0
-                @market.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(amount125).should.equal 0
+                expect(@market.getAccount('Peter').getBalance('EUR').offers['1']).to.not.be.ok
+                @market.getAccount('Paul').getBalance('BTC').offers['2'].bidAmount.compareTo(amount500).should.equal 0
+                @market.getAccount('Peter').getBalance('EUR').funds.compareTo(amount1000).should.equal 0
+                @market.getAccount('Peter').getBalance('EUR').lockedFunds.compareTo(Amount.ZERO).should.equal 0
+                @market.getAccount('Peter').getBalance('BTC').funds.compareTo(amount200).should.equal 0
+                @market.getAccount('Paul').getBalance('EUR').funds.compareTo(amount1000).should.equal 0
+                @market.getAccount('Paul').getBalance('BTC').funds.compareTo(amount200).should.equal 0
+                @market.getAccount('Paul').getBalance('BTC').lockedFunds.compareTo(amount125).should.equal 0
                     
     describe 'when multiple orders can be matched', ->
       beforeEach ->
-        @market.register newAccount 'Peter'
-        @market.register newAccount 'Paul'
         @market.deposit
           id: '123456790'
           timestamp: '987654322'
@@ -959,17 +865,17 @@ describe 'Market', ->
           tradeSpy.thirdCall.args[0].offer.should.equal @rightOrder3
           tradeSpy.thirdCall.args[0].price.compareTo(amountPoint5).should.equal 0
           tradeSpy.thirdCall.args[0].amount.compareTo(amount250).should.equal 0
-          expect(@market.accounts['Peter'].balances['EUR'].offers['1']).to.not.be.ok
-          expect(@market.accounts['Peter'].balances['EUR'].offers['2']).to.not.be.ok
-          @market.accounts['Peter'].balances['EUR'].offers['3'].offerAmount.compareTo(amount250).should.equal 0
-          @market.accounts['Peter'].balances['EUR'].offers[amount4].offerAmount.compareTo(amount500).should.equal 0
-          expect(@market.accounts['Paul'].balances['BTC'].offers[amount5]).to.not.be.ok
-          @market.accounts['Peter'].balances['EUR'].funds.compareTo(amount750).should.equal 0
-          @market.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(amount750).should.equal 0
-          @market.accounts['Peter'].balances['BTC'].funds.compareTo(amount350).should.equal 0
-          @market.accounts['Paul'].balances['EUR'].funds.compareTo(amount1250).should.equal 0
-          @market.accounts['Paul'].balances['BTC'].funds.compareTo(amount650).should.equal 0
-          @market.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(Amount.ZERO).should.equal 0
+          expect(@market.getAccount('Peter').getBalance('EUR').offers['1']).to.not.be.ok
+          expect(@market.getAccount('Peter').getBalance('EUR').offers['2']).to.not.be.ok
+          @market.getAccount('Peter').getBalance('EUR').offers['3'].offerAmount.compareTo(amount250).should.equal 0
+          @market.getAccount('Peter').getBalance('EUR').offers[amount4].offerAmount.compareTo(amount500).should.equal 0
+          expect(@market.getAccount('Paul').getBalance('BTC').offers[amount5]).to.not.be.ok
+          @market.getAccount('Peter').getBalance('EUR').funds.compareTo(amount750).should.equal 0
+          @market.getAccount('Peter').getBalance('EUR').lockedFunds.compareTo(amount750).should.equal 0
+          @market.getAccount('Peter').getBalance('BTC').funds.compareTo(amount350).should.equal 0
+          @market.getAccount('Paul').getBalance('EUR').funds.compareTo(amount1250).should.equal 0
+          @market.getAccount('Paul').getBalance('BTC').funds.compareTo(amount650).should.equal 0
+          @market.getAccount('Paul').getBalance('BTC').lockedFunds.compareTo(Amount.ZERO).should.equal 0
 
       describe 'and the last order cannot be completely satisfied', ->    
         it 'should correctly execute as many orders as it can and emit trade events', ->
@@ -999,60 +905,19 @@ describe 'Market', ->
           tradeSpy.thirdCall.args[0].offer.should.equal @rightOrder3
           tradeSpy.thirdCall.args[0].price.compareTo(amountPoint5).should.equal 0
           tradeSpy.thirdCall.args[0].amount.compareTo(amount500).should.equal 0
-          expect(@market.accounts['Peter'].balances['EUR'].offers['1']).to.not.be.ok
-          expect(@market.accounts['Peter'].balances['EUR'].offers['2']).to.not.be.ok
-          expect(@market.accounts['Peter'].balances['EUR'].offers['3']).to.not.be.ok
-          @market.accounts['Peter'].balances['EUR'].offers[amount4].offerAmount.compareTo(amount500).should.equal 0
-          @market.accounts['Paul'].balances['BTC'].offers[amount5].bidAmount.compareTo(amount250).should.equal 0
-          @market.accounts['Peter'].balances['EUR'].funds.compareTo(amount500).should.equal 0
-          @market.accounts['Peter'].balances['EUR'].lockedFunds.compareTo(amount500).should.equal 0
-          @market.accounts['Peter'].balances['BTC'].funds.compareTo(amount475).should.equal 0
-          @market.accounts['Paul'].balances['EUR'].funds.compareTo(amount1500).should.equal 0
-          @market.accounts['Paul'].balances['BTC'].funds.compareTo(amount525).should.equal 0
-          @market.accounts['Paul'].balances['BTC'].lockedFunds.compareTo(amount125).should.equal 0
-              
-    it 'should throw an error if the account does not exist', ->
-      expect =>
-        @market.submit new Order
-          id: '123456789'
-          timestamp: '987654321'
-          account: 'Peter'
-          bidCurrency: 'BTC'
-          offerCurrency: 'EUR'
-          offerPrice: amount100
-          offerAmount: amount50        
-      .to.throw('Account does not exist')
-
-    it 'should throw an error if the offer currency is not supported', ->
-      @market.register newAccount 'Peter'
-      expect =>
-        @market.submit new Order
-          id: '123456789'
-          timestamp: '987654321'
-          account: 'Peter'
-          bidCurrency: 'BTC'
-          offerCurrency: 'CAD'
-          offerPrice: amount100
-          offerAmount: amount50        
-      .to.throw('Offer currency is not supported')
-
-    it 'should throw an error if the bid currency is not supported', ->
-      @market.register newAccount 'Peter'
-      expect =>
-        @market.submit new Order
-          id: '123456789'
-          timestamp: '987654321'
-          account: 'Peter'
-          bidCurrency: 'CAD'
-          offerCurrency: 'EUR'
-          offerPrice: amount100
-          offerAmount: amount50        
-      .to.throw('Bid currency is not supported')
+          expect(@market.getAccount('Peter').getBalance('EUR').offers['1']).to.not.be.ok
+          expect(@market.getAccount('Peter').getBalance('EUR').offers['2']).to.not.be.ok
+          expect(@market.getAccount('Peter').getBalance('EUR').offers['3']).to.not.be.ok
+          @market.getAccount('Peter').getBalance('EUR').offers[amount4].offerAmount.compareTo(amount500).should.equal 0
+          @market.getAccount('Paul').getBalance('BTC').offers[amount5].bidAmount.compareTo(amount250).should.equal 0
+          @market.getAccount('Peter').getBalance('EUR').funds.compareTo(amount500).should.equal 0
+          @market.getAccount('Peter').getBalance('EUR').lockedFunds.compareTo(amount500).should.equal 0
+          @market.getAccount('Peter').getBalance('BTC').funds.compareTo(amount475).should.equal 0
+          @market.getAccount('Paul').getBalance('EUR').funds.compareTo(amount1500).should.equal 0
+          @market.getAccount('Paul').getBalance('BTC').funds.compareTo(amount525).should.equal 0
+          @market.getAccount('Paul').getBalance('BTC').lockedFunds.compareTo(amount125).should.equal 0
 
     it 'should execute BID/OFFER orders correctly and not throw a withdraw error when ? (captured from a failing random performance test)', ->
-      @market.register newAccount '100000'
-      @market.register newAccount '100001'
-      @market.register newAccount '100002'
       @market.deposit
         id: '100010'
         timestamp: '1366758222'
@@ -1097,9 +962,6 @@ describe 'Market', ->
         offerAmount: new Amount '52'
 
     it 'should execute BID/OFFER orders correctly and not throw an unlock funds error when ? (captured from a failing random performance test)', ->
-      @market.register newAccount '100000'
-      @market.register newAccount '100001'
-      @market.register newAccount '100002'
       @market.deposit
         id: '100011'
         timestamp: '1366758222'
@@ -1144,9 +1006,6 @@ describe 'Market', ->
         bidAmount: new Amount '45'
 
     it 'should execute BID/BID orders correctly and not throw an unlock funds error when ? (captured from a failing random performance test)', ->
-      @market.register newAccount '100000'
-      @market.register newAccount '100001'
-      @market.register newAccount '100003'
       @market.deposit
         id: '101000'
         timestamp: '1366758222'
@@ -1192,8 +1051,7 @@ describe 'Market', ->
 
   describe '#cancel', ->
     it 'should unlock the correct funds in the correct account', ->
-      @market.register newAccount 'Peter'
-      account = @market.accounts['Peter']
+      account = @market.getAccount('Peter')
       @market.deposit
         id: '123456790'
         timestamp: '987654322'
@@ -1216,7 +1074,7 @@ describe 'Market', ->
         offerCurrency: 'EUR'
         offerPrice: amount100
         offerAmount: amount100        
-      account.balances['EUR'].lockedFunds.compareTo(amount150).should.equal 0
+      account.getBalance('EUR').lockedFunds.compareTo(amount150).should.equal 0
       @market.cancel
         id: '123456791'
         timestamp: '987654350'
@@ -1224,14 +1082,12 @@ describe 'Market', ->
           id: '123456789'
           account: 'Peter'
           offerCurrency: 'EUR'
-      account.balances['EUR'].lockedFunds.compareTo(amount100).should.equal 0
+      account.getBalance('EUR').lockedFunds.compareTo(amount100).should.equal 0
 
     it 'should remove the order from the orders collection and from the correct book, record the last transaction ID and emit an cancellation event', ->
       cancellationSpy = sinon.spy()
       @market.on 'cancellation', cancellationSpy
 
-      @market.register newAccount 'Peter'
-      @market.register newAccount 'Paul'
       @market.deposit
         id: '123456791'
         timestamp: '987654322'
@@ -1269,8 +1125,8 @@ describe 'Market', ->
           offerCurrency: 'EUR'
       @market.cancel cancellation1
       @market.lastTransaction.should.equal '123456795'
-      expect(@market.accounts['Peter'].balances['EUR'].offers['123456793']).to.not.be.ok
-      expect(@market.books['BTC']['EUR'].highest).to.not.be.ok
+      expect(@market.getAccount('Peter').getBalance('EUR').offers['123456793']).to.not.be.ok
+      expect(@market.getBook('BTC', 'EUR').highest).to.not.be.ok
       cancellation2 = 
         id: '123456796'
         timestamp: '987654350'
@@ -1280,14 +1136,13 @@ describe 'Market', ->
           offerCurrency: 'BTC'
       @market.cancel cancellation2
       @market.lastTransaction.should.equal '123456796'
-      expect(@market.accounts['Paul'].balances['BTC'].offers['123456794']).to.not.be.ok
-      expect(@market.books['EUR']['BTC'].highest).to.not.be.ok
+      expect(@market.getAccount('Paul').getBalance('BTC').offers['123456794']).to.not.be.ok
+      expect(@market.getBook('EUR', 'BTC').highest).to.not.be.ok
       cancellationSpy.should.have.been.calledTwice
       cancellationSpy.firstCall.args[0].should.equal cancellation1
       cancellationSpy.secondCall.args[0].should.equal cancellation2
 
     it 'should throw an error if the order cannot be found', ->
-      @market.register newAccount 'Peter'
       expect =>
         @market.cancel
           id: '123456795'
@@ -1297,3 +1152,21 @@ describe 'Market', ->
             account: 'Peter'
             offerCurrency: 'EUR'          
       .to.throw('Order cannot be found')
+
+  describe '#getAccount', ->
+    it 'should return an Account object associated with the given ID', ->
+      account1 = @market.getAccount 'Peter'
+      account1.should.be.an.instanceOf Account
+      account2 = @market.getAccount 'Peter'
+      account2.should.equal account1
+      account3 = @market.getAccount 'Paul'
+      account3.should.not.equal account1
+
+  describe '#getBook', ->
+    it 'should return a Book object associated with the given bid and offer currencies', ->
+      book1 = @market.getBook 'EUR', 'BTC'
+      book1.should.be.an.instanceOf Book
+      book2 = @market.getBook 'EUR', 'BTC'
+      book2.should.equal book1
+      book3 = @market.getBook 'BTC', 'EUR'
+      book3.should.not.equal book1

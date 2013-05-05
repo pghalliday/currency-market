@@ -1,27 +1,24 @@
 Balance = require('./Balance')
 
 module.exports = class Account
-  constructor: (params) ->
+  constructor: ->
     @balances = Object.create null
-    if params.id
-      if params.timestamp
-        if params.currencies
-          @id = params.id
-          @timestamp = params.timestamp
-          params.currencies.forEach (currency) =>
-            @balances[currency] = new Balance()
-        else
-          throw new Error 'Must supply currencies'
-      else
-        throw new Error 'Must supply timestamp'
-    else
-      throw new Error 'Must supply transaction ID'
+
+  getBalance: (currency) =>
+    if !@balances[currency]
+      @balances[currency] = new Balance()
+    return @balances[currency]
+
+  deposit: (params) =>
+    @getBalance(params.currency).deposit params.amount
+
+  withdraw: (params) =>
+    @getBalance(params.currency).withdraw params.amount
 
   submit: (order) =>
-    @balances[order.offerCurrency].submitOffer order
-    @balances[order.bidCurrency].submitBid order
+    @getBalance(order.offerCurrency).submitOffer order
+    @getBalance(order.bidCurrency).submitBid order
 
   cancel: (order) =>
-    @balances[order.offerCurrency].cancel order
-   
+    @getBalance(order.offerCurrency).cancel order
 
