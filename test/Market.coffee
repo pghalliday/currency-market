@@ -19,10 +19,12 @@ amountPoint5 = new Amount '0.5'
 amount1 = new Amount '1'
 amount4 = new Amount '4'
 amount5 = new Amount '5'
+amount10 = new Amount '10'
 amount20 = new Amount '20'
 amount50 = new Amount '50'
 amount99 = new Amount '99'
 amount100 = new Amount '100'
+amount101 = new Amount '101'
 amount125 = new Amount '125'
 amount150 = new Amount '150'
 amount200 = new Amount '200'
@@ -1215,4 +1217,59 @@ describe 'Market', ->
       for bidCurrency, books of @market.books
         for offerCurrency of books
           object.books[bidCurrency][offerCurrency].should.be.ok
+
+    it 'should be possible to recreate a market from an exported snapshot', ->
+      @market.deposit
+        id: '1'
+        timestamp: '1'
+        account: 'Peter'
+        currency: 'EUR'
+        amount: amount1000
+      @market.deposit
+        id: '2'
+        timestamp: '2'
+        account: 'Paul'
+        currency: 'BTC'
+        amount: amount10
+      @market.submit new Order
+        id: '3'
+        timestamp: '3'
+        account: 'Peter'
+        offerCurrency: 'EUR'
+        bidCurrency: 'BTC'
+        bidPrice: amount100
+        bidAmount: amount10
+      @market.submit new Order
+        id: '4'
+        timestamp: '4'
+        account: 'Paul'
+        offerCurrency: 'BTC'
+        bidCurrency: 'EUR'
+        offerPrice: amount101
+        offerAmount: amount10
+      market = new Market @market.export()
+      market.lastTransaction.should.equal @market.lastTransaction
+      market.cancel
+        id: '5'
+        timestamp: '5'
+        order: new Order
+          id: '4'
+          timestamp: '4'
+          account: 'Paul'
+          offerCurrency: 'BTC'
+          bidCurrency: 'EUR'
+          offerPrice: amount101
+          offerAmount: amount10
+      market.submit new Order
+        id: '6'
+        timestamp: '6'
+        account: 'Paul'
+        offerCurrency: 'BTC'
+        bidCurrency: 'EUR'
+        offerPrice: amount100
+        offerAmount: amount10
+      market.getAccount('Peter').getBalance('EUR').funds.compareTo(Amount.ZERO).should.equal 0
+      market.getAccount('Peter').getBalance('BTC').funds.compareTo(amount10).should.equal 0
+      market.getAccount('Paul').getBalance('EUR').funds.compareTo(amount1000).should.equal 0
+      market.getAccount('Paul').getBalance('BTC').funds.compareTo(Amount.ZERO).should.equal 0
 
