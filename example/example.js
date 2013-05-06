@@ -209,7 +209,7 @@ console.log('********************');
 console.log('');
 console.log(market.getBook('BTC', 'EUR').export());
 
-// export a sanpshot of the market as an object that can be converted to JSON
+// export a snapshot of the market as an object that can be converted to JSON
 var snapshot  = market.export();
 
 // JSON stringify the snapshot
