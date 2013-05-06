@@ -1515,7 +1515,7 @@ describe 'Order', ->
       expect(object.bidAmount).to.not.be.ok
 
   describe '#exportList', ->
-    it.skip 'should push exported orders onto the supplied array starting with itself and working back through lower orders', ->
+    it 'should push exported orders onto the supplied array starting with itself and working back through lower orders', ->
       #
       #                       1
       #                      / \

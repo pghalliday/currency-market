@@ -81,3 +81,17 @@ module.exports = class Market extends EventEmitter
       @emit 'cancellation', cancellation
     else
       throw new Error 'Order cannot be found'
+
+  export: =>
+    object = Object.create null
+    object.lastTransaction = @lastTransaction
+    object.accounts = Object.create null
+    for id, account of @accounts
+      object.accounts[id] = account.export()
+    object.books = Object.create null
+    for bidCurrency, books of @books
+      object.books[bidCurrency] = Object.create null
+      for offerCurrency, book of books
+        object.books[bidCurrency][offerCurrency] = book.export()
+    return object
+

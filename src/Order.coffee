@@ -330,7 +330,5 @@ module.exports = class Order extends EventEmitter
       @lower.getHighest().exportList array
     if @parent
       if @parent.higher == @
-        array.push @parent.export()
-        if @parent.lower
-          @parent.lower.getHighest().exportList array
+        @parent.exportList array
 

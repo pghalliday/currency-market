@@ -1173,7 +1173,7 @@ describe 'Market', ->
       book3.should.not.equal book1
 
   describe '#export', ->
-    it.skip 'should return a JSON stringifiable object containing a snapshot of the market', ->
+    it 'should return a JSON stringifiable object containing a snapshot of the market', ->
       @market.deposit
         id: '123456791'
         timestamp: '987654322'

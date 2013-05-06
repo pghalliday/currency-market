@@ -286,7 +286,7 @@ describe 'Book', ->
       expect(@book.highest).to.not.be.ok
 
   describe '#export', ->
-    it.skip 'should return a JSON stringifiable array containing a sorted list of orders in the book with the highest first', ->
+    it 'should return a JSON stringifiable array containing a sorted list of orders in the book with the highest first', ->
       book = new Book()
       #
       #                       1
