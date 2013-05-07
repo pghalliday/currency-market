@@ -324,11 +324,16 @@ module.exports = class Order extends EventEmitter
       object.offerAmount = @offerAmount.toString()
     return object
 
-  exportList: (array) =>
-    array.push @export()
-    if @lower
-      @lower.getHighest().exportList array
+  nextParent: =>
     if @parent
       if @parent.higher == @
-        @parent.exportList array
+        return @parent
+      else
+        return @parent.nextParent()
+
+  next: =>
+    if @lower
+      return @lower.getHighest()
+    else
+      return @nextParent()
 

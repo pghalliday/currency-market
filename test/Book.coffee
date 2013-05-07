@@ -52,63 +52,63 @@ describe 'Book', ->
       book = new Book()
       order1 = newOrder('1', amount50)
       book.submit(order1)
-      book.highest.should.equal(order1)
+      book.next().should.equal(order1)
 
       order2 = newOrder('2', amount51)
       book.submit(order2)
-      book.highest.should.equal(order2)
+      book.next().should.equal(order2)
 
       order3 = newOrder('3', amount49)
       book.submit(order3)
-      book.highest.should.equal(order2)
+      book.next().should.equal(order2)
 
       order4 = newOrder('4', amount52)
       book.submit(order4)
-      book.highest.should.equal(order4)
+      book.next().should.equal(order4)
 
       order5 = newOrder('5', amount50Point5)
       book.submit(order5)
-      book.highest.should.equal(order4)
+      book.next().should.equal(order4)
 
       order6 = newOrder('6', amount49Point5)
       book.submit(order6)
-      book.highest.should.equal(order4)
+      book.next().should.equal(order4)
 
       order7 = newOrder('7', amount48Point5)
       book.submit(order7)
-      book.highest.should.equal(order4)
+      book.next().should.equal(order4)
 
       order8 = newOrder('8', amount48Point5) # is equal to but should be placed lower than order 7
       book.submit(order8)
-      book.highest.should.equal(order4)
+      book.next().should.equal(order4)
 
       order9 = newOrder('9', amount48Point75)
       book.submit(order9)
-      book.highest.should.equal(order4)
+      book.next().should.equal(order4)
 
       order10 = newOrder('10', amount49Point5) # is equal to but should be placed lower than order 6
       book.submit(order10)
-      book.highest.should.equal(order4)
+      book.next().should.equal(order4)
 
       order11 = newOrder('11', amount49Point75)
       book.submit(order11)
-      book.highest.should.equal(order4)
+      book.next().should.equal(order4)
 
       order12 = newOrder('12', amount50Point5) # is equal to but should be placed lower than order 5
       book.submit(order12)
-      book.highest.should.equal(order4)
+      book.next().should.equal(order4)
 
       order13 = newOrder('13', amount50Point75)
       book.submit(order13)
-      book.highest.should.equal(order4)
+      book.next().should.equal(order4)
 
       order14 = newOrder('14', amount52) # is equal to but should be placed lower than order 4
       book.submit(order14)
-      book.highest.should.equal(order4)
+      book.next().should.equal(order4)
 
       order15 = newOrder('15', amount53)
       book.submit(order15)
-      book.highest.should.equal(order15)
+      book.next().should.equal(order15)
 
     describe 'when the order fill event fires', ->
       beforeEach ->
@@ -133,7 +133,7 @@ describe 'Book', ->
           offerPrice: amount100
           offerAmount: amount5
         order.match @order
-        @book.highest.should.equal @order
+        @book.next().should.equal @order
         order = new Order
           id: '3'
           timestamp: '2'
@@ -143,7 +143,7 @@ describe 'Book', ->
           offerPrice: amount100
           offerAmount: amount10
         order.match @order
-        expect(@book.highest).to.not.be.ok
+        expect(@book.next()).to.not.be.ok
 
   describe '#cancel', ->
     beforeEach ->
@@ -195,7 +195,7 @@ describe 'Book', ->
 
     it 'should keep track of the order with the highest bid price', ->
       @book.cancel(@order1) # cancel head order with both lower and higher orders
-      @book.highest.should.equal(@order15)
+      @book.next().should.equal(@order15)
       #                         2
       #                        / \
       #                       /   \
@@ -210,7 +210,7 @@ describe 'Book', ->
       #              / \   / \ 
       #             8   9 10 11
       @book.cancel(@order12) # cancel order without higher order
-      @book.highest.should.equal(@order15)
+      @book.next().should.equal(@order15)
       #                         2
       #                        / \
       #                       /   \
@@ -223,7 +223,7 @@ describe 'Book', ->
       #                / \   / \ 
       #               8   9 10 11
       @book.cancel(@order10) # cancel order on a lower branch with no lower order
-      @book.highest.should.equal(@order15)
+      @book.next().should.equal(@order15)
       #                         2
       #                        / \
       #                       /   \
@@ -236,7 +236,7 @@ describe 'Book', ->
       #                / \     \ 
       #               8   9    11
       @book.cancel(@order6) # cancel order with no lower order
-      @book.highest.should.equal(@order15)
+      @book.next().should.equal(@order15)
       #                         2
       #                        / \
       #                       /   \
@@ -249,9 +249,9 @@ describe 'Book', ->
       #                / \    
       #               8   9   
       @book.cancel(@order11)
-      @book.highest.should.equal(@order15)
+      @book.next().should.equal(@order15)
       @book.cancel(@order8)
-      @book.highest.should.equal(@order15)
+      @book.next().should.equal(@order15)
       #                         2
       #                        / \
       #                       /   \
@@ -267,23 +267,23 @@ describe 'Book', ->
       # Now remove highest until all elements have been removed and verify the new highest each time
       # this time we'll use the actual references submited as this should also be safe
       @book.cancel(@order15)
-      @book.highest.should.equal(@order4)
+      @book.next().should.equal(@order4)
       @book.cancel(@order4)
-      @book.highest.should.equal(@order14)
+      @book.next().should.equal(@order14)
       @book.cancel(@order14)
-      @book.highest.should.equal(@order2)
+      @book.next().should.equal(@order2)
       @book.cancel(@order2)
-      @book.highest.should.equal(@order13)
+      @book.next().should.equal(@order13)
       @book.cancel(@order13)
-      @book.highest.should.equal(@order5)
+      @book.next().should.equal(@order5)
       @book.cancel(@order5)
-      @book.highest.should.equal(@order3)
+      @book.next().should.equal(@order3)
       @book.cancel(@order3)
-      @book.highest.should.equal(@order9)
+      @book.next().should.equal(@order9)
       @book.cancel(@order9)
-      @book.highest.should.equal(@order7)
+      @book.next().should.equal(@order7)
       @book.cancel(@order7)
-      expect(@book.highest).to.not.be.ok
+      expect(@book.next()).to.not.be.ok
 
   describe '#export', ->
     it 'should return a JSON stringifiable array containing a sorted list of orders in the book with the highest first', ->

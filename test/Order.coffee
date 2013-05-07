@@ -1514,8 +1514,8 @@ describe 'Order', ->
       expect(object.bidPrice).to.not.be.ok
       expect(object.bidAmount).to.not.be.ok
 
-  describe '#exportList', ->
-    it 'should push exported orders onto the supplied array starting with itself and working back through lower orders', ->
+  describe '#next', ->
+    it 'should return the next order in a tree if there is one', ->
       #
       #                       1
       #                      / \
@@ -1559,27 +1559,22 @@ describe 'Order', ->
       order1.add order14
       order15 = newBidOrder amount53
       order1.add order15
-      array = []
-      order15.exportList array
-      json = JSON.stringify array
-      array = JSON.parse json
-      array.should.deep.equal [
-        order15.export()
-        order4.export()
-        order14.export()
-        order2.export()
-        order13.export()
-        order5.export()
-        order12.export()
-        order1.export()
-        order11.export()
-        order6.export()
-        order10.export()
-        order3.export()
-        order9.export()
-        order7.export()
-        order8.export()
-      ]
+
+      order15.next().should.equal order4
+      order4.next().should.equal order14
+      order14.next().should.equal order2
+      order2.next().should.equal order13
+      order13.next().should.equal order5
+      order5.next().should.equal order12
+      order12.next().should.equal order1
+      order1.next().should.equal order11
+      order11.next().should.equal order6
+      order6.next().should.equal order10
+      order10.next().should.equal order3
+      order3.next().should.equal order9
+      order9.next().should.equal order7
+      order7.next().should.equal order8
+      expect(order8.next()).to.not.be.ok
 
 
 

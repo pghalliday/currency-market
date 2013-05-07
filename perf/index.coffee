@@ -3,13 +3,16 @@ RandomBidOffer = require './RandomBidOffer'
 RandomBidBid = require './RandomBidBid'
 RandomOfferOffer = require './RandomOfferOffer'
 
+rate = (count, time) ->
+  (count * 1000000000) / ((time[0] * 1000000000) + time[1])
+
 passItOn = new PassItOn
   iterations: 10000
   accounts: 2
 
 passItOn.execute()
 console.log passItOn.trades + ' Trades'
-console.log passItOn.trades / passItOn.time[0] + ' Trades per second'
+console.log rate(passItOn.trades, passItOn.time) + ' Trades per second'
 
 randomBidOffer = new RandomBidOffer
   iterations: 10
@@ -20,7 +23,7 @@ randomBidOffer = new RandomBidOffer
 
 randomBidOffer.execute()
 console.log randomBidOffer.trades + ' Trades'
-console.log randomBidOffer.trades / randomBidOffer.time[0] + ' Trades per second'
+console.log rate(randomBidOffer.trades, randomBidOffer.time) + ' Trades per second'
 
 randomOfferOffer = new RandomOfferOffer
   iterations: 10
@@ -31,7 +34,7 @@ randomOfferOffer = new RandomOfferOffer
 
 randomOfferOffer.execute()
 console.log randomOfferOffer.trades + ' Trades'
-console.log randomOfferOffer.trades / randomOfferOffer.time[0] + ' Trades per second'
+console.log rate(randomOfferOffer.trades, randomOfferOffer.time) + ' Trades per second'
 
 randomBidBid = new RandomBidBid
   iterations: 10
@@ -42,4 +45,4 @@ randomBidBid = new RandomBidBid
 
 randomBidBid.execute()
 console.log randomBidBid.trades + ' Trades'
-console.log randomBidBid.trades / randomBidBid.time[0] + ' Trades per second'
+console.log rate(randomBidBid.trades, randomBidBid.time) + ' Trades per second'

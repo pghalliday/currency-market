@@ -40,8 +40,10 @@ module.exports = class Book
       else
         delete @head
 
+  next: =>
+    @highest
+
   export: =>
-    array = []
-    if @highest
-      @highest.exportList array
-    return array
+    next = @
+    while next = next.next()
+      next.export()

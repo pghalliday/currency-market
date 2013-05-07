@@ -81,8 +81,8 @@ module.exports = class Market extends EventEmitter
       throw new Error 'Must supply transaction ID'
 
   execute = (leftBook, rightBook) ->
-    leftOrder = leftBook.highest
-    rightOrder = rightBook.highest
+    leftOrder = leftBook.next()
+    rightOrder = rightBook.next()
     if leftOrder && rightOrder
         # just added an order to the left book so the left order must be
         # the most recent addition if we get here. This means that we should
