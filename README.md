@@ -279,6 +279,13 @@ console.log('********************');
   - Amount factory required?
   - currently we only round down debits and credits so as not to debit more funds than available
     - current rounding is done to an arbitrary scale of 25
+- Separate transaction IDs and sequence IDs
+  - Use sequence numbers instead of transaction IDs so the engine knows that it hasn't missed anything?
+  - Use both sequence numbers and transaction IDs?
+    - transaction IDs provide replayability
+      - have to be unique forever (uuid?)
+    - sequence numbers provide integrity checking
+      - may get unweildy if required to be unique forever and could loop instead
 - Protection against attacks?
   - entering orders that satisfy each other
   - entering tiny orders
