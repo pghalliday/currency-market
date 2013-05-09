@@ -2,6 +2,9 @@ chai = require 'chai'
 chai.should()
 expect = chai.expect
 assert = chai.assert
+sinon = require 'sinon'
+sinonChai = require 'sinon-chai'
+chai.use sinonChai
 
 Account = require('../src/Account')
 Balance = require('../src/Balance')
@@ -9,6 +12,7 @@ Amount = require('../src/Amount')
 Order = require('../src/Order')
 
 amountPoint01 = new Amount '0.01'
+amount4 = new Amount '4'
 amount5 = new Amount '5'
 amount10 = new Amount '10'
 amount15 = new Amount '15'
@@ -44,12 +48,19 @@ newBid = (id, currency, amount) ->
 
 describe 'Account', ->
   it 'should instantiate and record the account ID', ->
-    account = new Account '1'
+    account = new Account
+      id: '1'
     account.id.should.equal '1'
+
+  it 'should throw an error if no ID is given', ->
+    expect ->
+      account = new Account()
+    .to.throw 'Account ID must be specified'
 
   describe '#submit', ->
     it 'should add an order to the orders collection and lock the appropriate funds', ->
-      account = new Account()
+      account = new Account
+        id: '123456789'
       account.deposit
         currency: 'EUR'
         amount: amount1000
@@ -67,7 +78,14 @@ describe 'Account', ->
 
     describe 'when the order fill event fires', ->
       beforeEach ->
-        @account = new Account()
+        @commissionAccount = new Account
+          id: 'commission'
+        @calculateCommission = sinon.stub().returns Amount.ONE
+        @account = new Account
+          id: '123456789'
+          commission:
+            account: @commissionAccount
+            calculate: @calculateCommission
         @account.deposit
           currency: 'EUR'
           amount: amount1000
@@ -81,7 +99,7 @@ describe 'Account', ->
           bidAmount: amount10
         @account.submit @order
 
-      it 'should adjust the locked funds and make deposits and withdrawals to apply the fill', ->
+      it 'should adjust the locked funds, apply commission and make deposits and withdrawals to apply the fill', ->
        order = new Order
           id: '2'
           timestamp: '2'
@@ -91,10 +109,15 @@ describe 'Account', ->
           offerPrice: amount100
           offerAmount: amount5
         order.match @order
+        @calculateCommission.should.have.been.calledOnce
+        @calculateCommission.firstCall.args[0].bidAmount.compareTo(amount5).should.equal 0
+        @calculateCommission.firstCall.args[0].timestamp.should.equal '2'
+        @calculateCommission.firstCall.args[0].bid.should.equal @order
+        @commissionAccount.getBalance('BTC').funds.compareTo(Amount.ONE).should.equal 0
         @account.getBalance('EUR').offers['1'].should.equal @order
         @account.getBalance('EUR').lockedFunds.compareTo(amount500).should.equal 0
         @account.getBalance('EUR').funds.compareTo(amount500).should.equal 0
-        @account.getBalance('BTC').funds.compareTo(amount5).should.equal 0
+        @account.getBalance('BTC').funds.compareTo(amount4).should.equal 0
 
       it 'should delete fully filled orders', ->
        order = new Order
@@ -111,7 +134,8 @@ describe 'Account', ->
 
   describe '#cancel', ->
     it 'should delete an order and unlock the appropriate funds', ->
-      account = new Account()
+      account = new Account
+        id: '123456789'
       account.deposit
         currency: 'EUR'
         amount: amount1000
@@ -130,7 +154,8 @@ describe 'Account', ->
 
   describe '#getBalance', ->
     it 'should return a balance object associated with the given currency', ->
-      account = new Account()
+      account = new Account
+        id: '123456789'
       balance1 = account.getBalance 'EUR'
       balance1.should.be.an.instanceOf Balance
       balance2 = account.getBalance 'EUR'
@@ -140,7 +165,8 @@ describe 'Account', ->
 
   describe '#deposit', ->
     it 'should add the deposited amount to the funds for the correct currency', ->
-      account = new Account()
+      account = new Account
+        id: '123456789'
       account.deposit
         currency: 'BTC'
         amount: amount50
@@ -148,7 +174,8 @@ describe 'Account', ->
 
   describe '#withdraw', ->
     it 'should subtract the withdrawn amount from the funds of the correct currency', ->
-      account = new Account()
+      account = new Account
+        id: '123456789'
       account.deposit
         currency: 'BTC'
         amount: amount200
@@ -164,7 +191,8 @@ describe 'Account', ->
       account.getBalance('BTC').funds.compareTo(amount150).should.equal 0
 
     it 'should throw an error if the withdrawal amount is greater than the funds available', ->
-      account = new Account()
+      account = new Account
+        id: '123456789'
       account.deposit
         currency: 'BTC'
         amount: amount200
@@ -178,7 +206,8 @@ describe 'Account', ->
 
   describe '#export', ->
     it 'should return a JSON stringifiable object containing a snapshot of the account', ->
-      account = new Account '123456789'
+      account = new Account
+        id: '123456789'
       account.deposit
         currency: 'BTC'
         amount: amount200

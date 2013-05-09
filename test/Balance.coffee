@@ -121,12 +121,14 @@ describe 'Balance', ->
       balance.funds.compareTo(amount225).should.equal 0
 
     it 'should apply commission to deposits as a result of fills', ->
-      commissionAccount = new Account 'commission'
+      commissionAccount = new Account
+        id: 'commission'
       calculateCommission = sinon.stub().returns amount5
 
       balance = new Balance
-        account: commissionAccount
-        calculate: calculateCommission
+        commission: 
+          account: commissionAccount
+          calculate: calculateCommission
 
       balance.deposit amount200
       bid = newBid '1', amount25

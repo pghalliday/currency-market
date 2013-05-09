@@ -16,7 +16,8 @@ Order = require '../src/Order'
 amountPoint2 = new Amount '0.2'
 amountPoint25 = new Amount '0.25'
 amountPoint5 = new Amount '0.5'
-amount1 = new Amount '1'
+amount1 = Amount.ONE
+amount3 = new Amount '3'
 amount4 = new Amount '4'
 amount5 = new Amount '5'
 amount10 = new Amount '10'
@@ -27,18 +28,25 @@ amount100 = new Amount '100'
 amount101 = new Amount '101'
 amount125 = new Amount '125'
 amount150 = new Amount '150'
+amount199 = new Amount '199'
 amount200 = new Amount '200'
 amount250 = new Amount '250'
 amount300 = new Amount '300'
+amount347 = new Amount '347'
 amount350 = new Amount '350'
 amount400 = new Amount '400'
+amount472 = new Amount '472'
 amount475 = new Amount '475'
+amount499 = new Amount '499'
 amount500 = new Amount '500'
 amount525 = new Amount '525'
 amount650 = new Amount '650'
 amount750 = new Amount '750'
+amount999 = new Amount '999'
 amount1000 = new Amount '1000'
+amount1247 = new Amount '1247'
 amount1250 = new Amount '1250'
+amount1497 = new Amount '1497'
 amount1500 = new Amount '1500'
 amount1750 = new Amount '1750'
 amount2000 = new Amount '2000'
@@ -47,11 +55,11 @@ amount4950 = new Amount '4950'
 
 describe 'Market', ->
   beforeEach ->
-    @market = new Market()
-
-  it 'should instantiate with empty collections of accounts and books', ->
-    Object.keys(@market.accounts).should.be.empty
-    Object.keys(@market.books).should.be.empty
+    @calculateCommission = sinon.stub().returns Amount.ONE
+    @market = new Market
+      commission:
+        account: 'commission'
+        calculate: @calculateCommission
 
   describe '#deposit', ->
     it 'should throw an error if no transaction ID is given', ->
@@ -248,7 +256,7 @@ describe 'Market', ->
         describe 'and the new (left) price is same', ->
           describe 'and the left order is a bid', ->
             describe 'and the right order is offering exactly the amount the left order is bidding', ->
-                it 'should trade the amount the right order is offering and emit a trade event', ->
+                it 'should trade the amount the right order is offering, apply commission and emit a trade event', ->
                   tradeSpy = sinon.spy()
                   @market.on 'trade', tradeSpy
 
@@ -262,22 +270,33 @@ describe 'Market', ->
                     bidAmount: amount1000
                   @market.submit leftOrder
 
+                  @calculateCommission.should.have.been.calledTwice
+                  @calculateCommission.firstCall.args[0].bidAmount.compareTo(amount200).should.equal 0
+                  @calculateCommission.firstCall.args[0].timestamp.should.equal '2'
+                  @calculateCommission.firstCall.args[0].bid.should.equal @rightOrder
+                  @market.getAccount('commission').getBalance('BTC').funds.compareTo(Amount.ONE).should.equal 0
+                  @calculateCommission.secondCall.args[0].bidAmount.compareTo(amount1000).should.equal 0
+                  @calculateCommission.secondCall.args[0].timestamp.should.equal '2'
+                  @calculateCommission.secondCall.args[0].bid.should.equal leftOrder
+                  @market.getAccount('commission').getBalance('EUR').funds.compareTo(Amount.ONE).should.equal 0
+
                   tradeSpy.should.have.been.calledOnce
                   tradeSpy.firstCall.args[0].bid.should.equal leftOrder
                   tradeSpy.firstCall.args[0].offer.should.equal @rightOrder
                   tradeSpy.firstCall.args[0].price.compareTo(amountPoint2).should.equal 0
                   tradeSpy.firstCall.args[0].amount.compareTo(amount1000).should.equal 0
+
                   expect(@market.getAccount('Peter').getBalance('EUR').offers['1']).to.not.be.ok
                   expect(@market.getAccount('Paul').getBalance('BTC').offers['2']).to.not.be.ok
                   @market.getAccount('Peter').getBalance('EUR').funds.compareTo(amount1000).should.equal 0
                   @market.getAccount('Peter').getBalance('EUR').lockedFunds.compareTo(Amount.ZERO).should.equal 0
-                  @market.getAccount('Peter').getBalance('BTC').funds.compareTo(amount200).should.equal 0
-                  @market.getAccount('Paul').getBalance('EUR').funds.compareTo(amount1000).should.equal 0
+                  @market.getAccount('Peter').getBalance('BTC').funds.compareTo(amount199).should.equal 0
+                  @market.getAccount('Paul').getBalance('EUR').funds.compareTo(amount999).should.equal 0
                   @market.getAccount('Paul').getBalance('BTC').funds.compareTo(amount200).should.equal 0
                   @market.getAccount('Paul').getBalance('BTC').lockedFunds.compareTo(Amount.ZERO).should.equal 0
 
             describe 'and the right order is offering more than the left order is bidding', ->
-                it 'should trade the amount the left order is offering and emit a trade event', ->
+                it 'should trade the amount the left order is offering, apply commission and emit a trade event', ->
                   tradeSpy = sinon.spy()
                   @market.on 'trade', tradeSpy
 
@@ -291,22 +310,33 @@ describe 'Market', ->
                     bidAmount: amount500
                   @market.submit leftOrder
 
+                  @calculateCommission.should.have.been.calledTwice
+                  @calculateCommission.firstCall.args[0].bidAmount.compareTo(amount100).should.equal 0
+                  @calculateCommission.firstCall.args[0].timestamp.should.equal '2'
+                  @calculateCommission.firstCall.args[0].bid.should.equal @rightOrder
+                  @market.getAccount('commission').getBalance('BTC').funds.compareTo(Amount.ONE).should.equal 0
+                  @calculateCommission.secondCall.args[0].bidAmount.compareTo(amount500).should.equal 0
+                  @calculateCommission.secondCall.args[0].timestamp.should.equal '2'
+                  @calculateCommission.secondCall.args[0].bid.should.equal leftOrder
+                  @market.getAccount('commission').getBalance('EUR').funds.compareTo(Amount.ONE).should.equal 0
+
                   tradeSpy.should.have.been.calledOnce
                   tradeSpy.firstCall.args[0].bid.should.equal leftOrder
                   tradeSpy.firstCall.args[0].offer.should.equal @rightOrder
                   tradeSpy.firstCall.args[0].price.compareTo(amountPoint2).should.equal 0
                   tradeSpy.firstCall.args[0].amount.compareTo(amount500).should.equal 0
+
                   @market.getAccount('Peter').getBalance('EUR').offers['1'].offerAmount.compareTo(amount500).should.equal 0
                   expect(@market.getAccount('Paul').getBalance('BTC').offers['2']).to.not.be.ok
                   @market.getAccount('Peter').getBalance('EUR').funds.compareTo(amount1500).should.equal 0
                   @market.getAccount('Peter').getBalance('EUR').lockedFunds.compareTo(amount500).should.equal 0
-                  @market.getAccount('Peter').getBalance('BTC').funds.compareTo(amount100).should.equal 0
-                  @market.getAccount('Paul').getBalance('EUR').funds.compareTo(amount500).should.equal 0
+                  @market.getAccount('Peter').getBalance('BTC').funds.compareTo(amount99).should.equal 0
+                  @market.getAccount('Paul').getBalance('EUR').funds.compareTo(amount499).should.equal 0
                   @market.getAccount('Paul').getBalance('BTC').funds.compareTo(amount300).should.equal 0
                   @market.getAccount('Paul').getBalance('BTC').lockedFunds.compareTo(Amount.ZERO).should.equal 0
 
             describe 'and the right order is offering less than the left order is bidding', ->
-                it 'should trade the amount the right order is offering and emit a trade event', ->
+                it 'should trade the amount the right order is offering, apply commission and emit a trade event', ->
                   tradeSpy = sinon.spy()
                   @market.on 'trade', tradeSpy
 
@@ -320,23 +350,34 @@ describe 'Market', ->
                     bidAmount: amount1500
                   @market.submit leftOrder
 
+                  @calculateCommission.should.have.been.calledTwice
+                  @calculateCommission.firstCall.args[0].bidAmount.compareTo(amount200).should.equal 0
+                  @calculateCommission.firstCall.args[0].timestamp.should.equal '2'
+                  @calculateCommission.firstCall.args[0].bid.should.equal @rightOrder
+                  @market.getAccount('commission').getBalance('BTC').funds.compareTo(Amount.ONE).should.equal 0
+                  @calculateCommission.secondCall.args[0].bidAmount.compareTo(amount1000).should.equal 0
+                  @calculateCommission.secondCall.args[0].timestamp.should.equal '2'
+                  @calculateCommission.secondCall.args[0].bid.should.equal leftOrder
+                  @market.getAccount('commission').getBalance('EUR').funds.compareTo(Amount.ONE).should.equal 0
+
                   tradeSpy.should.have.been.calledOnce
                   tradeSpy.firstCall.args[0].bid.should.equal leftOrder
                   tradeSpy.firstCall.args[0].offer.should.equal @rightOrder
                   tradeSpy.firstCall.args[0].price.compareTo(amountPoint2).should.equal 0
                   tradeSpy.firstCall.args[0].amount.compareTo(amount1000).should.equal 0
+
                   expect(@market.getAccount('Peter').getBalance('EUR').offers['1']).to.not.be.ok
                   @market.getAccount('Paul').getBalance('BTC').offers['2'].bidAmount.compareTo(amount500).should.equal 0
                   @market.getAccount('Peter').getBalance('EUR').funds.compareTo(amount1000).should.equal 0
                   @market.getAccount('Peter').getBalance('EUR').lockedFunds.compareTo(Amount.ZERO).should.equal 0
-                  @market.getAccount('Peter').getBalance('BTC').funds.compareTo(amount200).should.equal 0
-                  @market.getAccount('Paul').getBalance('EUR').funds.compareTo(amount1000).should.equal 0
+                  @market.getAccount('Peter').getBalance('BTC').funds.compareTo(amount199).should.equal 0
+                  @market.getAccount('Paul').getBalance('EUR').funds.compareTo(amount999).should.equal 0
                   @market.getAccount('Paul').getBalance('BTC').funds.compareTo(amount200).should.equal 0
                   @market.getAccount('Paul').getBalance('BTC').lockedFunds.compareTo(amount100).should.equal 0
 
           describe 'and the left order is an offer', ->
             describe 'and the right order is offering exactly the amount the left order is offering', ->
-                it 'should trade the amount the right order is offering and emit a trade event', ->
+                it 'should trade the amount the right order is offering, apply commission and emit a trade event', ->
                   tradeSpy = sinon.spy()
                   @market.on 'trade', tradeSpy
 
@@ -350,22 +391,33 @@ describe 'Market', ->
                     offerAmount: amount200
                   @market.submit leftOrder
 
+                  @calculateCommission.should.have.been.calledTwice
+                  @calculateCommission.firstCall.args[0].bidAmount.compareTo(amount200).should.equal 0
+                  @calculateCommission.firstCall.args[0].timestamp.should.equal '2'
+                  @calculateCommission.firstCall.args[0].bid.should.equal @rightOrder
+                  @market.getAccount('commission').getBalance('BTC').funds.compareTo(Amount.ONE).should.equal 0
+                  @calculateCommission.secondCall.args[0].bidAmount.compareTo(amount1000).should.equal 0
+                  @calculateCommission.secondCall.args[0].timestamp.should.equal '2'
+                  @calculateCommission.secondCall.args[0].bid.should.equal leftOrder
+                  @market.getAccount('commission').getBalance('EUR').funds.compareTo(Amount.ONE).should.equal 0
+
                   tradeSpy.should.have.been.calledOnce
                   tradeSpy.firstCall.args[0].bid.should.equal leftOrder
                   tradeSpy.firstCall.args[0].offer.should.equal @rightOrder
                   tradeSpy.firstCall.args[0].price.compareTo(amountPoint2).should.equal 0
                   tradeSpy.firstCall.args[0].amount.compareTo(amount1000).should.equal 0
+
                   expect(@market.getAccount('Peter').getBalance('EUR').offers['1']).to.not.be.ok
                   expect(@market.getAccount('Paul').getBalance('BTC').offers['2']).to.not.be.ok
                   @market.getAccount('Peter').getBalance('EUR').funds.compareTo(amount1000).should.equal 0
                   @market.getAccount('Peter').getBalance('EUR').lockedFunds.compareTo(Amount.ZERO).should.equal 0
-                  @market.getAccount('Peter').getBalance('BTC').funds.compareTo(amount200).should.equal 0
-                  @market.getAccount('Paul').getBalance('EUR').funds.compareTo(amount1000).should.equal 0
+                  @market.getAccount('Peter').getBalance('BTC').funds.compareTo(amount199).should.equal 0
+                  @market.getAccount('Paul').getBalance('EUR').funds.compareTo(amount999).should.equal 0
                   @market.getAccount('Paul').getBalance('BTC').funds.compareTo(amount200).should.equal 0
                   @market.getAccount('Paul').getBalance('BTC').lockedFunds.compareTo(Amount.ZERO).should.equal 0
 
             describe 'and the right order is offering more than the left order is offering', ->
-                it 'should trade the amount the left order is offering and emit a trade event', ->
+                it 'should trade the amount the left order is offering, apply commission and emit a trade event', ->
                   tradeSpy = sinon.spy()
                   @market.on 'trade', tradeSpy
 
@@ -379,22 +431,33 @@ describe 'Market', ->
                     offerAmount: amount100
                   @market.submit leftOrder
 
+                  @calculateCommission.should.have.been.calledTwice
+                  @calculateCommission.firstCall.args[0].bidAmount.compareTo(amount100).should.equal 0
+                  @calculateCommission.firstCall.args[0].timestamp.should.equal '2'
+                  @calculateCommission.firstCall.args[0].bid.should.equal @rightOrder
+                  @market.getAccount('commission').getBalance('BTC').funds.compareTo(Amount.ONE).should.equal 0
+                  @calculateCommission.secondCall.args[0].bidAmount.compareTo(amount500).should.equal 0
+                  @calculateCommission.secondCall.args[0].timestamp.should.equal '2'
+                  @calculateCommission.secondCall.args[0].bid.should.equal leftOrder
+                  @market.getAccount('commission').getBalance('EUR').funds.compareTo(Amount.ONE).should.equal 0
+
                   tradeSpy.should.have.been.calledOnce
                   tradeSpy.firstCall.args[0].bid.should.equal leftOrder
                   tradeSpy.firstCall.args[0].offer.should.equal @rightOrder
                   tradeSpy.firstCall.args[0].price.compareTo(amountPoint2).should.equal 0
                   tradeSpy.firstCall.args[0].amount.compareTo(amount500).should.equal 0
+
                   @market.getAccount('Peter').getBalance('EUR').offers['1'].offerAmount.compareTo(amount500).should.equal 0
                   expect(@market.getAccount('Paul').getBalance('BTC').offers['2']).to.not.be.ok
                   @market.getAccount('Peter').getBalance('EUR').funds.compareTo(amount1500).should.equal 0
                   @market.getAccount('Peter').getBalance('EUR').lockedFunds.compareTo(amount500).should.equal 0
-                  @market.getAccount('Peter').getBalance('BTC').funds.compareTo(amount100).should.equal 0
-                  @market.getAccount('Paul').getBalance('EUR').funds.compareTo(amount500).should.equal 0
+                  @market.getAccount('Peter').getBalance('BTC').funds.compareTo(amount99).should.equal 0
+                  @market.getAccount('Paul').getBalance('EUR').funds.compareTo(amount499).should.equal 0
                   @market.getAccount('Paul').getBalance('BTC').funds.compareTo(amount300).should.equal 0
                   @market.getAccount('Paul').getBalance('BTC').lockedFunds.compareTo(Amount.ZERO).should.equal 0
 
             describe 'and the right order is offering less than the left order is offering', ->
-                it 'should trade the amount the right order is offering and emit a trade event', ->
+                it 'should trade the amount the right order is offering, apply commission and emit a trade event', ->
                   tradeSpy = sinon.spy()
                   @market.on 'trade', tradeSpy
 
@@ -408,6 +471,16 @@ describe 'Market', ->
                     offerAmount: amount300
                   @market.submit leftOrder
 
+                  @calculateCommission.should.have.been.calledTwice
+                  @calculateCommission.firstCall.args[0].bidAmount.compareTo(amount200).should.equal 0
+                  @calculateCommission.firstCall.args[0].timestamp.should.equal '2'
+                  @calculateCommission.firstCall.args[0].bid.should.equal @rightOrder
+                  @market.getAccount('commission').getBalance('BTC').funds.compareTo(Amount.ONE).should.equal 0
+                  @calculateCommission.secondCall.args[0].bidAmount.compareTo(amount1000).should.equal 0
+                  @calculateCommission.secondCall.args[0].timestamp.should.equal '2'
+                  @calculateCommission.secondCall.args[0].bid.should.equal leftOrder
+                  @market.getAccount('commission').getBalance('EUR').funds.compareTo(Amount.ONE).should.equal 0
+
                   tradeSpy.should.have.been.calledOnce
                   tradeSpy.firstCall.args[0].bid.should.equal leftOrder
                   tradeSpy.firstCall.args[0].offer.should.equal @rightOrder
@@ -417,15 +490,15 @@ describe 'Market', ->
                   @market.getAccount('Paul').getBalance('BTC').offers['2'].offerAmount.compareTo(amount100).should.equal 0
                   @market.getAccount('Peter').getBalance('EUR').funds.compareTo(amount1000).should.equal 0
                   @market.getAccount('Peter').getBalance('EUR').lockedFunds.compareTo(Amount.ZERO).should.equal 0
-                  @market.getAccount('Peter').getBalance('BTC').funds.compareTo(amount200).should.equal 0
-                  @market.getAccount('Paul').getBalance('EUR').funds.compareTo(amount1000).should.equal 0
+                  @market.getAccount('Peter').getBalance('BTC').funds.compareTo(amount199).should.equal 0
+                  @market.getAccount('Paul').getBalance('EUR').funds.compareTo(amount999).should.equal 0
                   @market.getAccount('Paul').getBalance('BTC').funds.compareTo(amount200).should.equal 0
                   @market.getAccount('Paul').getBalance('BTC').lockedFunds.compareTo(amount100).should.equal 0
 
         describe 'and the new (left) price is the better', ->
           describe 'and the left order is an offer', ->              
             describe 'and the right order is offering exactly the amount that the left order is offering multiplied by the right order price', ->
-              it 'should trade the amount the right order is offering at the right order price and emit a trade event', ->
+              it 'should trade the amount the right order is offering at the right order price, apply commission and emit a trade event', ->
                 tradeSpy = sinon.spy()
                 @market.on 'trade', tradeSpy
 
@@ -439,6 +512,16 @@ describe 'Market', ->
                   offerAmount: amount200
                 @market.submit leftOrder
 
+                @calculateCommission.should.have.been.calledTwice
+                @calculateCommission.firstCall.args[0].bidAmount.compareTo(amount200).should.equal 0
+                @calculateCommission.firstCall.args[0].timestamp.should.equal '2'
+                @calculateCommission.firstCall.args[0].bid.should.equal @rightOrder
+                @market.getAccount('commission').getBalance('BTC').funds.compareTo(Amount.ONE).should.equal 0
+                @calculateCommission.secondCall.args[0].bidAmount.compareTo(amount1000).should.equal 0
+                @calculateCommission.secondCall.args[0].timestamp.should.equal '2'
+                @calculateCommission.secondCall.args[0].bid.should.equal leftOrder
+                @market.getAccount('commission').getBalance('EUR').funds.compareTo(Amount.ONE).should.equal 0
+
                 tradeSpy.should.have.been.calledOnce
                 tradeSpy.firstCall.args[0].bid.should.equal leftOrder
                 tradeSpy.firstCall.args[0].offer.should.equal @rightOrder
@@ -448,13 +531,13 @@ describe 'Market', ->
                 expect(@market.getAccount('Paul').getBalance('BTC').offers['2']).to.not.be.ok
                 @market.getAccount('Peter').getBalance('EUR').funds.compareTo(amount1000).should.equal 0
                 @market.getAccount('Peter').getBalance('EUR').lockedFunds.compareTo(Amount.ZERO).should.equal 0
-                @market.getAccount('Peter').getBalance('BTC').funds.compareTo(amount200).should.equal 0
-                @market.getAccount('Paul').getBalance('EUR').funds.compareTo(amount1000).should.equal 0
+                @market.getAccount('Peter').getBalance('BTC').funds.compareTo(amount199).should.equal 0
+                @market.getAccount('Paul').getBalance('EUR').funds.compareTo(amount999).should.equal 0
                 @market.getAccount('Paul').getBalance('BTC').funds.compareTo(amount200).should.equal 0
                 @market.getAccount('Paul').getBalance('BTC').lockedFunds.compareTo(Amount.ZERO).should.equal 0
 
             describe 'and the right order is offering more than the left order is offering multiplied by the right order price', ->
-              it 'should trade the amount the left order is offering at the right order price and emit a trade event', ->
+              it 'should trade the amount the left order is offering at the right order price, apply commission and emit a trade event', ->
                 tradeSpy = sinon.spy()
                 @market.on 'trade', tradeSpy
 
@@ -468,6 +551,16 @@ describe 'Market', ->
                   offerAmount: amount100
                 @market.submit leftOrder
 
+                @calculateCommission.should.have.been.calledTwice
+                @calculateCommission.firstCall.args[0].bidAmount.compareTo(amount100).should.equal 0
+                @calculateCommission.firstCall.args[0].timestamp.should.equal '2'
+                @calculateCommission.firstCall.args[0].bid.should.equal @rightOrder
+                @market.getAccount('commission').getBalance('BTC').funds.compareTo(Amount.ONE).should.equal 0
+                @calculateCommission.secondCall.args[0].bidAmount.compareTo(amount500).should.equal 0
+                @calculateCommission.secondCall.args[0].timestamp.should.equal '2'
+                @calculateCommission.secondCall.args[0].bid.should.equal leftOrder
+                @market.getAccount('commission').getBalance('EUR').funds.compareTo(Amount.ONE).should.equal 0
+
                 tradeSpy.should.have.been.calledOnce
                 tradeSpy.firstCall.args[0].bid.should.equal leftOrder
                 tradeSpy.firstCall.args[0].offer.should.equal @rightOrder
@@ -477,13 +570,13 @@ describe 'Market', ->
                 expect(@market.getAccount('Paul').getBalance('BTC').offers['2']).to.not.be.ok
                 @market.getAccount('Peter').getBalance('EUR').funds.compareTo(amount1500).should.equal 0
                 @market.getAccount('Peter').getBalance('EUR').lockedFunds.compareTo(amount500).should.equal 0
-                @market.getAccount('Peter').getBalance('BTC').funds.compareTo(amount100).should.equal 0
-                @market.getAccount('Paul').getBalance('EUR').funds.compareTo(amount500).should.equal 0
+                @market.getAccount('Peter').getBalance('BTC').funds.compareTo(amount99).should.equal 0
+                @market.getAccount('Paul').getBalance('EUR').funds.compareTo(amount499).should.equal 0
                 @market.getAccount('Paul').getBalance('BTC').funds.compareTo(amount300).should.equal 0
                 @market.getAccount('Paul').getBalance('BTC').lockedFunds.compareTo(Amount.ZERO).should.equal 0
 
             describe 'and the right order is offering less than the left order is offering multiplied by the right order price', ->
-              it 'should trade the amount the right order is offering at the right order price and emit a trade event', ->
+              it 'should trade the amount the right order is offering at the right order price, apply commission and emit a trade event', ->
                 tradeSpy = sinon.spy()
                 @market.on 'trade', tradeSpy
 
@@ -497,6 +590,16 @@ describe 'Market', ->
                   offerAmount: amount300
                 @market.submit leftOrder
 
+                @calculateCommission.should.have.been.calledTwice
+                @calculateCommission.firstCall.args[0].bidAmount.compareTo(amount200).should.equal 0
+                @calculateCommission.firstCall.args[0].timestamp.should.equal '2'
+                @calculateCommission.firstCall.args[0].bid.should.equal @rightOrder
+                @market.getAccount('commission').getBalance('BTC').funds.compareTo(Amount.ONE).should.equal 0
+                @calculateCommission.secondCall.args[0].bidAmount.compareTo(amount1000).should.equal 0
+                @calculateCommission.secondCall.args[0].timestamp.should.equal '2'
+                @calculateCommission.secondCall.args[0].bid.should.equal leftOrder
+                @market.getAccount('commission').getBalance('EUR').funds.compareTo(Amount.ONE).should.equal 0
+
                 tradeSpy.should.have.been.calledOnce
                 tradeSpy.firstCall.args[0].bid.should.equal leftOrder
                 tradeSpy.firstCall.args[0].offer.should.equal @rightOrder
@@ -506,14 +609,14 @@ describe 'Market', ->
                 @market.getAccount('Paul').getBalance('BTC').offers['2'].offerAmount.compareTo(amount100).should.equal 0
                 @market.getAccount('Peter').getBalance('EUR').funds.compareTo(amount1000).should.equal 0
                 @market.getAccount('Peter').getBalance('EUR').lockedFunds.compareTo(Amount.ZERO).should.equal 0
-                @market.getAccount('Peter').getBalance('BTC').funds.compareTo(amount200).should.equal 0
-                @market.getAccount('Paul').getBalance('EUR').funds.compareTo(amount1000).should.equal 0
+                @market.getAccount('Peter').getBalance('BTC').funds.compareTo(amount199).should.equal 0
+                @market.getAccount('Paul').getBalance('EUR').funds.compareTo(amount999).should.equal 0
                 @market.getAccount('Paul').getBalance('BTC').funds.compareTo(amount200).should.equal 0
                 @market.getAccount('Paul').getBalance('BTC').lockedFunds.compareTo(amount100).should.equal 0
 
           describe 'and the left order is a bid', ->
             describe 'and the right order is offering exactly the amount that the left order is bidding', ->
-              it 'should trade the amount the right order is offering at the right order price and emit a trade event', ->
+              it 'should trade the amount the right order is offering at the right order price, apply commission and emit a trade event', ->
                 tradeSpy = sinon.spy()
                 @market.on 'trade', tradeSpy
 
@@ -527,6 +630,16 @@ describe 'Market', ->
                   bidAmount: amount1000
                 @market.submit leftOrder
 
+                @calculateCommission.should.have.been.calledTwice
+                @calculateCommission.firstCall.args[0].bidAmount.compareTo(amount200).should.equal 0
+                @calculateCommission.firstCall.args[0].timestamp.should.equal '2'
+                @calculateCommission.firstCall.args[0].bid.should.equal @rightOrder
+                @market.getAccount('commission').getBalance('BTC').funds.compareTo(Amount.ONE).should.equal 0
+                @calculateCommission.secondCall.args[0].bidAmount.compareTo(amount1000).should.equal 0
+                @calculateCommission.secondCall.args[0].timestamp.should.equal '2'
+                @calculateCommission.secondCall.args[0].bid.should.equal leftOrder
+                @market.getAccount('commission').getBalance('EUR').funds.compareTo(Amount.ONE).should.equal 0
+
                 tradeSpy.should.have.been.calledOnce
                 tradeSpy.firstCall.args[0].bid.should.equal leftOrder
                 tradeSpy.firstCall.args[0].offer.should.equal @rightOrder
@@ -536,13 +649,13 @@ describe 'Market', ->
                 expect(@market.getAccount('Paul').getBalance('BTC').offers['2']).to.not.be.ok
                 @market.getAccount('Peter').getBalance('EUR').funds.compareTo(amount1000).should.equal 0
                 @market.getAccount('Peter').getBalance('EUR').lockedFunds.compareTo(Amount.ZERO).should.equal 0
-                @market.getAccount('Peter').getBalance('BTC').funds.compareTo(amount200).should.equal 0
-                @market.getAccount('Paul').getBalance('EUR').funds.compareTo(amount1000).should.equal 0
+                @market.getAccount('Peter').getBalance('BTC').funds.compareTo(amount199).should.equal 0
+                @market.getAccount('Paul').getBalance('EUR').funds.compareTo(amount999).should.equal 0
                 @market.getAccount('Paul').getBalance('BTC').funds.compareTo(amount200).should.equal 0
                 @market.getAccount('Paul').getBalance('BTC').lockedFunds.compareTo(Amount.ZERO).should.equal 0
                 
             describe 'and the right order is offering more than the left order is bidding', ->
-              it 'should trade the amount the left order is bidding at the right order price and emit a trade event', ->
+              it 'should trade the amount the left order is bidding at the right order price, apply commission and emit a trade event', ->
                 tradeSpy = sinon.spy()
                 @market.on 'trade', tradeSpy
 
@@ -556,6 +669,16 @@ describe 'Market', ->
                   bidAmount: amount500
                 @market.submit leftOrder
 
+                @calculateCommission.should.have.been.calledTwice
+                @calculateCommission.firstCall.args[0].bidAmount.compareTo(amount100).should.equal 0
+                @calculateCommission.firstCall.args[0].timestamp.should.equal '2'
+                @calculateCommission.firstCall.args[0].bid.should.equal @rightOrder
+                @market.getAccount('commission').getBalance('BTC').funds.compareTo(Amount.ONE).should.equal 0
+                @calculateCommission.secondCall.args[0].bidAmount.compareTo(amount500).should.equal 0
+                @calculateCommission.secondCall.args[0].timestamp.should.equal '2'
+                @calculateCommission.secondCall.args[0].bid.should.equal leftOrder
+                @market.getAccount('commission').getBalance('EUR').funds.compareTo(Amount.ONE).should.equal 0
+
                 tradeSpy.should.have.been.calledOnce
                 tradeSpy.firstCall.args[0].bid.should.equal leftOrder
                 tradeSpy.firstCall.args[0].offer.should.equal @rightOrder
@@ -565,13 +688,13 @@ describe 'Market', ->
                 expect(@market.getAccount('Paul').getBalance('BTC').offers['2']).to.not.be.ok
                 @market.getAccount('Peter').getBalance('EUR').funds.compareTo(amount1500).should.equal 0
                 @market.getAccount('Peter').getBalance('EUR').lockedFunds.compareTo(amount500).should.equal 0
-                @market.getAccount('Peter').getBalance('BTC').funds.compareTo(amount100).should.equal 0
-                @market.getAccount('Paul').getBalance('EUR').funds.compareTo(amount500).should.equal 0
+                @market.getAccount('Peter').getBalance('BTC').funds.compareTo(amount99).should.equal 0
+                @market.getAccount('Paul').getBalance('EUR').funds.compareTo(amount499).should.equal 0
                 @market.getAccount('Paul').getBalance('BTC').funds.compareTo(amount300).should.equal 0
                 @market.getAccount('Paul').getBalance('BTC').lockedFunds.compareTo(Amount.ZERO).should.equal 0
                 
             describe 'and the right order is offering less than the left order is bidding', ->
-              it 'should trade the amount the right order is offering at the right order price and emit a trade event', ->
+              it 'should trade the amount the right order is offering at the right order price, apply commission and emit a trade event', ->
                 tradeSpy = sinon.spy()
                 @market.on 'trade', tradeSpy
 
@@ -585,6 +708,16 @@ describe 'Market', ->
                   bidAmount: amount1500
                 @market.submit leftOrder
 
+                @calculateCommission.should.have.been.calledTwice
+                @calculateCommission.firstCall.args[0].bidAmount.compareTo(amount200).should.equal 0
+                @calculateCommission.firstCall.args[0].timestamp.should.equal '2'
+                @calculateCommission.firstCall.args[0].bid.should.equal @rightOrder
+                @market.getAccount('commission').getBalance('BTC').funds.compareTo(Amount.ONE).should.equal 0
+                @calculateCommission.secondCall.args[0].bidAmount.compareTo(amount1000).should.equal 0
+                @calculateCommission.secondCall.args[0].timestamp.should.equal '2'
+                @calculateCommission.secondCall.args[0].bid.should.equal leftOrder
+                @market.getAccount('commission').getBalance('EUR').funds.compareTo(Amount.ONE).should.equal 0
+
                 tradeSpy.should.have.been.calledOnce
                 tradeSpy.firstCall.args[0].bid.should.equal leftOrder
                 tradeSpy.firstCall.args[0].offer.should.equal @rightOrder
@@ -594,8 +727,8 @@ describe 'Market', ->
                 @market.getAccount('Paul').getBalance('BTC').offers['2'].bidAmount.compareTo(amount500).should.equal 0
                 @market.getAccount('Peter').getBalance('EUR').funds.compareTo(amount1000).should.equal 0
                 @market.getAccount('Peter').getBalance('EUR').lockedFunds.compareTo(Amount.ZERO).should.equal 0
-                @market.getAccount('Peter').getBalance('BTC').funds.compareTo(amount200).should.equal 0
-                @market.getAccount('Paul').getBalance('EUR').funds.compareTo(amount1000).should.equal 0
+                @market.getAccount('Peter').getBalance('BTC').funds.compareTo(amount199).should.equal 0
+                @market.getAccount('Paul').getBalance('EUR').funds.compareTo(amount999).should.equal 0
                 @market.getAccount('Paul').getBalance('BTC').funds.compareTo(amount200).should.equal 0
                 @market.getAccount('Paul').getBalance('BTC').lockedFunds.compareTo(amount125).should.equal 0
               
@@ -614,7 +747,7 @@ describe 'Market', ->
         describe 'and the new (left) price is better', ->
           describe 'and the left order is an offer', ->
             describe 'and the right order is bidding exactly the amount that the left order is offering', ->
-              it 'should trade the amount the right order is bidding at the right order price and emit a trade event', ->
+              it 'should trade the amount the right order is bidding at the right order price, apply commission and emit a trade event', ->
                 tradeSpy = sinon.spy()
                 @market.on 'trade', tradeSpy
 
@@ -628,6 +761,16 @@ describe 'Market', ->
                   offerAmount: amount200
                 @market.submit leftOrder
 
+                @calculateCommission.should.have.been.calledTwice
+                @calculateCommission.firstCall.args[0].bidAmount.compareTo(amount200).should.equal 0
+                @calculateCommission.firstCall.args[0].timestamp.should.equal '2'
+                @calculateCommission.firstCall.args[0].bid.should.equal @rightOrder
+                @market.getAccount('commission').getBalance('BTC').funds.compareTo(Amount.ONE).should.equal 0
+                @calculateCommission.secondCall.args[0].bidAmount.compareTo(amount1000).should.equal 0
+                @calculateCommission.secondCall.args[0].timestamp.should.equal '2'
+                @calculateCommission.secondCall.args[0].bid.should.equal leftOrder
+                @market.getAccount('commission').getBalance('EUR').funds.compareTo(Amount.ONE).should.equal 0
+
                 tradeSpy.should.have.been.calledOnce
                 tradeSpy.firstCall.args[0].bid.should.equal @rightOrder
                 tradeSpy.firstCall.args[0].offer.should.equal leftOrder
@@ -637,13 +780,13 @@ describe 'Market', ->
                 expect(@market.getAccount('Paul').getBalance('BTC').offers['2']).to.not.be.ok
                 @market.getAccount('Peter').getBalance('EUR').funds.compareTo(amount1000).should.equal 0
                 @market.getAccount('Peter').getBalance('EUR').lockedFunds.compareTo(Amount.ZERO).should.equal 0
-                @market.getAccount('Peter').getBalance('BTC').funds.compareTo(amount200).should.equal 0
-                @market.getAccount('Paul').getBalance('EUR').funds.compareTo(amount1000).should.equal 0
+                @market.getAccount('Peter').getBalance('BTC').funds.compareTo(amount199).should.equal 0
+                @market.getAccount('Paul').getBalance('EUR').funds.compareTo(amount999).should.equal 0
                 @market.getAccount('Paul').getBalance('BTC').funds.compareTo(amount200).should.equal 0
                 @market.getAccount('Paul').getBalance('BTC').lockedFunds.compareTo(Amount.ZERO).should.equal 0
                 
             describe 'and the right order is bidding more than the left order is offering', ->
-              it 'should trade the amount the left order is offering at the right order price and emit a trade event', ->
+              it 'should trade the amount the left order is offering at the right order price, apply commission and emit a trade event', ->
                 tradeSpy = sinon.spy()
                 @market.on 'trade', tradeSpy
 
@@ -657,6 +800,16 @@ describe 'Market', ->
                   offerAmount: amount100
                 @market.submit leftOrder
 
+                @calculateCommission.should.have.been.calledTwice
+                @calculateCommission.firstCall.args[0].bidAmount.compareTo(amount100).should.equal 0
+                @calculateCommission.firstCall.args[0].timestamp.should.equal '2'
+                @calculateCommission.firstCall.args[0].bid.should.equal @rightOrder
+                @market.getAccount('commission').getBalance('BTC').funds.compareTo(Amount.ONE).should.equal 0
+                @calculateCommission.secondCall.args[0].bidAmount.compareTo(amount500).should.equal 0
+                @calculateCommission.secondCall.args[0].timestamp.should.equal '2'
+                @calculateCommission.secondCall.args[0].bid.should.equal leftOrder
+                @market.getAccount('commission').getBalance('EUR').funds.compareTo(Amount.ONE).should.equal 0
+
                 tradeSpy.should.have.been.calledOnce
                 tradeSpy.firstCall.args[0].bid.should.equal @rightOrder
                 tradeSpy.firstCall.args[0].offer.should.equal leftOrder
@@ -666,13 +819,13 @@ describe 'Market', ->
                 expect(@market.getAccount('Paul').getBalance('BTC').offers['2']).to.not.be.ok
                 @market.getAccount('Peter').getBalance('EUR').funds.compareTo(amount1500).should.equal 0
                 @market.getAccount('Peter').getBalance('EUR').lockedFunds.compareTo(amount500).should.equal 0
-                @market.getAccount('Peter').getBalance('BTC').funds.compareTo(amount100).should.equal 0
-                @market.getAccount('Paul').getBalance('EUR').funds.compareTo(amount500).should.equal 0
+                @market.getAccount('Peter').getBalance('BTC').funds.compareTo(amount99).should.equal 0
+                @market.getAccount('Paul').getBalance('EUR').funds.compareTo(amount499).should.equal 0
                 @market.getAccount('Paul').getBalance('BTC').funds.compareTo(amount300).should.equal 0
                 @market.getAccount('Paul').getBalance('BTC').lockedFunds.compareTo(Amount.ZERO).should.equal 0
                 
             describe 'and the right order is bidding less than the left order is offering', ->
-              it 'should trade the amount the right order is bidding at the right order price and emit a trade event', ->
+              it 'should trade the amount the right order is bidding at the right order price, apply commission and emit a trade event', ->
                 tradeSpy = sinon.spy()
                 @market.on 'trade', tradeSpy
 
@@ -686,6 +839,16 @@ describe 'Market', ->
                   offerAmount: amount300
                 @market.submit leftOrder
 
+                @calculateCommission.should.have.been.calledTwice
+                @calculateCommission.firstCall.args[0].bidAmount.compareTo(amount200).should.equal 0
+                @calculateCommission.firstCall.args[0].timestamp.should.equal '2'
+                @calculateCommission.firstCall.args[0].bid.should.equal @rightOrder
+                @market.getAccount('commission').getBalance('BTC').funds.compareTo(Amount.ONE).should.equal 0
+                @calculateCommission.secondCall.args[0].bidAmount.compareTo(amount1000).should.equal 0
+                @calculateCommission.secondCall.args[0].timestamp.should.equal '2'
+                @calculateCommission.secondCall.args[0].bid.should.equal leftOrder
+                @market.getAccount('commission').getBalance('EUR').funds.compareTo(Amount.ONE).should.equal 0
+
                 tradeSpy.should.have.been.calledOnce
                 tradeSpy.firstCall.args[0].bid.should.equal @rightOrder
                 tradeSpy.firstCall.args[0].offer.should.equal leftOrder
@@ -695,14 +858,14 @@ describe 'Market', ->
                 @market.getAccount('Paul').getBalance('BTC').offers['2'].offerAmount.compareTo(amount100).should.equal 0
                 @market.getAccount('Peter').getBalance('EUR').funds.compareTo(amount1000).should.equal 0
                 @market.getAccount('Peter').getBalance('EUR').lockedFunds.compareTo(Amount.ZERO).should.equal 0
-                @market.getAccount('Peter').getBalance('BTC').funds.compareTo(amount200).should.equal 0
-                @market.getAccount('Paul').getBalance('EUR').funds.compareTo(amount1000).should.equal 0
+                @market.getAccount('Peter').getBalance('BTC').funds.compareTo(amount199).should.equal 0
+                @market.getAccount('Paul').getBalance('EUR').funds.compareTo(amount999).should.equal 0
                 @market.getAccount('Paul').getBalance('BTC').funds.compareTo(amount200).should.equal 0
                 @market.getAccount('Paul').getBalance('BTC').lockedFunds.compareTo(amount100).should.equal 0
 
           describe 'and the left order is a bid', ->
             describe 'and the right order is bidding exactly the amount that the left order is bidding multiplied by the right order price', ->
-              it 'should trade the amount the right order is bidding at the right order price and emit a trade event', ->
+              it 'should trade the amount the right order is bidding at the right order price, apply commission and emit a trade event', ->
                 tradeSpy = sinon.spy()
                 @market.on 'trade', tradeSpy
 
@@ -716,6 +879,16 @@ describe 'Market', ->
                   bidAmount: amount1000
                 @market.submit leftOrder
 
+                @calculateCommission.should.have.been.calledTwice
+                @calculateCommission.firstCall.args[0].bidAmount.compareTo(amount200).should.equal 0
+                @calculateCommission.firstCall.args[0].timestamp.should.equal '2'
+                @calculateCommission.firstCall.args[0].bid.should.equal @rightOrder
+                @market.getAccount('commission').getBalance('BTC').funds.compareTo(Amount.ONE).should.equal 0
+                @calculateCommission.secondCall.args[0].bidAmount.compareTo(amount1000).should.equal 0
+                @calculateCommission.secondCall.args[0].timestamp.should.equal '2'
+                @calculateCommission.secondCall.args[0].bid.should.equal leftOrder
+                @market.getAccount('commission').getBalance('EUR').funds.compareTo(Amount.ONE).should.equal 0
+
                 tradeSpy.should.have.been.calledOnce
                 tradeSpy.firstCall.args[0].bid.should.equal @rightOrder
                 tradeSpy.firstCall.args[0].offer.should.equal leftOrder
@@ -725,13 +898,13 @@ describe 'Market', ->
                 expect(@market.getAccount('Paul').getBalance('BTC').offers['2']).to.not.be.ok
                 @market.getAccount('Peter').getBalance('EUR').funds.compareTo(amount1000).should.equal 0
                 @market.getAccount('Peter').getBalance('EUR').lockedFunds.compareTo(Amount.ZERO).should.equal 0
-                @market.getAccount('Peter').getBalance('BTC').funds.compareTo(amount200).should.equal 0
-                @market.getAccount('Paul').getBalance('EUR').funds.compareTo(amount1000).should.equal 0
+                @market.getAccount('Peter').getBalance('BTC').funds.compareTo(amount199).should.equal 0
+                @market.getAccount('Paul').getBalance('EUR').funds.compareTo(amount999).should.equal 0
                 @market.getAccount('Paul').getBalance('BTC').funds.compareTo(amount200).should.equal 0
                 @market.getAccount('Paul').getBalance('BTC').lockedFunds.compareTo(Amount.ZERO).should.equal 0
                 
             describe 'and the right order is bidding more than the left order is bidding multiplied by the right order price', ->
-              it 'should trade the amount the left order is bidding at the right order price and emit a trade event', ->
+              it 'should trade the amount the left order is bidding at the right order price, apply commission and emit a trade event', ->
                 tradeSpy = sinon.spy()
                 @market.on 'trade', tradeSpy
 
@@ -745,6 +918,16 @@ describe 'Market', ->
                   bidAmount: amount500
                 @market.submit leftOrder
 
+                @calculateCommission.should.have.been.calledTwice
+                @calculateCommission.firstCall.args[0].bidAmount.compareTo(amount100).should.equal 0
+                @calculateCommission.firstCall.args[0].timestamp.should.equal '2'
+                @calculateCommission.firstCall.args[0].bid.should.equal @rightOrder
+                @market.getAccount('commission').getBalance('BTC').funds.compareTo(Amount.ONE).should.equal 0
+                @calculateCommission.secondCall.args[0].bidAmount.compareTo(amount500).should.equal 0
+                @calculateCommission.secondCall.args[0].timestamp.should.equal '2'
+                @calculateCommission.secondCall.args[0].bid.should.equal leftOrder
+                @market.getAccount('commission').getBalance('EUR').funds.compareTo(Amount.ONE).should.equal 0
+
                 tradeSpy.should.have.been.calledOnce
                 tradeSpy.firstCall.args[0].bid.should.equal @rightOrder
                 tradeSpy.firstCall.args[0].offer.should.equal leftOrder
@@ -754,13 +937,13 @@ describe 'Market', ->
                 expect(@market.getAccount('Paul').getBalance('BTC').offers['2']).to.not.be.ok
                 @market.getAccount('Peter').getBalance('EUR').funds.compareTo(amount1500).should.equal 0
                 @market.getAccount('Peter').getBalance('EUR').lockedFunds.compareTo(amount500).should.equal 0
-                @market.getAccount('Peter').getBalance('BTC').funds.compareTo(amount100).should.equal 0
-                @market.getAccount('Paul').getBalance('EUR').funds.compareTo(amount500).should.equal 0
+                @market.getAccount('Peter').getBalance('BTC').funds.compareTo(amount99).should.equal 0
+                @market.getAccount('Paul').getBalance('EUR').funds.compareTo(amount499).should.equal 0
                 @market.getAccount('Paul').getBalance('BTC').funds.compareTo(amount300).should.equal 0
                 @market.getAccount('Paul').getBalance('BTC').lockedFunds.compareTo(Amount.ZERO).should.equal 0
                 
             describe 'and the right order is bidding less than the left order is bidding multiplied by the right order price', ->
-              it 'should trade the amount the right order is bidding at the right order price and emit a trade event', ->
+              it 'should trade the amount the right order is bidding at the right order price, apply commission and emit a trade event', ->
                 tradeSpy = sinon.spy()
                 @market.on 'trade', tradeSpy
 
@@ -774,6 +957,16 @@ describe 'Market', ->
                   bidAmount: amount1500
                 @market.submit leftOrder
 
+                @calculateCommission.should.have.been.calledTwice
+                @calculateCommission.firstCall.args[0].bidAmount.compareTo(amount200).should.equal 0
+                @calculateCommission.firstCall.args[0].timestamp.should.equal '2'
+                @calculateCommission.firstCall.args[0].bid.should.equal @rightOrder
+                @market.getAccount('commission').getBalance('BTC').funds.compareTo(Amount.ONE).should.equal 0
+                @calculateCommission.secondCall.args[0].bidAmount.compareTo(amount1000).should.equal 0
+                @calculateCommission.secondCall.args[0].timestamp.should.equal '2'
+                @calculateCommission.secondCall.args[0].bid.should.equal leftOrder
+                @market.getAccount('commission').getBalance('EUR').funds.compareTo(Amount.ONE).should.equal 0
+
                 tradeSpy.should.have.been.calledOnce
                 tradeSpy.firstCall.args[0].bid.should.equal @rightOrder
                 tradeSpy.firstCall.args[0].offer.should.equal leftOrder
@@ -783,8 +976,8 @@ describe 'Market', ->
                 @market.getAccount('Paul').getBalance('BTC').offers['2'].bidAmount.compareTo(amount500).should.equal 0
                 @market.getAccount('Peter').getBalance('EUR').funds.compareTo(amount1000).should.equal 0
                 @market.getAccount('Peter').getBalance('EUR').lockedFunds.compareTo(Amount.ZERO).should.equal 0
-                @market.getAccount('Peter').getBalance('BTC').funds.compareTo(amount200).should.equal 0
-                @market.getAccount('Paul').getBalance('EUR').funds.compareTo(amount1000).should.equal 0
+                @market.getAccount('Peter').getBalance('BTC').funds.compareTo(amount199).should.equal 0
+                @market.getAccount('Paul').getBalance('EUR').funds.compareTo(amount999).should.equal 0
                 @market.getAccount('Paul').getBalance('BTC').funds.compareTo(amount200).should.equal 0
                 @market.getAccount('Paul').getBalance('BTC').lockedFunds.compareTo(amount125).should.equal 0
                     
@@ -854,6 +1047,28 @@ describe 'Market', ->
             bidAmount: amount1250
           @market.submit leftOrder
 
+          @calculateCommission.callCount.should.equal 6
+          @calculateCommission.getCall(0).args[0].bidAmount.compareTo(amount100).should.equal 0
+          @calculateCommission.getCall(0).args[0].timestamp.should.equal '5'
+          @calculateCommission.getCall(0).args[0].bid.should.equal @rightOrder1
+          @calculateCommission.getCall(1).args[0].bidAmount.compareTo(amount500).should.equal 0
+          @calculateCommission.getCall(1).args[0].timestamp.should.equal '5'
+          @calculateCommission.getCall(1).args[0].bid.should.equal leftOrder
+          @calculateCommission.getCall(2).args[0].bidAmount.compareTo(amount125).should.equal 0
+          @calculateCommission.getCall(2).args[0].timestamp.should.equal '5'
+          @calculateCommission.getCall(2).args[0].bid.should.equal @rightOrder2
+          @calculateCommission.getCall(3).args[0].bidAmount.compareTo(amount500).should.equal 0
+          @calculateCommission.getCall(3).args[0].timestamp.should.equal '5'
+          @calculateCommission.getCall(3).args[0].bid.should.equal leftOrder
+          @calculateCommission.getCall(4).args[0].bidAmount.compareTo(amount125).should.equal 0
+          @calculateCommission.getCall(4).args[0].timestamp.should.equal '5'
+          @calculateCommission.getCall(4).args[0].bid.should.equal @rightOrder3
+          @calculateCommission.getCall(5).args[0].bidAmount.compareTo(amount250).should.equal 0
+          @calculateCommission.getCall(5).args[0].timestamp.should.equal '5'
+          @calculateCommission.getCall(5).args[0].bid.should.equal leftOrder
+          @market.getAccount('commission').getBalance('BTC').funds.compareTo(amount3).should.equal 0
+          @market.getAccount('commission').getBalance('EUR').funds.compareTo(amount3).should.equal 0
+
           tradeSpy.should.have.been.calledThrice
           tradeSpy.firstCall.args[0].bid.should.equal leftOrder
           tradeSpy.firstCall.args[0].offer.should.equal @rightOrder1
@@ -874,8 +1089,8 @@ describe 'Market', ->
           expect(@market.getAccount('Paul').getBalance('BTC').offers[amount5]).to.not.be.ok
           @market.getAccount('Peter').getBalance('EUR').funds.compareTo(amount750).should.equal 0
           @market.getAccount('Peter').getBalance('EUR').lockedFunds.compareTo(amount750).should.equal 0
-          @market.getAccount('Peter').getBalance('BTC').funds.compareTo(amount350).should.equal 0
-          @market.getAccount('Paul').getBalance('EUR').funds.compareTo(amount1250).should.equal 0
+          @market.getAccount('Peter').getBalance('BTC').funds.compareTo(amount347).should.equal 0
+          @market.getAccount('Paul').getBalance('EUR').funds.compareTo(amount1247).should.equal 0
           @market.getAccount('Paul').getBalance('BTC').funds.compareTo(amount650).should.equal 0
           @market.getAccount('Paul').getBalance('BTC').lockedFunds.compareTo(Amount.ZERO).should.equal 0
 
@@ -893,6 +1108,28 @@ describe 'Market', ->
             bidPrice: amountPoint5
             bidAmount: amount1750
           @market.submit leftOrder
+
+          @calculateCommission.callCount.should.equal 6
+          @calculateCommission.getCall(0).args[0].bidAmount.compareTo(amount100).should.equal 0
+          @calculateCommission.getCall(0).args[0].timestamp.should.equal '5'
+          @calculateCommission.getCall(0).args[0].bid.should.equal @rightOrder1
+          @calculateCommission.getCall(1).args[0].bidAmount.compareTo(amount500).should.equal 0
+          @calculateCommission.getCall(1).args[0].timestamp.should.equal '5'
+          @calculateCommission.getCall(1).args[0].bid.should.equal leftOrder
+          @calculateCommission.getCall(2).args[0].bidAmount.compareTo(amount125).should.equal 0
+          @calculateCommission.getCall(2).args[0].timestamp.should.equal '5'
+          @calculateCommission.getCall(2).args[0].bid.should.equal @rightOrder2
+          @calculateCommission.getCall(3).args[0].bidAmount.compareTo(amount500).should.equal 0
+          @calculateCommission.getCall(3).args[0].timestamp.should.equal '5'
+          @calculateCommission.getCall(3).args[0].bid.should.equal leftOrder
+          @calculateCommission.getCall(4).args[0].bidAmount.compareTo(amount250).should.equal 0
+          @calculateCommission.getCall(4).args[0].timestamp.should.equal '5'
+          @calculateCommission.getCall(4).args[0].bid.should.equal @rightOrder3
+          @calculateCommission.getCall(5).args[0].bidAmount.compareTo(amount500).should.equal 0
+          @calculateCommission.getCall(5).args[0].timestamp.should.equal '5'
+          @calculateCommission.getCall(5).args[0].bid.should.equal leftOrder
+          @market.getAccount('commission').getBalance('BTC').funds.compareTo(amount3).should.equal 0
+          @market.getAccount('commission').getBalance('EUR').funds.compareTo(amount3).should.equal 0
 
           tradeSpy.should.have.been.calledThrice
           tradeSpy.firstCall.args[0].bid.should.equal leftOrder
@@ -914,8 +1151,8 @@ describe 'Market', ->
           @market.getAccount('Paul').getBalance('BTC').offers[amount5].bidAmount.compareTo(amount250).should.equal 0
           @market.getAccount('Peter').getBalance('EUR').funds.compareTo(amount500).should.equal 0
           @market.getAccount('Peter').getBalance('EUR').lockedFunds.compareTo(amount500).should.equal 0
-          @market.getAccount('Peter').getBalance('BTC').funds.compareTo(amount475).should.equal 0
-          @market.getAccount('Paul').getBalance('EUR').funds.compareTo(amount1500).should.equal 0
+          @market.getAccount('Peter').getBalance('BTC').funds.compareTo(amount472).should.equal 0
+          @market.getAccount('Paul').getBalance('EUR').funds.compareTo(amount1497).should.equal 0
           @market.getAccount('Paul').getBalance('BTC').funds.compareTo(amount525).should.equal 0
           @market.getAccount('Paul').getBalance('BTC').lockedFunds.compareTo(amount125).should.equal 0
 

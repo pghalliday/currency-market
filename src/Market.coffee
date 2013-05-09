@@ -5,14 +5,21 @@ Order = require('./Order')
 EventEmitter = require('events').EventEmitter
 
 module.exports = class Market extends EventEmitter
-  constructor: (snapshot) ->
+  constructor: (params) ->
     @accounts = Object.create null
     @books = Object.create null
+    if params
+      if params.commission
+        @commission = 
+          account: @getAccount params.commission.account
+          calculate: params.commission.calculate
 
   getAccount: (id) =>
     account = @accounts[id]
     if !account
-      @accounts[id] = account = new Account id
+      @accounts[id] = account = new Account
+        id: id
+        commission: @commission
     return account
 
   getBook: (bidCurrency, offerCurrency) =>

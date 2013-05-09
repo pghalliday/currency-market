@@ -3,8 +3,30 @@ var Account = require('../').Account;
 var Amount = require('../').Amount;
 var Order = require('../').Order;
 
+// Define a commission rate of 0.5%
+var COMMISSION_RATE = new Amount('0.005');
+
 // instantiate a market
-var market = new Market();
+var market = new Market({
+  commission: {
+    // The account ID of the account to recieve the commission
+    account: 'commission',
+    // A callback to use for calculating the commission amount to subtract from a deposit
+    // resulting from an order match
+    calculate: function(params) {
+      // The matched bid order corresponding to the deposit
+      var bid = params.bid;
+      // The amount to be deposited before commission
+      var bidAmount = params.bidAmount;
+      // The timestamp of the order that triggered the match (not necessarily from the bid
+      // order, this is effectively the time that the trade was made)
+      var timestamp = params.timestamp;
+      // return the calculated commission amount to be subtracted from the deposit
+      // and deposited in the commission account
+      return bidAmount.multiply(COMMISSION_RATE);
+    }
+  }
+});
 
 // register for events
 market.on('deposit', function(deposit) {
@@ -186,6 +208,16 @@ console.log('********************');
 console.log('********************');
 console.log('');
 console.log(market.getAccount('Paul').export());
+console.log('');
+console.log('********************');
+console.log('********************');
+console.log('');
+console.log('Commission account');
+console.log('');
+console.log('********************');
+console.log('********************');
+console.log('');
+console.log(market.getAccount('commission').export());
 
 // Export an order book as an array that can be converted to JSON
 console.log('');

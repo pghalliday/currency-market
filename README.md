@@ -9,6 +9,7 @@ A synchronous implementation of a limit order based currency market
 - Synchronously executes trades as orders are added
 - Emits events when changes are made to the market
 - Can export the state and initialise from an exported state
+- Supports pluggable commission schemes
 
 ## Installation
 
@@ -27,8 +28,31 @@ var Account = require('currency-market').Account;
 var Amount = require('currency-market').Amount;
 var Order = require('currency-market').Order;
 
+
+// Define a commission rate of 0.5%
+var COMMISSION_RATE = new Amount('0.005');
+
 // instantiate a market
-var market = new Market();
+var market = new Market({
+  commission: {
+    // The account ID of the account to recieve the commission
+    account: 'commission',
+    // A callback to use for calculating the commission amount to subtract from a deposit
+    // resulting from an order match
+    calculate: function(params) {
+      // The matched bid order corresponding to the deposit
+      var bid = params.bid;
+      // The amount to be deposited before commission
+      var bidAmount = params.bidAmount;
+      // The timestamp of the order that triggered the match (not necessarily from the bid
+      // order, this is effectively the time that the trade was made)
+      var timestamp = params.timestamp;
+      // return the calculated commission amount to be subtracted from the deposit
+      // and deposited in the commission account
+      return bidAmount.multiply(COMMISSION_RATE);
+    }
+  }
+});
 
 // register for events
 market.on('deposit', function(deposit) {
@@ -210,6 +234,16 @@ console.log('********************');
 console.log('********************');
 console.log('');
 console.log(market.getAccount('Paul').export());
+console.log('');
+console.log('********************');
+console.log('********************');
+console.log('');
+console.log('Commission account');
+console.log('');
+console.log('********************');
+console.log('********************');
+console.log('');
+console.log(market.getAccount('commission').export());
 
 // Export an order book as an array that can be converted to JSON
 console.log('');
@@ -266,8 +300,6 @@ console.log('********************');
 
 ## Roadmap
 
-- Pluggable commission schemes
-  - calculated through callback
 - Instant orders
   - Market orders
     - zero priced offers that are rejected if they cannot be completely filled by the market

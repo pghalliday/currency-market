@@ -1,13 +1,18 @@
 Balance = require('./Balance')
 
 module.exports = class Account
-  constructor: (id) ->
-    @id = id
-    @balances = Object.create null
+  constructor: (params) ->
+    if params && params.id
+      @id = params.id
+      @commission = params.commission
+      @balances = Object.create null
+    else
+      throw new Error 'Account ID must be specified'
 
   getBalance: (currency) =>
     if !@balances[currency]
-      @balances[currency] = new Balance()
+      @balances[currency] = new Balance
+        commission: @commission
     return @balances[currency]
 
   deposit: (params) =>

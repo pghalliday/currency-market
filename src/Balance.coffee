@@ -1,11 +1,12 @@
 Amount = require('./Amount')
 
 module.exports = class Balance
-  constructor: (commission) ->
+  constructor: (params) ->
     @offers = Object.create null
     @funds = Amount.ZERO
     @lockedFunds = Amount.ZERO
-    @commission = commission
+    if params
+      @commission = params.commission
 
   deposit: (amount) =>
     @funds = @funds.add(amount)
