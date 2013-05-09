@@ -16,13 +16,15 @@ var market = new Market({
     calculate: function(params) {
       // The matched bid order corresponding to the deposit
       var bid = params.bid;
-      // The amount to be deposited before commission
+      // The amount to be deposited before commission (due to partial and better price
+      // matches this amount may be different to the bidAmount from the bid order)
       var bidAmount = params.bidAmount;
       // The timestamp of the order that triggered the match (not necessarily from the bid
       // order, this is effectively the time that the trade was made)
       var timestamp = params.timestamp;
       // return the calculated commission amount to be subtracted from the deposit
-      // and deposited in the commission account
+      // and deposited in the commission account (it's best to avoid divisions
+      // here in order to avoid rounding errors)
       return bidAmount.multiply(COMMISSION_RATE);
     }
   }
