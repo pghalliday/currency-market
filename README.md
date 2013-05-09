@@ -250,7 +250,8 @@ console.log('');
 console.log(json);
 
 // initialise an identical market from the snapshot
-var anotherMarket = new Market(JSON.parse(json));
+var anotherMarket = new Market();
+anotherMarket.import(JSON.parse(json));
 
 // Retrieve the last transaction ID processed 
 console.log('');
@@ -265,6 +266,8 @@ console.log('********************');
 
 ## Roadmap
 
+- Pluggable commission schemes
+  - calculated through callback
 - Instant orders
   - Market orders
     - zero priced offers that are rejected if they cannot be completely filled by the market
@@ -272,9 +275,6 @@ console.log('********************');
       - partial fills could be executed as long as the remainder is instantly cancelled
   - Fill or Kill limit orders?
     - will be tougher (less efficient) than market orders as an average price will have to be calculated?
-- Pluggable commission schemes
-  - fixed rate
-  - calculated through callback
 - Pluggable rounding policies
   - Amount factory required?
   - currently we only round down debits and credits so as not to debit more funds than available

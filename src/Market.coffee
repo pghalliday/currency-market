@@ -8,38 +8,6 @@ module.exports = class Market extends EventEmitter
   constructor: (snapshot) ->
     @accounts = Object.create null
     @books = Object.create null
-    if snapshot
-      @lastTransaction = snapshot.lastTransaction
-      for id, account of snapshot.accounts
-        for currency, balance of account.balances
-          @deposit
-            id: '0'
-            timestamp: '0'
-            account: id
-            currency: currency
-            amount: new Amount balance.funds
-      for bidCurrency, books of snapshot.books
-        for offerCurrency, book of books
-          for order in book
-            do (order) =>
-              if order.bidPrice
-                @submit new Order
-                  id: order.id
-                  timestamp: order.timestamp
-                  account: order.account
-                  offerCurrency: order.offerCurrency
-                  bidCurrency: order.bidCurrency
-                  bidPrice: new Amount order.bidPrice
-                  bidAmount: new Amount order.bidAmount
-              else
-                @submit new Order
-                  id: order.id
-                  timestamp: order.timestamp
-                  account: order.account
-                  offerCurrency: order.offerCurrency
-                  bidCurrency: order.bidCurrency
-                  offerPrice: new Amount order.offerPrice
-                  offerAmount: new Amount order.offerAmount
 
   getAccount: (id) =>
     account = @accounts[id]
@@ -128,4 +96,38 @@ module.exports = class Market extends EventEmitter
       for offerCurrency, book of books
         object.books[bidCurrency][offerCurrency] = book.export()
     return object
+
+  import: (snapshot) =>
+    for id, account of snapshot.accounts
+      for currency, balance of account.balances
+        @deposit
+          id: '0'
+          timestamp: '0'
+          account: id
+          currency: currency
+          amount: new Amount balance.funds
+    for bidCurrency, books of snapshot.books
+      for offerCurrency, book of books
+        for order in book
+          do (order) =>
+            if order.bidPrice
+              @submit new Order
+                id: order.id
+                timestamp: order.timestamp
+                account: order.account
+                offerCurrency: order.offerCurrency
+                bidCurrency: order.bidCurrency
+                bidPrice: new Amount order.bidPrice
+                bidAmount: new Amount order.bidAmount
+            else
+              @submit new Order
+                id: order.id
+                timestamp: order.timestamp
+                account: order.account
+                offerCurrency: order.offerCurrency
+                bidCurrency: order.bidCurrency
+                offerPrice: new Amount order.offerPrice
+                offerAmount: new Amount order.offerAmount
+    @lastTransaction = snapshot.lastTransaction
+
 

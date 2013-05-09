@@ -226,7 +226,8 @@ console.log('');
 console.log(json);
 
 // initialise an identical market from the snapshot
-var anotherMarket = new Market(JSON.parse(json));
+var anotherMarket = new Market();
+anotherMarket.import(JSON.parse(json));
 
 // Retrieve the last transaction ID processed 
 console.log('');

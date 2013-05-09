@@ -1234,35 +1234,42 @@ describe 'Market', ->
       @market.submit new Order
         id: '3'
         timestamp: '3'
-        account: 'Peter'
-        offerCurrency: 'EUR'
-        bidCurrency: 'BTC'
-        bidPrice: amount100
-        bidAmount: amount10
-      @market.submit new Order
-        id: '4'
-        timestamp: '4'
         account: 'Paul'
         offerCurrency: 'BTC'
         bidCurrency: 'EUR'
         offerPrice: amount101
         offerAmount: amount10
-      market = new Market @market.export()
-      market.lastTransaction.should.equal @market.lastTransaction
-      market.cancel
+      @market.submit new Order
+        id: '4'
+        timestamp: '4'
+        account: 'Peter'
+        offerCurrency: 'EUR'
+        bidCurrency: 'BTC'
+        bidPrice: amount100
+        bidAmount: amount10
+      @market.deposit
         id: '5'
         timestamp: '5'
+        account: 'Paul'
+        currency: 'BTC'
+        amount: amount10
+      market = new Market()
+      market.import @market.export()
+      market.lastTransaction.should.equal @market.lastTransaction
+      market.cancel
+        id: '6'
+        timestamp: '6'
         order: new Order
-          id: '4'
-          timestamp: '4'
+          id: '3'
+          timestamp: '3'
           account: 'Paul'
           offerCurrency: 'BTC'
           bidCurrency: 'EUR'
           offerPrice: amount101
           offerAmount: amount10
       market.submit new Order
-        id: '6'
-        timestamp: '6'
+        id: '7'
+        timestamp: '7'
         account: 'Paul'
         offerCurrency: 'BTC'
         bidCurrency: 'EUR'
@@ -1271,5 +1278,5 @@ describe 'Market', ->
       market.getAccount('Peter').getBalance('EUR').funds.compareTo(Amount.ZERO).should.equal 0
       market.getAccount('Peter').getBalance('BTC').funds.compareTo(amount10).should.equal 0
       market.getAccount('Paul').getBalance('EUR').funds.compareTo(amount1000).should.equal 0
-      market.getAccount('Paul').getBalance('BTC').funds.compareTo(Amount.ZERO).should.equal 0
+      market.getAccount('Paul').getBalance('BTC').funds.compareTo(amount10).should.equal 0
 
