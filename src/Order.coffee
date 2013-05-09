@@ -63,15 +63,16 @@ module.exports = class Order extends EventEmitter
       else
           throw new Error('Must specify either bid amount and price or offer amount and price')
 
-  partialOffer = (bidAmount, offerAmount) ->
+  partialOffer = (bidAmount, offerAmount, timestamp) ->
     @offerAmount = @offerAmount.subtract offerAmount
     @bidAmount = @offerAmount.multiply @offerPrice
     @emit 'fill', 
       offerAmount: offerAmount
       bidAmount: bidAmount
       fundsUnlocked: offerAmount
+      timestamp: timestamp
 
-  partialBid = (bidAmount, offerAmount) ->
+  partialBid = (bidAmount, offerAmount, timestamp) ->
     @bidAmount = @bidAmount.subtract bidAmount
     newOfferAmount = @bidAmount.multiply @bidPrice
     fundsUnlocked = @offerAmount.subtract newOfferAmount
@@ -80,8 +81,9 @@ module.exports = class Order extends EventEmitter
       offerAmount: offerAmount
       bidAmount: bidAmount
       fundsUnlocked: fundsUnlocked
+      timestamp: timestamp
 
-  fill = (bidAmount, offerAmount) ->
+  fill = (bidAmount, offerAmount, timestamp) ->
     fundsUnlocked = @offerAmount
     @bidAmount = Amount.ZERO
     @offerAmount = Amount.ZERO
@@ -89,6 +91,7 @@ module.exports = class Order extends EventEmitter
       offerAmount: offerAmount
       bidAmount: bidAmount
       fundsUnlocked: fundsUnlocked
+      timestamp: timestamp
     @emit 'done'
 
   match: (order) =>
@@ -101,8 +104,8 @@ module.exports = class Order extends EventEmitter
           if compareAmounts > 0
             leftOfferAmount = order.bidAmount
             rightOfferAmount = order.offerAmount
-            fill.call order, leftOfferAmount, rightOfferAmount
-            partialOffer.call @, rightOfferAmount, leftOfferAmount
+            fill.call order, leftOfferAmount, rightOfferAmount, @timestamp
+            partialOffer.call @, rightOfferAmount, leftOfferAmount, @timestamp
             order.emit 'trade',
               bid: order
               offer: @
@@ -113,10 +116,10 @@ module.exports = class Order extends EventEmitter
             leftOfferAmount = @offerAmount
             rightOfferAmount = leftOfferAmount.multiply price
             if compareAmounts == 0
-              fill.call order, leftOfferAmount, rightOfferAmount
+              fill.call order, leftOfferAmount, rightOfferAmount, @timestamp
             else
-              partialBid.call order, leftOfferAmount, rightOfferAmount
-            fill.call @, rightOfferAmount, leftOfferAmount
+              partialBid.call order, leftOfferAmount, rightOfferAmount, @timestamp
+            fill.call @, rightOfferAmount, leftOfferAmount, @timestamp
             order.emit 'trade',
               bid: order
               offer: @
@@ -131,8 +134,8 @@ module.exports = class Order extends EventEmitter
           if compareAmounts > 0
             leftOfferAmount = order.bidAmount
             rightOfferAmount = order.offerAmount
-            fill.call order, leftOfferAmount, rightOfferAmount
-            partialOffer.call @, rightOfferAmount, leftOfferAmount
+            fill.call order, leftOfferAmount, rightOfferAmount, @timestamp
+            partialOffer.call @, rightOfferAmount, leftOfferAmount, @timestamp
             order.emit 'trade',
               bid: @
               offer: order
@@ -149,10 +152,10 @@ module.exports = class Order extends EventEmitter
             # if you allow your market to be priced in either direction
             rightOfferAmount = leftOfferAmount.divide price
             if compareAmounts == 0
-              fill.call order, leftOfferAmount, rightOfferAmount
+              fill.call order, leftOfferAmount, rightOfferAmount, @timestamp
             else
-              partialOffer.call order, leftOfferAmount, rightOfferAmount
-            fill.call @, rightOfferAmount, leftOfferAmount
+              partialOffer.call order, leftOfferAmount, rightOfferAmount, @timestamp
+            fill.call @, rightOfferAmount, leftOfferAmount, @timestamp
             order.emit 'trade',
               bid: @
               offer: order
@@ -168,8 +171,8 @@ module.exports = class Order extends EventEmitter
           if compareAmounts > 0
             rightOfferAmount = order.offerAmount
             leftOfferAmount = rightOfferAmount.multiply price
-            fill.call order, leftOfferAmount, rightOfferAmount
-            partialBid.call @, rightOfferAmount, leftOfferAmount
+            fill.call order, leftOfferAmount, rightOfferAmount, @timestamp
+            partialBid.call @, rightOfferAmount, leftOfferAmount, @timestamp
             order.emit 'trade',
               bid: @
               offer: order
@@ -180,10 +183,10 @@ module.exports = class Order extends EventEmitter
             rightOfferAmount = @bidAmount
             leftOfferAmount = rightOfferAmount.multiply price
             if compareAmounts == 0
-              fill.call order, leftOfferAmount, rightOfferAmount
+              fill.call order, leftOfferAmount, rightOfferAmount, @timestamp
             else
-              partialOffer.call order, leftOfferAmount, rightOfferAmount
-            fill.call @, rightOfferAmount, leftOfferAmount
+              partialOffer.call order, leftOfferAmount, rightOfferAmount, @timestamp
+            fill.call @, rightOfferAmount, leftOfferAmount, @timestamp
             order.emit 'trade',
               bid: @
               offer: order
@@ -198,8 +201,8 @@ module.exports = class Order extends EventEmitter
           if compareAmounts > 0
             leftOfferAmount = order.bidAmount
             rightOfferAmount = order.offerAmount
-            fill.call order, leftOfferAmount, rightOfferAmount
-            partialBid.call @, rightOfferAmount, leftOfferAmount
+            fill.call order, leftOfferAmount, rightOfferAmount, @timestamp
+            partialBid.call @, rightOfferAmount, leftOfferAmount, @timestamp
             order.emit 'trade',
               bid: order
               offer: @
@@ -219,10 +222,10 @@ module.exports = class Order extends EventEmitter
             # division as there is no remainder)
             rightOfferAmount = leftOfferAmount.multiply price
             if compareAmounts == 0
-              fill.call order, leftOfferAmount, rightOfferAmount
+              fill.call order, leftOfferAmount, rightOfferAmount, @timestamp
             else
-              partialBid.call order, leftOfferAmount, rightOfferAmount
-            fill.call @, rightOfferAmount, leftOfferAmount
+              partialBid.call order, leftOfferAmount, rightOfferAmount, @timestamp
+            fill.call @, rightOfferAmount, leftOfferAmount, @timestamp
             order.emit 'trade',
               bid: order
               offer: @

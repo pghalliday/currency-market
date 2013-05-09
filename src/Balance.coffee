@@ -1,10 +1,11 @@
 Amount = require('./Amount')
 
 module.exports = class Balance
-  constructor: (params) ->
+  constructor: (commission) ->
     @offers = Object.create null
     @funds = Amount.ZERO
     @lockedFunds = Amount.ZERO
+    @commission = commission
 
   deposit: (amount) =>
     @funds = @funds.add(amount)
@@ -24,7 +25,17 @@ module.exports = class Balance
 
   submitBid: (order) =>
     order.on 'fill', (fill) =>
-      @funds = @funds.add fill.bidAmount
+      if @commission
+        commission = @commission.calculate
+          bidAmount: fill.bidAmount
+          timestamp: fill.timestamp
+          bid: order
+        @funds = @funds.add fill.bidAmount.subtract commission
+        @commission.account.deposit
+          currency: order.bidCurrency
+          amount: commission
+      else
+        @funds = @funds.add fill.bidAmount
 
   cancel: (order) =>
     @lockedFunds = @lockedFunds.subtract order.offerAmount    

@@ -41,6 +41,7 @@ amount101 = new Amount '101'
 amount125 = new Amount '125'
 amount150 = new Amount '150'
 amount200 = new Amount '200'
+amount250 = new Amount '250'
 amount300 = new Amount '300'
 amount400 = new Amount '400'
 amount500 = new Amount '500'
@@ -387,12 +388,16 @@ describe 'Order', ->
                 fillSpy.should.have.been.calledOnce
                 fillSpy.firstCall.args[0].offerAmount.compareTo(amount200).should.equal 0
                 fillSpy.firstCall.args[0].bidAmount.compareTo(amount1000).should.equal 0
+                fillSpy.firstCall.args[0].timestamp.should.equal '2'
+                fillSpy.firstCall.args[0].fundsUnlocked.compareTo(amount200).should.equal 0
                 order.offerAmount.compareTo(Amount.ZERO).should.equal 0
                 order.bidAmount.compareTo(Amount.ZERO).should.equal 0
 
                 @fillSpy.should.have.been.calledOnce
                 @fillSpy.firstCall.args[0].bidAmount.compareTo(amount200).should.equal 0
                 @fillSpy.firstCall.args[0].offerAmount.compareTo(amount1000).should.equal 0
+                @fillSpy.firstCall.args[0].timestamp.should.equal '2'
+                @fillSpy.firstCall.args[0].fundsUnlocked.compareTo(amount1000).should.equal 0
                 @order.bidAmount.compareTo(Amount.ZERO).should.equal 0
                 @order.offerAmount.compareTo(Amount.ZERO).should.equal 0
 
@@ -428,12 +433,16 @@ describe 'Order', ->
                 fillSpy.should.have.been.calledOnce
                 fillSpy.firstCall.args[0].offerAmount.compareTo(amount100).should.equal 0
                 fillSpy.firstCall.args[0].bidAmount.compareTo(amount500).should.equal 0
+                fillSpy.firstCall.args[0].timestamp.should.equal '2'
+                fillSpy.firstCall.args[0].fundsUnlocked.compareTo(amount100).should.equal 0
                 order.offerAmount.compareTo(Amount.ZERO).should.equal 0
                 order.bidAmount.compareTo(Amount.ZERO).should.equal 0
 
                 @fillSpy.should.have.been.calledOnce
                 @fillSpy.firstCall.args[0].bidAmount.compareTo(amount100).should.equal 0
                 @fillSpy.firstCall.args[0].offerAmount.compareTo(amount500).should.equal 0
+                @fillSpy.firstCall.args[0].timestamp.should.equal '2'
+                @fillSpy.firstCall.args[0].fundsUnlocked.compareTo(amount500).should.equal 0
                 @order.bidAmount.compareTo(amount100).should.equal 0
                 @order.offerAmount.compareTo(amount500).should.equal 0
 
@@ -469,12 +478,16 @@ describe 'Order', ->
                 fillSpy.should.have.been.calledOnce
                 fillSpy.firstCall.args[0].offerAmount.compareTo(amount200).should.equal 0
                 fillSpy.firstCall.args[0].bidAmount.compareTo(amount1000).should.equal 0
+                fillSpy.firstCall.args[0].timestamp.should.equal '2'
+                fillSpy.firstCall.args[0].fundsUnlocked.compareTo(amount200).should.equal 0
                 order.offerAmount.compareTo(amount100).should.equal 0
                 order.bidAmount.compareTo(amount500).should.equal 0
 
                 @fillSpy.should.have.been.calledOnce
                 @fillSpy.firstCall.args[0].bidAmount.compareTo(amount200).should.equal 0
                 @fillSpy.firstCall.args[0].offerAmount.compareTo(amount1000).should.equal 0
+                @fillSpy.firstCall.args[0].timestamp.should.equal '2'
+                @fillSpy.firstCall.args[0].fundsUnlocked.compareTo(amount1000).should.equal 0
                 @order.bidAmount.compareTo(Amount.ZERO).should.equal 0
                 @order.offerAmount.compareTo(Amount.ZERO).should.equal 0
 
@@ -511,12 +524,16 @@ describe 'Order', ->
                 fillSpy.should.have.been.calledOnce
                 fillSpy.firstCall.args[0].offerAmount.compareTo(amount200).should.equal 0
                 fillSpy.firstCall.args[0].bidAmount.compareTo(amount1000).should.equal 0
+                fillSpy.firstCall.args[0].timestamp.should.equal '2'
+                fillSpy.firstCall.args[0].fundsUnlocked.compareTo(amount200).should.equal 0
                 order.offerAmount.compareTo(Amount.ZERO).should.equal 0
                 order.bidAmount.compareTo(Amount.ZERO).should.equal 0
 
                 @fillSpy.should.have.been.calledOnce
                 @fillSpy.firstCall.args[0].bidAmount.compareTo(amount200).should.equal 0
                 @fillSpy.firstCall.args[0].offerAmount.compareTo(amount1000).should.equal 0
+                @fillSpy.firstCall.args[0].timestamp.should.equal '2'
+                @fillSpy.firstCall.args[0].fundsUnlocked.compareTo(amount1000).should.equal 0
                 @order.bidAmount.compareTo(Amount.ZERO).should.equal 0
                 @order.offerAmount.compareTo(Amount.ZERO).should.equal 0
 
@@ -552,12 +569,16 @@ describe 'Order', ->
                 fillSpy.should.have.been.calledOnce
                 fillSpy.firstCall.args[0].offerAmount.compareTo(amount100).should.equal 0
                 fillSpy.firstCall.args[0].bidAmount.compareTo(amount500).should.equal 0
+                fillSpy.firstCall.args[0].timestamp.should.equal '2'
+                fillSpy.firstCall.args[0].fundsUnlocked.compareTo(amount100).should.equal 0
                 order.offerAmount.compareTo(Amount.ZERO).should.equal 0
                 order.bidAmount.compareTo(Amount.ZERO).should.equal 0
 
                 @fillSpy.should.have.been.calledOnce
                 @fillSpy.firstCall.args[0].bidAmount.compareTo(amount100).should.equal 0
                 @fillSpy.firstCall.args[0].offerAmount.compareTo(amount500).should.equal 0
+                @fillSpy.firstCall.args[0].timestamp.should.equal '2'
+                @fillSpy.firstCall.args[0].fundsUnlocked.compareTo(amount500).should.equal 0
                 @order.bidAmount.compareTo(amount100).should.equal 0
                 @order.offerAmount.compareTo(amount500).should.equal 0
 
@@ -593,12 +614,16 @@ describe 'Order', ->
                 fillSpy.should.have.been.calledOnce
                 fillSpy.firstCall.args[0].offerAmount.compareTo(amount200).should.equal 0
                 fillSpy.firstCall.args[0].bidAmount.compareTo(amount1000).should.equal 0
+                fillSpy.firstCall.args[0].timestamp.should.equal '2'
+                fillSpy.firstCall.args[0].fundsUnlocked.compareTo(amount200).should.equal 0
                 order.offerAmount.compareTo(amount100).should.equal 0
                 order.bidAmount.compareTo(amount500).should.equal 0
 
                 @fillSpy.should.have.been.calledOnce
                 @fillSpy.firstCall.args[0].bidAmount.compareTo(amount200).should.equal 0
                 @fillSpy.firstCall.args[0].offerAmount.compareTo(amount1000).should.equal 0
+                @fillSpy.firstCall.args[0].timestamp.should.equal '2'
+                @fillSpy.firstCall.args[0].fundsUnlocked.compareTo(amount1000).should.equal 0
                 @order.bidAmount.compareTo(Amount.ZERO).should.equal 0
                 @order.offerAmount.compareTo(Amount.ZERO).should.equal 0
 
@@ -636,12 +661,16 @@ describe 'Order', ->
               fillSpy.should.have.been.calledOnce
               fillSpy.firstCall.args[0].offerAmount.compareTo(amount200).should.equal 0
               fillSpy.firstCall.args[0].bidAmount.compareTo(amount1000).should.equal 0
+              fillSpy.firstCall.args[0].timestamp.should.equal '2'
+              fillSpy.firstCall.args[0].fundsUnlocked.compareTo(amount200).should.equal 0
               order.offerAmount.compareTo(Amount.ZERO).should.equal 0
               order.bidAmount.compareTo(Amount.ZERO).should.equal 0
 
               @fillSpy.should.have.been.calledOnce
               @fillSpy.firstCall.args[0].bidAmount.compareTo(amount200).should.equal 0
               @fillSpy.firstCall.args[0].offerAmount.compareTo(amount1000).should.equal 0
+              @fillSpy.firstCall.args[0].timestamp.should.equal '2'
+              @fillSpy.firstCall.args[0].fundsUnlocked.compareTo(amount1000).should.equal 0
               @order.bidAmount.compareTo(Amount.ZERO).should.equal 0
               @order.offerAmount.compareTo(Amount.ZERO).should.equal 0
 
@@ -677,12 +706,16 @@ describe 'Order', ->
               fillSpy.should.have.been.calledOnce
               fillSpy.firstCall.args[0].offerAmount.compareTo(amount100).should.equal 0
               fillSpy.firstCall.args[0].bidAmount.compareTo(amount500).should.equal 0
+              fillSpy.firstCall.args[0].timestamp.should.equal '2'
+              fillSpy.firstCall.args[0].fundsUnlocked.compareTo(amount100).should.equal 0
               order.offerAmount.compareTo(Amount.ZERO).should.equal 0
               order.bidAmount.compareTo(Amount.ZERO).should.equal 0
 
               @fillSpy.should.have.been.calledOnce
               @fillSpy.firstCall.args[0].bidAmount.compareTo(amount100).should.equal 0
               @fillSpy.firstCall.args[0].offerAmount.compareTo(amount500).should.equal 0
+              @fillSpy.firstCall.args[0].timestamp.should.equal '2'
+              @fillSpy.firstCall.args[0].fundsUnlocked.compareTo(amount500).should.equal 0
               @order.bidAmount.compareTo(amount100).should.equal 0
               @order.offerAmount.compareTo(amount500).should.equal 0
 
@@ -718,12 +751,16 @@ describe 'Order', ->
               fillSpy.should.have.been.calledOnce
               fillSpy.firstCall.args[0].offerAmount.compareTo(amount200).should.equal 0
               fillSpy.firstCall.args[0].bidAmount.compareTo(amount1000).should.equal 0
+              fillSpy.firstCall.args[0].timestamp.should.equal '2'
+              fillSpy.firstCall.args[0].fundsUnlocked.compareTo(amount200).should.equal 0
               order.offerAmount.compareTo(amount100).should.equal 0
               order.bidAmount.compareTo(amount400).should.equal 0
 
               @fillSpy.should.have.been.calledOnce
               @fillSpy.firstCall.args[0].bidAmount.compareTo(amount200).should.equal 0
               @fillSpy.firstCall.args[0].offerAmount.compareTo(amount1000).should.equal 0
+              @fillSpy.firstCall.args[0].timestamp.should.equal '2'
+              @fillSpy.firstCall.args[0].fundsUnlocked.compareTo(amount1000).should.equal 0
               @order.bidAmount.compareTo(Amount.ZERO).should.equal 0
               @order.offerAmount.compareTo(Amount.ZERO).should.equal 0
 
@@ -760,12 +797,16 @@ describe 'Order', ->
               fillSpy.should.have.been.calledOnce
               fillSpy.firstCall.args[0].offerAmount.compareTo(amount200).should.equal 0
               fillSpy.firstCall.args[0].bidAmount.compareTo(amount1000).should.equal 0
+              fillSpy.firstCall.args[0].timestamp.should.equal '2'
+              fillSpy.firstCall.args[0].fundsUnlocked.compareTo(amount250).should.equal 0
               order.offerAmount.compareTo(Amount.ZERO).should.equal 0
               order.bidAmount.compareTo(Amount.ZERO).should.equal 0
 
               @fillSpy.should.have.been.calledOnce
               @fillSpy.firstCall.args[0].bidAmount.compareTo(amount200).should.equal 0
               @fillSpy.firstCall.args[0].offerAmount.compareTo(amount1000).should.equal 0
+              @fillSpy.firstCall.args[0].timestamp.should.equal '2'
+              @fillSpy.firstCall.args[0].fundsUnlocked.compareTo(amount1000).should.equal 0
               @order.bidAmount.compareTo(Amount.ZERO).should.equal 0
               @order.offerAmount.compareTo(Amount.ZERO).should.equal 0
 
@@ -801,12 +842,16 @@ describe 'Order', ->
               fillSpy.should.have.been.calledOnce
               fillSpy.firstCall.args[0].offerAmount.compareTo(amount100).should.equal 0
               fillSpy.firstCall.args[0].bidAmount.compareTo(amount500).should.equal 0
+              fillSpy.firstCall.args[0].timestamp.should.equal '2'
+              fillSpy.firstCall.args[0].fundsUnlocked.compareTo(amount125).should.equal 0
               order.offerAmount.compareTo(Amount.ZERO).should.equal 0
               order.bidAmount.compareTo(Amount.ZERO).should.equal 0
 
               @fillSpy.should.have.been.calledOnce
               @fillSpy.firstCall.args[0].bidAmount.compareTo(amount100).should.equal 0
               @fillSpy.firstCall.args[0].offerAmount.compareTo(amount500).should.equal 0
+              @fillSpy.firstCall.args[0].timestamp.should.equal '2'
+              @fillSpy.firstCall.args[0].fundsUnlocked.compareTo(amount500).should.equal 0
               @order.bidAmount.compareTo(amount100).should.equal 0
               @order.offerAmount.compareTo(amount500).should.equal 0
 
@@ -842,12 +887,16 @@ describe 'Order', ->
               fillSpy.should.have.been.calledOnce
               fillSpy.firstCall.args[0].offerAmount.compareTo(amount200).should.equal 0
               fillSpy.firstCall.args[0].bidAmount.compareTo(amount1000).should.equal 0
+              fillSpy.firstCall.args[0].timestamp.should.equal '2'
+              fillSpy.firstCall.args[0].fundsUnlocked.compareTo(amount250).should.equal 0
               order.offerAmount.compareTo(amount125).should.equal 0
               order.bidAmount.compareTo(amount500).should.equal 0
 
               @fillSpy.should.have.been.calledOnce
               @fillSpy.firstCall.args[0].bidAmount.compareTo(amount200).should.equal 0
               @fillSpy.firstCall.args[0].offerAmount.compareTo(amount1000).should.equal 0
+              @fillSpy.firstCall.args[0].timestamp.should.equal '2'
+              @fillSpy.firstCall.args[0].fundsUnlocked.compareTo(amount1000).should.equal 0
               @order.bidAmount.compareTo(Amount.ZERO).should.equal 0
               @order.offerAmount.compareTo(Amount.ZERO).should.equal 0
 
@@ -902,12 +951,16 @@ describe 'Order', ->
               fillSpy.should.have.been.calledOnce
               fillSpy.firstCall.args[0].offerAmount.compareTo(amount200).should.equal 0
               fillSpy.firstCall.args[0].bidAmount.compareTo(amount1000).should.equal 0
+              fillSpy.firstCall.args[0].timestamp.should.equal '2'
+              fillSpy.firstCall.args[0].fundsUnlocked.compareTo(amount200).should.equal 0
               order.offerAmount.compareTo(Amount.ZERO).should.equal 0
               order.bidAmount.compareTo(Amount.ZERO).should.equal 0
 
               @fillSpy.should.have.been.calledOnce
               @fillSpy.firstCall.args[0].bidAmount.compareTo(amount200).should.equal 0
               @fillSpy.firstCall.args[0].offerAmount.compareTo(amount1000).should.equal 0
+              @fillSpy.firstCall.args[0].timestamp.should.equal '2'
+              @fillSpy.firstCall.args[0].fundsUnlocked.compareTo(amount1000).should.equal 0
               @order.bidAmount.compareTo(Amount.ZERO).should.equal 0
               @order.offerAmount.compareTo(Amount.ZERO).should.equal 0
 
@@ -943,12 +996,16 @@ describe 'Order', ->
               fillSpy.should.have.been.calledOnce
               fillSpy.firstCall.args[0].offerAmount.compareTo(amount100).should.equal 0
               fillSpy.firstCall.args[0].bidAmount.compareTo(amount500).should.equal 0
+              fillSpy.firstCall.args[0].timestamp.should.equal '2'
+              fillSpy.firstCall.args[0].fundsUnlocked.compareTo(amount100).should.equal 0
               order.offerAmount.compareTo(Amount.ZERO).should.equal 0
               order.bidAmount.compareTo(Amount.ZERO).should.equal 0
 
               @fillSpy.should.have.been.calledOnce
               @fillSpy.firstCall.args[0].bidAmount.compareTo(amount100).should.equal 0
               @fillSpy.firstCall.args[0].offerAmount.compareTo(amount500).should.equal 0
+              @fillSpy.firstCall.args[0].timestamp.should.equal '2'
+              @fillSpy.firstCall.args[0].fundsUnlocked.compareTo(amount500).should.equal 0
               @order.bidAmount.compareTo(amount100).should.equal 0
               @order.offerAmount.compareTo(amount500).should.equal 0
 
@@ -984,12 +1041,16 @@ describe 'Order', ->
               fillSpy.should.have.been.calledOnce
               fillSpy.firstCall.args[0].offerAmount.compareTo(amount200).should.equal 0
               fillSpy.firstCall.args[0].bidAmount.compareTo(amount1000).should.equal 0
+              fillSpy.firstCall.args[0].timestamp.should.equal '2'
+              fillSpy.firstCall.args[0].fundsUnlocked.compareTo(amount200).should.equal 0
               order.offerAmount.compareTo(amount100).should.equal 0
               order.bidAmount.compareTo(amount400).should.equal 0
 
               @fillSpy.should.have.been.calledOnce
               @fillSpy.firstCall.args[0].bidAmount.compareTo(amount200).should.equal 0
               @fillSpy.firstCall.args[0].offerAmount.compareTo(amount1000).should.equal 0
+              @fillSpy.firstCall.args[0].timestamp.should.equal '2'
+              @fillSpy.firstCall.args[0].fundsUnlocked.compareTo(amount1000).should.equal 0
               @order.bidAmount.compareTo(Amount.ZERO).should.equal 0
               @order.offerAmount.compareTo(Amount.ZERO).should.equal 0
 
@@ -1026,12 +1087,16 @@ describe 'Order', ->
               fillSpy.should.have.been.calledOnce
               fillSpy.firstCall.args[0].offerAmount.compareTo(amount200).should.equal 0
               fillSpy.firstCall.args[0].bidAmount.compareTo(amount1000).should.equal 0
+              fillSpy.firstCall.args[0].timestamp.should.equal '2'
+              fillSpy.firstCall.args[0].fundsUnlocked.compareTo(amount250).should.equal 0
               order.offerAmount.compareTo(Amount.ZERO).should.equal 0
               order.bidAmount.compareTo(Amount.ZERO).should.equal 0
 
               @fillSpy.should.have.been.calledOnce
               @fillSpy.firstCall.args[0].bidAmount.compareTo(amount200).should.equal 0
               @fillSpy.firstCall.args[0].offerAmount.compareTo(amount1000).should.equal 0
+              @fillSpy.firstCall.args[0].timestamp.should.equal '2'
+              @fillSpy.firstCall.args[0].fundsUnlocked.compareTo(amount1000).should.equal 0
               @order.bidAmount.compareTo(Amount.ZERO).should.equal 0
               @order.offerAmount.compareTo(Amount.ZERO).should.equal 0
 
@@ -1067,12 +1132,16 @@ describe 'Order', ->
               fillSpy.should.have.been.calledOnce
               fillSpy.firstCall.args[0].offerAmount.compareTo(amount100).should.equal 0
               fillSpy.firstCall.args[0].bidAmount.compareTo(amount500).should.equal 0
+              fillSpy.firstCall.args[0].timestamp.should.equal '2'
+              fillSpy.firstCall.args[0].fundsUnlocked.compareTo(amount125).should.equal 0
               order.offerAmount.compareTo(Amount.ZERO).should.equal 0
               order.bidAmount.compareTo(Amount.ZERO).should.equal 0
 
               @fillSpy.should.have.been.calledOnce
               @fillSpy.firstCall.args[0].bidAmount.compareTo(amount100).should.equal 0
               @fillSpy.firstCall.args[0].offerAmount.compareTo(amount500).should.equal 0
+              @fillSpy.firstCall.args[0].timestamp.should.equal '2'
+              @fillSpy.firstCall.args[0].fundsUnlocked.compareTo(amount500).should.equal 0
               @order.bidAmount.compareTo(amount100).should.equal 0
               @order.offerAmount.compareTo(amount500).should.equal 0
 
@@ -1108,12 +1177,16 @@ describe 'Order', ->
               fillSpy.should.have.been.calledOnce
               fillSpy.firstCall.args[0].offerAmount.compareTo(amount200).should.equal 0
               fillSpy.firstCall.args[0].bidAmount.compareTo(amount1000).should.equal 0
+              fillSpy.firstCall.args[0].timestamp.should.equal '2'
+              fillSpy.firstCall.args[0].fundsUnlocked.compareTo(amount250).should.equal 0
               order.offerAmount.compareTo(amount125).should.equal 0
               order.bidAmount.compareTo(amount500).should.equal 0
 
               @fillSpy.should.have.been.calledOnce
               @fillSpy.firstCall.args[0].bidAmount.compareTo(amount200).should.equal 0
               @fillSpy.firstCall.args[0].offerAmount.compareTo(amount1000).should.equal 0
+              @fillSpy.firstCall.args[0].timestamp.should.equal '2'
+              @fillSpy.firstCall.args[0].fundsUnlocked.compareTo(amount1000).should.equal 0
               @order.bidAmount.compareTo(Amount.ZERO).should.equal 0
               @order.offerAmount.compareTo(Amount.ZERO).should.equal 0
 

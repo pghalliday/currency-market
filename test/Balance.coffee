@@ -2,11 +2,16 @@ chai = require 'chai'
 chai.should()
 expect = chai.expect
 assert = chai.assert
+sinon = require 'sinon'
+sinonChai = require 'sinon-chai'
+chai.use sinonChai
 
-Balance = require('../src/Balance')
-Amount = require('../src/Amount')
-Order = require('../src/Order')
+Balance = require '../src/Balance'
+Amount = require '../src/Amount'
+Order = require '../src/Order'
+Account = require '../src/Account'
 
+amount5 = new Amount '5'
 amount25 = new Amount '25'
 amount50 = new Amount '50'
 amount75 = new Amount '75'
@@ -15,13 +20,14 @@ amount125 = new Amount '125'
 amount150 = new Amount '150'
 amount175 = new Amount '175'
 amount200 = new Amount '200'
+amount220 = new Amount '220'
 amount225 = new Amount '225'
 amount350 = new Amount '350'
 
 newOffer = (id, amount) ->
   new Order
     id: id
-    timestamp: '987654321'
+    timestamp: id
     account: 'name'
     bidCurrency: 'EUR'
     offerCurrency: 'BTC'
@@ -31,7 +37,7 @@ newOffer = (id, amount) ->
 newBid = (id, amount) ->
   new Order
     id: id
-    timestamp: '987654321'
+    timestamp: id
     account: 'name'
     bidCurrency: 'BTC'
     offerCurrency: 'EUR'
@@ -113,6 +119,27 @@ describe 'Balance', ->
       balance.submitBid bid
       bid.match offer
       balance.funds.compareTo(amount225).should.equal 0
+
+    it 'should apply commission to deposits as a result of fills', ->
+      commissionAccount = new Account 'commission'
+      calculateCommission = sinon.stub().returns amount5
+
+      balance = new Balance
+        account: commissionAccount
+        calculate: calculateCommission
+
+      balance.deposit amount200
+      bid = newBid '1', amount25
+      offer = newOffer '2', amount50
+      balance.submitBid bid
+      offer.match bid
+
+      calculateCommission.should.have.been.calledOnce
+      calculateCommission.firstCall.args[0].bidAmount.compareTo(amount25).should.equal 0
+      calculateCommission.firstCall.args[0].timestamp.should.equal '2' # should take the timestamp from the left order
+      calculateCommission.firstCall.args[0].bid.should.equal bid
+      balance.funds.compareTo(amount220).should.equal 0
+      commissionAccount.getBalance('BTC').funds.compareTo(amount5).should.equal 0
 
   describe '#cancel', ->
     it 'should unlock the offer amount and remove the offer from the offers collection', ->
