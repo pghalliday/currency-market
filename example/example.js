@@ -9,7 +9,7 @@ var COMMISSION_RATE = new Amount('0.005');
 // instantiate a market
 var market = new Market({
   commission: {
-    // The account ID of the account to recieve the commission
+    // The account ID of the account to receive the commission
     account: 'commission',
     // A callback to use for calculating the commission amount to subtract from a deposit
     // resulting from an order match
