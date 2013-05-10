@@ -320,6 +320,8 @@ console.log('********************');
       - have to be unique forever (uuid?)
     - sequence numbers provide integrity checking
       - may get unweildy if required to be unique forever and could loop instead
+      - where are sequence numbers assigned?
+        - This implies a state somewhere and a centralised component (bottleneck?)
 - Protection against attacks?
   - entering orders that satisfy each other
   - entering tiny orders
