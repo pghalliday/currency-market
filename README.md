@@ -1,6 +1,8 @@
 currency-market
 ===============
 
+[![Build Status](https://travis-ci.org/pghalliday/currency-market.png)](https://travis-ci.org/pghalliday/currency-market)
+
 A synchronous implementation of a limit order based currency market
 
 ## Features
