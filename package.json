@@ -27,7 +27,13 @@
   },
   "scripts": {
     "prepublish": "grunt",
-    "test": "grunt"
+    "test": "grunt",
+    "blanket": {
+      "pattern": "/src/"
+    },
+    "travis-cov": {
+      "threshold": 100
+    }
   },
   "dependencies": {},
   "devDependencies": {
@@ -35,12 +41,14 @@
     "grunt-cli": "~0.1.7",
     "grunt": "~0.4.1",
     "grunt-contrib-coffee": "~0.7.0",
-    "grunt-mocha-test": "~0.2.2",
+    "grunt-mocha-test": "~0.3.4",
     "grunt-contrib-clean": "~0.4.1",
     "sinon": "~1.6.0",
     "sinon-chai": "~2.4.0",
     "randgen": "0.0.2",
-    "grunt-contrib-copy": "~0.4.1"
+    "grunt-contrib-copy": "~0.4.1",
+    "blanket": "~1.1.4",
+    "travis-cov": "~0.2.4"
   },
   "keywords": [
     "currency",

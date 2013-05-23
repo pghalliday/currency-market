@@ -1,0 +1,2 @@
+require('blanket')
+  pattern: '/src/'

@@ -173,7 +173,7 @@ describe 'Order', ->
         offerAmount: amount100
     .to.throw('Must specify either bid amount and price or offer amount and price')
 
-  it 'should throw an error if both the bid price and offer price are given as we do not want to trust the calculations of others', ->
+  it 'should throw an error if both the bid price, bid amount and offer price are given as we do not want to trust the calculations of others', ->
     expect ->
       order = new Order
         id: '123456789'
@@ -184,6 +184,19 @@ describe 'Order', ->
         bidPrice: amount100
         offerPrice: amount50
         bidAmount: amount50
+    .to.throw('Must specify either bid amount and price or offer amount and price')
+
+  it 'should throw an error if both the offer price, offer amount and bid price are given as we do not want to trust the calculations of others', ->
+    expect ->
+      order = new Order
+        id: '123456789'
+        timestamp: '987654321'
+        account: 'name'
+        bidCurrency: 'BTC'
+        offerCurrency: 'EUR'
+        bidPrice: amount100
+        offerPrice: amount50
+        offerAmount: amount50
     .to.throw('Must specify either bid amount and price or offer amount and price')
 
   it 'should throw an error if the bid price, offer amount and bid amount are given as we do not want to trust the calculations of others', ->

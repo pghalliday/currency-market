@@ -56,8 +56,6 @@ module.exports = class Order extends EventEmitter
                 throw new Error('Must specify either bid amount and price or offer amount and price')
               else
                 @offerAmount = @bidPrice.multiply(@bidAmount)
-                if params.offerPrice
-                  throw new Error('Must specify either bid amount and price or offer amount and price')
           else
             throw new Error('Must specify either bid amount and price or offer amount and price')
       else
