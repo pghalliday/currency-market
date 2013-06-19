@@ -8,11 +8,6 @@ Vagrant.configure("2") do |config|
   # install latest Chef client and add the node recipe
   config.omnibus.chef_version = "11.4.4"
   config.vm.provision :chef_solo do |chef|
-    chef.add_recipe "node"
-    chef.json = {
-      "node" => {
-        "version" => "v0.10.4"
-      }
-    }
+    chef.add_recipe "currency-market"
   end
 end

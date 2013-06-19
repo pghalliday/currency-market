@@ -1,2 +1,0 @@
-require('blanket')
-  pattern: '/src/'

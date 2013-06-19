@@ -28,9 +28,6 @@
   "scripts": {
     "prepublish": "grunt",
     "test": "grunt",
-    "blanket": {
-      "pattern": "/src/"
-    },
     "travis-cov": {
       "threshold": 100
     }
@@ -47,7 +44,7 @@
     "sinon-chai": "~2.4.0",
     "randgen": "0.0.2",
     "grunt-contrib-copy": "~0.4.1",
-    "blanket": "~1.1.4",
+    "grunt-blanket": "0.0.8",
     "travis-cov": "~0.2.4"
   },
   "keywords": [

@@ -3,4 +3,5 @@
 src/
 test/
 perf/
+lib-cov/
 Gruntfile.coffee
