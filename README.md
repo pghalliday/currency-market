@@ -304,6 +304,85 @@ console.log('********************');
 
 ## Roadmap
 
+- Refactor API
+
+```
+var Market = require('currency-market');
+
+market = new Market({
+  commission: {
+    // The account ID of the account to receive the commission
+    account: 'commission',
+    // A callback to use for calculating the commission amount to subtract from a deposit
+    // resulting from an order match
+    calculate: function(params) {
+      // The matched bid order corresponding to the deposit
+      var bid = params.bid;
+      // The amount to be deposited before commission (due to partial and better price
+      // matches this amount may be different to the bidAmount from the bid order)
+      var bidAmount = params.bidAmount;
+      // The timestamp of the order that triggered the match (not necessarily from the bid
+      // order, this is effectively the time that the trade was made)
+      var timestamp = params.timestamp;
+      // return the calculated commission amount to be subtracted from the deposit
+      // and deposited in the commission account (it's best to avoid divisions
+      // here in order to avoid rounding errors)
+      return bidAmount.multiply(COMMISSION_RATE);
+    }
+  },
+  state: {
+    ?
+  }
+});
+
+market.applyOperation({
+  "reference": "550e8400-e29b-41d4-a716-446655440000",
+  "account": "Peter",
+  "sequence": 1234567890,
+  "timestamp": 1371737390976,
+  "deposit": {
+    "currency": "EUR",
+    "amount": "5000"
+  }
+});
+
+market.on('delta', function(delta) {
+  // delta = {
+  // "sequence": 1234567890,
+  // "operation": {
+  //   "reference": "550e8400-e29b-41d4-a716-446655440000",
+  //   "account": "Peter",
+  //   "sequence": 9876543210,
+  //   "timestamp": 1371737390976,
+  //   "result": "success",
+  //   "deposit": {
+  //     "currency": "EUR",
+  //     "amount": "5000"
+  //   }
+  // };
+});
+
+market.applyDelta({
+  "sequence": 1234567890,
+  "operation": {
+    "reference": "550e8400-e29b-41d4-a716-446655440000",
+    "account": "Peter",
+    "sequence": 9876543210,
+    "timestamp": 1371737390976,
+    "result": "success",
+    "deposit": {
+      "currency": "EUR",
+      "amount": "5000"
+    }
+  }
+});
+
+state = market.getState();
+// state = {
+//    ?
+// };
+```
+
 - Instant orders
   - Market orders
     - zero priced offers that are rejected if they cannot be completely filled by the market
