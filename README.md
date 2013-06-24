@@ -306,7 +306,7 @@ console.log('********************');
 
 - Refactor API
 
-```
+```javascript
 var Market = require('currency-market');
 
 market = new Market({
