@@ -63,7 +63,7 @@ describe 'Account', ->
         id: '123456789'
       account.deposit
         currency: 'EUR'
-        amount: amount1000
+        amount: '1000'
       order = new Order
         id: '1'
         timestamp: '1'
@@ -88,7 +88,7 @@ describe 'Account', ->
             calculate: @calculateCommission
         @account.deposit
           currency: 'EUR'
-          amount: amount1000
+          amount: '1000'
         @order = new Order
           id: '1'
           timestamp: '1'
@@ -138,7 +138,7 @@ describe 'Account', ->
         id: '123456789'
       account.deposit
         currency: 'EUR'
-        amount: amount1000
+        amount: '1000'
       order = new Order
         id: '1'
         timestamp: '1'
@@ -164,12 +164,28 @@ describe 'Account', ->
       balance3.should.not.equal balance1
 
   describe '#deposit', ->
+    it 'should throw an error if no currency is supplied', ->
+      account = new Account
+        id: '123456789'
+      expect =>
+        account.deposit
+          amount: '50'
+      .to.throw 'Must supply a currency'
+
+    it 'should throw an error if no amount is supplied', ->
+      account = new Account
+        id: '123456789'
+      expect =>
+        account.deposit
+          currency: 'BTC'
+      .to.throw 'Must supply an amount'
+
     it 'should add the deposited amount to the funds for the correct currency', ->
       account = new Account
         id: '123456789'
       account.deposit
         currency: 'BTC'
-        amount: amount50
+        amount: '50'
       account.getBalance('BTC').funds.compareTo(amount50).should.equal 0
 
   describe '#withdraw', ->
@@ -178,7 +194,7 @@ describe 'Account', ->
         id: '123456789'
       account.deposit
         currency: 'BTC'
-        amount: amount200
+        amount: '200'
       account.submit newOffer '1', 'BTC', amount50
       account.submit newOffer '2', 'BTC', amount100
       account.withdraw
@@ -195,7 +211,7 @@ describe 'Account', ->
         id: '123456789'
       account.deposit
         currency: 'BTC'
-        amount: amount200
+        amount: '200'
       account.submit newOffer '1', 'BTC', amount50
       account.submit newOffer '2', 'BTC', amount100
       expect ->
@@ -210,7 +226,7 @@ describe 'Account', ->
         id: '123456789'
       account.deposit
         currency: 'BTC'
-        amount: amount200
+        amount: '200'
       account.submit newOffer '1', 'BTC', amount50
       account.submit newOffer '2', 'BTC', amount100
       json = JSON.stringify account.export()

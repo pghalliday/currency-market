@@ -9,7 +9,7 @@ module.exports = class Balance
       @commission = params.commission
 
   deposit: (amount) =>
-    @funds = @funds.add(amount)
+    @funds = @funds.add(new Amount(amount))
 
   submitOffer: (order) =>
     newLockedFunds = @lockedFunds.add order.offerAmount
@@ -34,7 +34,7 @@ module.exports = class Balance
         @funds = @funds.add fill.bidAmount.subtract commission
         @commission.account.deposit
           currency: order.bidCurrency
-          amount: commission
+          amount: commission.toString()
       else
         @funds = @funds.add fill.bidAmount
 

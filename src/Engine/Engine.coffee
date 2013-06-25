@@ -4,8 +4,10 @@ Amount = require('./Amount')
 Order = require('./Order')
 EventEmitter = require('events').EventEmitter
 
-module.exports = class Market extends EventEmitter
+module.exports = class Engine extends EventEmitter
   constructor: (params) ->
+    @nextOperationSequence = 0
+    @nextDeltaSequence = 0
     @accounts = Object.create null
     @books = Object.create null
     if params
@@ -31,17 +33,27 @@ module.exports = class Market extends EventEmitter
       books[offerCurrency] = book = new Book()
     return book
 
-  deposit: (deposit) =>
-    if deposit.id
-      if deposit.timestamp
-        account = @getAccount(deposit.account)
-        account.deposit deposit
-        @lastTransaction = deposit.id
-        @emit 'deposit', deposit
+  apply: (operation) =>
+    if typeof operation.sequence != 'undefined'
+      if operation.sequence == @nextOperationSequence
+        @nextOperationSequence++
+        if typeof operation.timestamp != 'undefined'
+          account = @getAccount operation.account
+          delta =
+            sequence: @nextDeltaSequence
+            operation: operation
+          if operation.deposit
+            account.deposit operation.deposit
+            @nextDeltaSequence++
+            @emit 'delta', delta
+          else
+            throw new Error 'Unknown operation'
+        else
+          throw new Error 'Must supply a timestamp'
       else
-        throw new Error 'Must supply timestamp'
+        throw new Error 'Unexpected sequence number'
     else
-      throw new Error 'Must supply transaction ID'
+      throw new Error 'Must supply a sequence number'
 
   withdraw: (withdrawal) =>
     if withdrawal.id
@@ -107,12 +119,13 @@ module.exports = class Market extends EventEmitter
   import: (snapshot) =>
     for id, account of snapshot.accounts
       for currency, balance of account.balances
-        @deposit
-          id: '0'
-          timestamp: '0'
+        @apply
           account: id
-          currency: currency
-          amount: new Amount balance.funds
+          sequence: @nextOperationSequence
+          timestamp: 0
+          deposit:
+            currency: currency
+            amount: balance.funds
     for bidCurrency, books of snapshot.books
       for offerCurrency, book of books
         for order in book

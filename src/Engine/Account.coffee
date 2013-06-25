@@ -16,7 +16,13 @@ module.exports = class Account
     return @balances[currency]
 
   deposit: (params) =>
-    @getBalance(params.currency).deposit params.amount
+    if params.currency
+      if params.amount
+        @getBalance(params.currency).deposit params.amount
+      else
+        throw new Error 'Must supply an amount'
+    else
+      throw new Error 'Must supply a currency'
 
   withdraw: (params) =>
     @getBalance(params.currency).withdraw params.amount
