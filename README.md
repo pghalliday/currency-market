@@ -307,8 +307,8 @@ console.log('********************');
 - Refactor API
 
 ```javascript
-var Engine = require('currency-market').engine;
-var State = require('currency-market').state;
+var Engine = require('currency-market').Engine;
+var State = require('currency-market').State;
 
 var engine = new Engine({
   commission: {
