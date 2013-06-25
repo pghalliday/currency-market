@@ -1,4 +1,4 @@
-Big = require('../thirdparty/big')
+Big = require('../../thirdparty/big')
 Big.DP = 25
 Big.RM = 0
 

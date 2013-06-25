@@ -3,9 +3,9 @@ chai.should()
 expect = chai.expect
 assert = chai.assert
 
-Book = require '../src/Book'
-Order = require '../src/Order'
-Amount = require '../src/Amount'
+Book = require '../../src/Engine/Book'
+Order = require '../../src/Engine/Order'
+Amount = require '../../src/Engine/Amount'
 
 amount5 = new Amount '5'
 amount10 = new Amount '10'

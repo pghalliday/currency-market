@@ -6,28 +6,10 @@ assert = chai.assert
 CurrencyMarket = require '../src/'
 
 describe 'CurrencyMarket', ->
-  describe '#Market', ->
-    it 'should construct a market', ->
-      market = new CurrencyMarket.Market
-        currencies: [
-          'EUR'
-          'USD'
-          'BTC'
-        ]
-      market.should.be.an.instanceOf CurrencyMarket.Market
-
-  describe '#Account', ->
-    it 'should construct an Account', ->
-      account = new CurrencyMarket.Account
-        id: '123456789'
-        timestamp: '987654321'
-        key: 'Peter'
-        currencies: [
-          'EUR'
-          'USD'
-          'BTC'
-        ]
-      account.should.be.an.instanceOf CurrencyMarket.Account
+  describe '#Engine', ->
+    it 'should construct an engine', ->
+      engine = new CurrencyMarket.Engine()
+      engine.should.be.an.instanceOf CurrencyMarket.Engine
 
   describe '#Amount', ->
     it 'should construct an Amount', ->

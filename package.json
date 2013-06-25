@@ -34,17 +34,17 @@
   },
   "dependencies": {},
   "devDependencies": {
-    "chai": "~1.5.0",
-    "grunt-cli": "~0.1.7",
+    "chai": "~1.7.1",
+    "grunt-cli": "~0.1.9",
     "grunt": "~0.4.1",
     "grunt-contrib-coffee": "~0.7.0",
-    "grunt-mocha-test": "~0.3.4",
+    "grunt-mocha-test": "~0.5.0",
     "grunt-contrib-clean": "~0.4.1",
-    "sinon": "~1.6.0",
+    "sinon": "~1.7.3",
     "sinon-chai": "~2.4.0",
-    "randgen": "0.0.2",
+    "randgen": "~0.0.4",
     "grunt-contrib-copy": "~0.4.1",
-    "grunt-blanket": "0.0.8",
+    "grunt-blanket": "~0.0.8",
     "travis-cov": "~0.2.4"
   },
   "keywords": [

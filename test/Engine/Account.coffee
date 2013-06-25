@@ -6,10 +6,10 @@ sinon = require 'sinon'
 sinonChai = require 'sinon-chai'
 chai.use sinonChai
 
-Account = require('../src/Account')
-Balance = require('../src/Balance')
-Amount = require('../src/Amount')
-Order = require('../src/Order')
+Account = require('../../src/Engine/Account')
+Balance = require('../../src/Engine/Balance')
+Amount = require('../../src/Engine/Amount')
+Order = require('../../src/Engine/Order')
 
 amountPoint01 = new Amount '0.01'
 amount4 = new Amount '4'
