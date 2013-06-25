@@ -25,7 +25,13 @@ module.exports = class Account
       throw new Error 'Must supply a currency'
 
   withdraw: (params) =>
-    @getBalance(params.currency).withdraw params.amount
+    if params.currency
+      if params.amount
+        @getBalance(params.currency).withdraw params.amount
+      else
+        throw new Error 'Must supply an amount'
+    else
+      throw new Error 'Must supply a currency'
 
   submit: (order) =>
     @getBalance(order.offerCurrency).submitOffer order

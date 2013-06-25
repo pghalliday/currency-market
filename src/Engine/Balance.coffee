@@ -9,7 +9,7 @@ module.exports = class Balance
       @commission = params.commission
 
   deposit: (amount) =>
-    @funds = @funds.add(new Amount(amount))
+    @funds = @funds.add new Amount amount
 
   submitOffer: (order) =>
     newLockedFunds = @lockedFunds.add order.offerAmount
@@ -43,7 +43,7 @@ module.exports = class Balance
     delete @offers[order.id]
 
   withdraw: (amount) =>
-    newFunds = @funds.subtract(amount)
+    newFunds = @funds.subtract new Amount amount
     if newFunds.compareTo(@lockedFunds) < 0
       throw new Error('Cannot withdraw funds that are not available')
     else

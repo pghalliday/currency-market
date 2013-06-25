@@ -159,9 +159,9 @@ describe 'Balance', ->
       balance.deposit '200'
       balance.submitOffer newOffer '1', amount50
       balance.submitOffer newOffer '2', amount100
-      balance.withdraw amount25
+      balance.withdraw '25'
       balance.funds.compareTo(amount175).should.equal 0
-      balance.withdraw amount25
+      balance.withdraw '25'
       balance.funds.compareTo(amount150).should.equal 0
 
     it 'should throw an error if the withdrawal amount is greater than the funds available taking into account the locked funds', ->
@@ -170,8 +170,8 @@ describe 'Balance', ->
       balance.submitOffer newOffer '1', amount50
       balance.submitOffer newOffer '2', amount100
       expect ->
-        balance.withdraw amount100
-      .to.throw('Cannot withdraw funds that are not available')
+        balance.withdraw '100'
+      .to.throw 'Cannot withdraw funds that are not available'
 
   describe '#export', ->
     it 'should return a JSON stringifiable object containing a snapshot of the balance', ->

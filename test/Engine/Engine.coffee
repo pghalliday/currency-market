@@ -23,6 +23,7 @@ amount5 = new Amount '5'
 amount10 = new Amount '10'
 amount20 = new Amount '20'
 amount50 = new Amount '50'
+amount75 = new Amount '75'
 amount99 = new Amount '99'
 amount100 = new Amount '100'
 amount101 = new Amount '101'
@@ -131,7 +132,7 @@ describe 'Engine', ->
               currency: 'EUR'
         .to.throw 'Must supply an amount'
 
-      it 'should credit the correct account and currency, record the last transaction ID and emit a deposit event', ->
+      it 'should credit the correct account and currency and emit a delta event', ->
         deltaSpy = sinon.spy()
         @engine.on 'delta', deltaSpy
         account = @engine.getAccount('Peter')
@@ -163,44 +164,31 @@ describe 'Engine', ->
         deltaSpy.secondCall.args[0].operation.should.equal operation
 
     describe 'withdraw', ->
-      it 'should throw an error if no transaction ID is given', ->
-        @engine.apply
-          reference: '550e8400-e29b-41d4-a716-446655440000'
-          account: 'Peter'
-          sequence: 0
-          timestamp: 1371737390976
-          deposit:
-            currency: 'BTC'
-            amount: '200'
+      it 'should throw an error if no currency is supplied', ->
         expect =>
-          @engine.withdraw
-            timestamp: '987654322'
+          @engine.apply
+            reference: '550e8400-e29b-41d4-a716-446655440000'
             account: 'Peter'
-            currency: 'BTC'
-            amount: amount50
-        .to.throw('Must supply transaction ID')
+            sequence: 0
+            timestamp: 1371737390976
+            withdraw:
+              amount: '5000'
+        .to.throw 'Must supply a currency'
 
-      it 'should throw an error if no timestamp is given', ->
-        @engine.apply
-          reference: '550e8400-e29b-41d4-a716-446655440000'
-          account: 'Peter'
-          sequence: 0
-          timestamp: 1371737390976
-          deposit:
-            currency: 'BTC'
-            amount: '200'
+      it 'should throw an error if no amount is supplied', ->
         expect =>
-          @engine.withdraw
-            id: '123456790'
+          @engine.apply
+            reference: '550e8400-e29b-41d4-a716-446655440000'
             account: 'Peter'
-            currency: 'BTC'
-            amount: amount50
-        .to.throw('Must supply timestamp')
+            sequence: 0
+            timestamp: 1371737390976
+            withdraw:
+              currency: 'EUR'
+        .to.throw 'Must supply an amount'
 
-      it 'should debit the correct account and currency, record the last transaction ID and emit a withdrawal event', ->
-        withdrawalSpy = sinon.spy()
-        @engine.on 'withdrawal', withdrawalSpy
-
+      it 'should debit the correct account and currency and emit a delta event unless the requested funds are not available', ->
+        deltaSpy = sinon.spy()
+        @engine.on 'delta', deltaSpy
         account = @engine.getAccount('Peter')
         @engine.apply
           reference: '550e8400-e29b-41d4-a716-446655440000'
@@ -210,17 +198,43 @@ describe 'Engine', ->
           deposit:
             currency: 'BTC'
             amount: '200'
-        withdrawal = 
-          id: '123456791'
-          timestamp: '987654323'
+        operation = 
+          reference: '550e8400-e29b-41d4-a716-446655440000'
           account: 'Peter'
-          currency: 'BTC'
-          amount: amount50
-        @engine.withdraw withdrawal
-        @engine.lastTransaction.should.equal '123456791'
+          sequence: 1
+          timestamp: 1371737390976
+          withdraw:
+            currency: 'BTC'
+            amount: '50'
+        @engine.apply operation
         account.getBalance('BTC').funds.compareTo(amount150).should.equal(0)
-        withdrawalSpy.should.have.been.calledOnce
-        withdrawalSpy.firstCall.args[0].should.equal withdrawal
+        deltaSpy.should.have.been.calledTwice
+        deltaSpy.secondCall.args[0].sequence.should.equal 1
+        deltaSpy.secondCall.args[0].operation.should.equal operation
+        operation = 
+          reference: '550e8400-e29b-41d4-a716-446655440000'
+          account: 'Peter'
+          sequence: 2
+          timestamp: 1371737390976
+          withdraw:
+            currency: 'BTC'
+            amount: '75'
+        @engine.apply operation
+        account.getBalance('BTC').funds.compareTo(amount75).should.equal(0)
+        deltaSpy.should.have.been.calledThrice
+        deltaSpy.thirdCall.args[0].sequence.should.equal 2
+        deltaSpy.thirdCall.args[0].operation.should.equal operation
+        operation = 
+          reference: '550e8400-e29b-41d4-a716-446655440000'
+          account: 'Peter'
+          sequence: 3
+          timestamp: 1371737390976
+          withdraw:
+            currency: 'BTC'
+            amount: '100'
+        expect =>            
+          @engine.apply operation
+        .to.throw 'Cannot withdraw funds that are not available'
 
     describe 'submit', ->
       it 'should lock the correct funds in the correct account', ->

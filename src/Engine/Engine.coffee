@@ -44,28 +44,18 @@ module.exports = class Engine extends EventEmitter
             operation: operation
           if operation.deposit
             account.deposit operation.deposit
-            @nextDeltaSequence++
-            @emit 'delta', delta
+          else if operation.withdraw
+            account.withdraw operation.withdraw
           else
             throw new Error 'Unknown operation'
+          @nextDeltaSequence++
+          @emit 'delta', delta
         else
           throw new Error 'Must supply a timestamp'
       else
         throw new Error 'Unexpected sequence number'
     else
       throw new Error 'Must supply a sequence number'
-
-  withdraw: (withdrawal) =>
-    if withdrawal.id
-      if withdrawal.timestamp
-        account = @getAccount(withdrawal.account)
-        account.withdraw withdrawal
-        @lastTransaction = withdrawal.id
-        @emit 'withdrawal', withdrawal
-      else
-        throw new Error 'Must supply timestamp'
-    else
-      throw new Error 'Must supply transaction ID'
 
   execute = (leftBook, rightBook) ->
     leftOrder = leftBook.next()

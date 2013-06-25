@@ -189,6 +189,22 @@ describe 'Account', ->
       account.getBalance('BTC').funds.compareTo(amount50).should.equal 0
 
   describe '#withdraw', ->
+    it 'should throw an error if no currency is supplied', ->
+      account = new Account
+        id: '123456789'
+      expect =>
+        account.withdraw
+          amount: '50'
+      .to.throw 'Must supply a currency'
+
+    it 'should throw an error if no amount is supplied', ->
+      account = new Account
+        id: '123456789'
+      expect =>
+        account.withdraw
+          currency: 'BTC'
+      .to.throw 'Must supply an amount'
+
     it 'should subtract the withdrawn amount from the funds of the correct currency', ->
       account = new Account
         id: '123456789'
@@ -199,11 +215,11 @@ describe 'Account', ->
       account.submit newOffer '2', 'BTC', amount100
       account.withdraw
         currency: 'BTC'
-        amount: amount25
+        amount: '25'
       account.getBalance('BTC').funds.compareTo(amount175).should.equal 0
       account.withdraw
         currency: 'BTC'
-        amount: amount25
+        amount: '25'
       account.getBalance('BTC').funds.compareTo(amount150).should.equal 0
 
     it 'should throw an error if the withdrawal amount is greater than the funds available', ->
@@ -217,8 +233,8 @@ describe 'Account', ->
       expect ->
         account.withdraw
           currency: 'BTC'
-          amount: amount100
-      .to.throw('Cannot withdraw funds that are not available')
+          amount: '100'
+      .to.throw 'Cannot withdraw funds that are not available'
 
   describe '#export', ->
     it 'should return a JSON stringifiable object containing a snapshot of the account', ->
