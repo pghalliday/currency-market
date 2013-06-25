@@ -237,7 +237,7 @@ describe 'Engine', ->
         .to.throw 'Cannot withdraw funds that are not available'
 
     describe 'submit', ->
-      it 'should lock the correct funds in the correct account', ->
+      it.only 'should lock the correct funds in the correct account', ->
         account = @engine.getAccount('Peter')
         @engine.apply
           reference: '550e8400-e29b-41d4-a716-446655440000'
@@ -247,28 +247,31 @@ describe 'Engine', ->
           deposit:
             currency: 'EUR'
             amount: '200'
-        @engine.submit new Order
-          id: '123456789'
-          timestamp: '987654321'
+        @engine.apply
+          reference: '550e8400-e29b-41d4-a716-446655440000'
           account: 'Peter'
-          bidCurrency: 'BTC'
-          offerCurrency: 'EUR'
-          offerPrice: amount100
-          offerAmount: amount50        
-        @engine.submit new Order
-          id: '123456790'
-          timestamp: '987654322'
+          sequence: 1
+          timestamp: 1371737390976
+          submit:
+            bidCurrency: 'BTC'
+            offerCurrency: 'EUR'
+            offerPrice: '100'
+            offerAmount: '50'
+        @engine.apply
+          reference: '550e8400-e29b-41d4-a716-446655440000'
           account: 'Peter'
-          bidCurrency: 'USD'
-          offerCurrency: 'EUR'
-          offerPrice: amount100
-          offerAmount: amount100        
+          sequence: 2
+          timestamp: 1371737390976
+          submit:
+            bidCurrency: 'USD'
+            offerCurrency: 'EUR'
+            offerPrice: '100'
+            offerAmount: '100'
         account.getBalance('EUR').lockedFunds.compareTo(amount150).should.equal(0)
 
-      it 'should record an order, submit it to the correct book, record the last transaction ID and emit an order event', ->
-        orderSpy = sinon.spy()
-        @engine.on 'order', orderSpy
-
+      it 'should record an order, submit it to the correct book and emit a delta event', ->
+        deltaSpy = sinon.spy()
+        @engine.on 'delta', deltaSpy
         @engine.apply
           reference: '550e8400-e29b-41d4-a716-446655440000'
           account: 'Peter'
@@ -307,10 +310,9 @@ describe 'Engine', ->
         @engine.submit order2
         @engine.lastTransaction.should.equal '123456794'
         @engine.getBook('EUR', 'BTC').highest.id.should.equal('123456794')
-
-        orderSpy.should.have.been.calledTwice
-        orderSpy.firstCall.args[0].should.equal order1
-        orderSpy.secondCall.args[0].should.equal order2
+        deltaSpy.should.have.been.calledTwice
+        deltaSpy.firstCall.args[0].should.equal order1
+        deltaSpy.secondCall.args[0].should.equal order2
 
       describe 'while executing orders', ->
         beforeEach ->

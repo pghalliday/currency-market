@@ -44,12 +44,38 @@ module.exports = class Engine extends EventEmitter
             operation: operation
           if operation.deposit
             account.deposit operation.deposit
+            @nextDeltaSequence++
+            @emit 'delta', delta
           else if operation.withdraw
             account.withdraw operation.withdraw
+            @nextDeltaSequence++
+            @emit 'delta', delta
+          else if operation.submit
+            submit = operation.submit
+            order = new Order
+              id: operation.sequence
+              timestamp: operation.timestamp
+              account: operation.account
+              bidCurrency: submit.bidCurrency
+              offerCurrency: submit.offerCurrency
+              bidPrice: if submit.bidPrice then new Amount submit.bidPrice else undefined
+              bidAmount: if submit.bidAmount then new Amount submit.bidAmount else undefined
+              offerPrice: if submit.offerPrice then new Amount submit.offerPrice else undefined
+              offerAmount: if submit.offerAmount then new Amount submit.offerAmount else undefined
+            leftBook = @getBook order.bidCurrency, order.offerCurrency
+            account.submit order
+            leftBook.submit order
+            # forward trade events from the order
+            order.on 'trade', (trade) =>
+              @emit 'trade', trade
+            # emit an order added event
+            @nextDeltaSequence++
+            @emit 'delta', delta
+            # check the books to see if any orders can be executed
+            rightBook = @getBook order.offerCurrency, order.bidCurrency
+            execute leftBook, rightBook
           else
             throw new Error 'Unknown operation'
-          @nextDeltaSequence++
-          @emit 'delta', delta
         else
           throw new Error 'Must supply a timestamp'
       else
@@ -67,20 +93,6 @@ module.exports = class Engine extends EventEmitter
         tryAgain = leftOrder.match rightOrder
         if tryAgain
           execute leftBook, rightBook
-
-  submit: (order) =>
-    account = @getAccount(order.account)
-    book = @getBook(order.bidCurrency, order.offerCurrency)
-    account.submit order
-    book.submit order
-    @lastTransaction = order.id
-    # forward trade events from the order
-    order.on 'trade', (trade) =>
-      @emit 'trade', trade
-    # emit an order added event
-    @emit 'order', order
-    # check the books to see if any orders can be executed
-    execute book, @getBook(order.offerCurrency, order.bidCurrency)
 
   cancel: (cancellation) =>
     account = @getAccount cancellation.order.account
