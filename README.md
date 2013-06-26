@@ -453,5 +453,5 @@ The CoffeeScript source is located in the `src/` directory and tests in the `tes
 Before commiting run `npm test` to perform a clean compile of the source and run the tests. This ensures that everything commited is up to date and tested and allows people to `npm install` directly from the git repository (useful for integrating development branches, etc).
 
 ## License
-Copyright (c) 2013 Peter Halliday  
+Copyright &copy; 2013 Peter Halliday  
 Licensed under the MIT license.
