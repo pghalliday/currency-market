@@ -357,7 +357,6 @@ engine.on('delta', function(delta) {
   //   "account": "Peter",
   //   "sequence": 9876543210,
   //   "timestamp": 1371737390976,
-  //   "result": "success",
   //   "deposit": {
   //     "currency": "EUR",
   //     "amount": "5000"
