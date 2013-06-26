@@ -5,7 +5,7 @@ assert = chai.assert
 
 Book = require '../../src/Engine/Book'
 Order = require '../../src/Engine/Order'
-Amount = require '../../src/Engine/Amount'
+Amount = require '../../src/Amount'
 
 amount5 = new Amount '5'
 amount10 = new Amount '10'

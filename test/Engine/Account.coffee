@@ -6,10 +6,10 @@ sinon = require 'sinon'
 sinonChai = require 'sinon-chai'
 chai.use sinonChai
 
-Account = require('../../src/Engine/Account')
-Balance = require('../../src/Engine/Balance')
-Amount = require('../../src/Engine/Amount')
-Order = require('../../src/Engine/Order')
+Account = require '../../src/Engine/Account'
+Balance = require '../../src/Engine/Balance'
+Amount = require '../../src/Amount'
+Order = require '../../src/Engine/Order'
 
 amountPoint01 = new Amount '0.01'
 amount4 = new Amount '4'
@@ -110,9 +110,10 @@ describe 'Account', ->
           offerAmount: amount5
         order.match @order
         @calculateCommission.should.have.been.calledOnce
-        @calculateCommission.firstCall.args[0].bidAmount.compareTo(amount5).should.equal 0
-        @calculateCommission.firstCall.args[0].timestamp.should.equal '2'
-        @calculateCommission.firstCall.args[0].bid.should.equal @order
+        @calculateCommission.firstCall.args[0].amount.compareTo(amount5).should.equal 0
+        @calculateCommission.firstCall.args[0].timestamp.should.equal order.timestamp
+        @calculateCommission.firstCall.args[0].account.should.equal @order.account
+        @calculateCommission.firstCall.args[0].currency.should.equal @order.bidCurrency
         @commissionAccount.getBalance('BTC').funds.compareTo(Amount.ONE).should.equal 0
         @account.getBalance('EUR').offers['1'].should.equal @order
         @account.getBalance('EUR').lockedFunds.compareTo(amount500).should.equal 0

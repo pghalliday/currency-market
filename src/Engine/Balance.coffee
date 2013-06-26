@@ -1,4 +1,4 @@
-Amount = require('./Amount')
+Amount = require('../Amount')
 
 module.exports = class Balance
   constructor: (params) ->
@@ -28,9 +28,10 @@ module.exports = class Balance
     order.on 'fill', (fill) =>
       if @commission
         commission = @commission.calculate
-          bidAmount: fill.bidAmount
+          amount: fill.bidAmount
           timestamp: fill.timestamp
-          bid: order
+          account: order.account
+          currency: order.bidCurrency
         @funds = @funds.add fill.bidAmount.subtract commission
         @commission.account.deposit
           currency: order.bidCurrency

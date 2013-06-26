@@ -6,8 +6,8 @@ sinon = require 'sinon'
 sinonChai = require 'sinon-chai'
 chai.use sinonChai
 
-Order = require('../../src/Engine/Order')
-Amount = require('../../src/Engine/Amount')
+Order = require '../../src/Engine/Order'
+Amount = require '../../src/Amount'
 
 amountPoint01 = new Amount '0.01'
 amountPoint2 = new Amount '0.2'
@@ -416,10 +416,13 @@ describe 'Order', ->
 
                 tradeSpy.should.not.have.been.called
                 @tradeSpy.should.have.been.calledOnce
-                @tradeSpy.firstCall.args[0].bid.should.equal order
-                @tradeSpy.firstCall.args[0].offer.should.equal @order
-                @tradeSpy.firstCall.args[0].price.compareTo(amountPoint2).should.equal 0
-                @tradeSpy.firstCall.args[0].amount.compareTo(amount1000).should.equal 0
+                @tradeSpy.firstCall.args[0].timestamp.should.equal order.timestamp
+                @tradeSpy.firstCall.args[0].left.sequence.should.equal order.id
+                @tradeSpy.firstCall.args[0].left.newBidAmount.should.equal order.bidAmount.toString()
+                @tradeSpy.firstCall.args[0].right.sequence.should.equal @order.id
+                @tradeSpy.firstCall.args[0].right.newOfferAmount.should.equal @order.offerAmount.toString()
+                @tradeSpy.firstCall.args[0].price.should.equal @order.offerPrice.toString()
+                @tradeSpy.firstCall.args[0].amount.should.equal amount1000.toString()
 
           describe 'and the right order is offering more than the left order is bidding', ->
               it 'should trade the amount the left order is offering, emit fill events and a trade event and return false to indicate that higher trades may still be filled by the left order', ->
@@ -461,10 +464,13 @@ describe 'Order', ->
 
                 tradeSpy.should.not.have.been.called
                 @tradeSpy.should.have.been.calledOnce
-                @tradeSpy.firstCall.args[0].bid.should.equal order
-                @tradeSpy.firstCall.args[0].offer.should.equal @order
-                @tradeSpy.firstCall.args[0].price.compareTo(amountPoint2).should.equal 0
-                @tradeSpy.firstCall.args[0].amount.compareTo(amount500).should.equal 0
+                @tradeSpy.firstCall.args[0].timestamp.should.equal order.timestamp
+                @tradeSpy.firstCall.args[0].left.sequence.should.equal order.id
+                @tradeSpy.firstCall.args[0].left.newBidAmount.should.equal order.bidAmount.toString()
+                @tradeSpy.firstCall.args[0].right.sequence.should.equal @order.id
+                @tradeSpy.firstCall.args[0].right.newOfferAmount.should.equal @order.offerAmount.toString()
+                @tradeSpy.firstCall.args[0].price.should.equal @order.offerPrice.toString()
+                @tradeSpy.firstCall.args[0].amount.should.equal amount500.toString()
 
           describe 'and the right order is offering less than the left order is bidding', ->
               it 'should trade the amount the right order is offering, emit fill events and a trade event and return true', ->
@@ -506,10 +512,13 @@ describe 'Order', ->
 
                 tradeSpy.should.not.have.been.called
                 @tradeSpy.should.have.been.calledOnce
-                @tradeSpy.firstCall.args[0].bid.should.equal order
-                @tradeSpy.firstCall.args[0].offer.should.equal @order
-                @tradeSpy.firstCall.args[0].price.compareTo(amountPoint2).should.equal 0
-                @tradeSpy.firstCall.args[0].amount.compareTo(amount1000).should.equal 0
+                @tradeSpy.firstCall.args[0].timestamp.should.equal order.timestamp
+                @tradeSpy.firstCall.args[0].left.sequence.should.equal order.id
+                @tradeSpy.firstCall.args[0].left.newBidAmount.should.equal order.bidAmount.toString()
+                @tradeSpy.firstCall.args[0].right.sequence.should.equal @order.id
+                @tradeSpy.firstCall.args[0].right.newOfferAmount.should.equal @order.offerAmount.toString()
+                @tradeSpy.firstCall.args[0].price.should.equal @order.offerPrice.toString()
+                @tradeSpy.firstCall.args[0].amount.should.equal amount1000.toString()
 
         describe 'and the left order is an offer', ->
           describe 'and the right order is offering exactly the amount the left order is offering', ->
@@ -552,10 +561,13 @@ describe 'Order', ->
 
                 tradeSpy.should.not.have.been.called
                 @tradeSpy.should.have.been.calledOnce
-                @tradeSpy.firstCall.args[0].bid.should.equal order
-                @tradeSpy.firstCall.args[0].offer.should.equal @order
-                @tradeSpy.firstCall.args[0].price.compareTo(amountPoint2).should.equal 0
-                @tradeSpy.firstCall.args[0].amount.compareTo(amount1000).should.equal 0
+                @tradeSpy.firstCall.args[0].timestamp.should.equal order.timestamp
+                @tradeSpy.firstCall.args[0].left.sequence.should.equal order.id
+                @tradeSpy.firstCall.args[0].left.newOfferAmount.should.equal order.offerAmount.toString()
+                @tradeSpy.firstCall.args[0].right.sequence.should.equal @order.id
+                @tradeSpy.firstCall.args[0].right.newOfferAmount.should.equal @order.offerAmount.toString()
+                @tradeSpy.firstCall.args[0].price.should.equal @order.offerPrice.toString()
+                @tradeSpy.firstCall.args[0].amount.should.equal amount1000.toString()
 
           describe 'and the right order is offering more than the left order is offering', ->
               it 'should trade the amount the left order is offering, emit a fill events and a trade event and return false', ->
@@ -597,10 +609,13 @@ describe 'Order', ->
 
                 tradeSpy.should.not.have.been.called
                 @tradeSpy.should.have.been.calledOnce
-                @tradeSpy.firstCall.args[0].bid.should.equal order
-                @tradeSpy.firstCall.args[0].offer.should.equal @order
-                @tradeSpy.firstCall.args[0].price.compareTo(amountPoint2).should.equal 0
-                @tradeSpy.firstCall.args[0].amount.compareTo(amount500).should.equal 0
+                @tradeSpy.firstCall.args[0].timestamp.should.equal order.timestamp
+                @tradeSpy.firstCall.args[0].left.sequence.should.equal order.id
+                @tradeSpy.firstCall.args[0].left.newOfferAmount.should.equal order.offerAmount.toString()
+                @tradeSpy.firstCall.args[0].right.sequence.should.equal @order.id
+                @tradeSpy.firstCall.args[0].right.newOfferAmount.should.equal @order.offerAmount.toString()
+                @tradeSpy.firstCall.args[0].price.should.equal @order.offerPrice.toString()
+                @tradeSpy.firstCall.args[0].amount.should.equal amount500.toString()                
 
           describe 'and the right order is offering less than the left order is offering', ->
               it 'should trade the amount the right order is offering, emit fill events and a trade event and return true', ->
@@ -642,10 +657,13 @@ describe 'Order', ->
 
                 tradeSpy.should.not.have.been.called
                 @tradeSpy.should.have.been.calledOnce
-                @tradeSpy.firstCall.args[0].bid.should.equal order
-                @tradeSpy.firstCall.args[0].offer.should.equal @order
-                @tradeSpy.firstCall.args[0].price.compareTo(amountPoint2).should.equal 0
-                @tradeSpy.firstCall.args[0].amount.compareTo(amount1000).should.equal 0
+                @tradeSpy.firstCall.args[0].timestamp.should.equal order.timestamp
+                @tradeSpy.firstCall.args[0].left.sequence.should.equal order.id
+                @tradeSpy.firstCall.args[0].left.newOfferAmount.should.equal order.offerAmount.toString()
+                @tradeSpy.firstCall.args[0].right.sequence.should.equal @order.id
+                @tradeSpy.firstCall.args[0].right.newOfferAmount.should.equal @order.offerAmount.toString()
+                @tradeSpy.firstCall.args[0].price.should.equal @order.offerPrice.toString()
+                @tradeSpy.firstCall.args[0].amount.should.equal amount1000.toString()                
 
       describe 'and the new (left) price is the better', ->
         describe 'and the left order is an offer', ->              
@@ -689,10 +707,13 @@ describe 'Order', ->
 
               tradeSpy.should.not.have.been.called
               @tradeSpy.should.have.been.calledOnce
-              @tradeSpy.firstCall.args[0].bid.should.equal order
-              @tradeSpy.firstCall.args[0].offer.should.equal @order
-              @tradeSpy.firstCall.args[0].price.compareTo(amountPoint2).should.equal 0
-              @tradeSpy.firstCall.args[0].amount.compareTo(amount1000).should.equal 0
+              @tradeSpy.firstCall.args[0].timestamp.should.equal order.timestamp
+              @tradeSpy.firstCall.args[0].left.sequence.should.equal order.id
+              @tradeSpy.firstCall.args[0].left.newOfferAmount.should.equal order.offerAmount.toString()
+              @tradeSpy.firstCall.args[0].right.sequence.should.equal @order.id
+              @tradeSpy.firstCall.args[0].right.newOfferAmount.should.equal @order.offerAmount.toString()
+              @tradeSpy.firstCall.args[0].price.should.equal @order.offerPrice.toString()
+              @tradeSpy.firstCall.args[0].amount.should.equal amount1000.toString()                
 
           describe 'and the right order is offering more than the left order is offering multiplied by the right order price', ->
             it 'should trade the amount the left order is offering at the right order price, emit fill events and a trade event and return false', ->
@@ -734,10 +755,13 @@ describe 'Order', ->
 
               tradeSpy.should.not.have.been.called
               @tradeSpy.should.have.been.calledOnce
-              @tradeSpy.firstCall.args[0].bid.should.equal order
-              @tradeSpy.firstCall.args[0].offer.should.equal @order
-              @tradeSpy.firstCall.args[0].price.compareTo(amountPoint2).should.equal 0
-              @tradeSpy.firstCall.args[0].amount.compareTo(amount500).should.equal 0
+              @tradeSpy.firstCall.args[0].timestamp.should.equal order.timestamp
+              @tradeSpy.firstCall.args[0].left.sequence.should.equal order.id
+              @tradeSpy.firstCall.args[0].left.newOfferAmount.should.equal order.offerAmount.toString()
+              @tradeSpy.firstCall.args[0].right.sequence.should.equal @order.id
+              @tradeSpy.firstCall.args[0].right.newOfferAmount.should.equal @order.offerAmount.toString()
+              @tradeSpy.firstCall.args[0].price.should.equal @order.offerPrice.toString()
+              @tradeSpy.firstCall.args[0].amount.should.equal amount500.toString()                
 
           describe 'and the right order is offering less than the left order is offering multiplied by the right order price', ->
             it 'should trade the amount the right order is offering at the right order price, emit fill events and a trade event and return true', ->
@@ -779,10 +803,13 @@ describe 'Order', ->
 
               tradeSpy.should.not.have.been.called
               @tradeSpy.should.have.been.calledOnce
-              @tradeSpy.firstCall.args[0].bid.should.equal order
-              @tradeSpy.firstCall.args[0].offer.should.equal @order
-              @tradeSpy.firstCall.args[0].price.compareTo(amountPoint2).should.equal 0
-              @tradeSpy.firstCall.args[0].amount.compareTo(amount1000).should.equal 0
+              @tradeSpy.firstCall.args[0].timestamp.should.equal order.timestamp
+              @tradeSpy.firstCall.args[0].left.sequence.should.equal order.id
+              @tradeSpy.firstCall.args[0].left.newOfferAmount.should.equal order.offerAmount.toString()
+              @tradeSpy.firstCall.args[0].right.sequence.should.equal @order.id
+              @tradeSpy.firstCall.args[0].right.newOfferAmount.should.equal @order.offerAmount.toString()
+              @tradeSpy.firstCall.args[0].price.should.equal @order.offerPrice.toString()
+              @tradeSpy.firstCall.args[0].amount.should.equal amount1000.toString()                
 
         describe 'and the left order is a bid', ->
           describe 'and the right order is offering exactly the amount that the left order is bidding', ->
@@ -825,10 +852,13 @@ describe 'Order', ->
 
               tradeSpy.should.not.have.been.called
               @tradeSpy.should.have.been.calledOnce
-              @tradeSpy.firstCall.args[0].bid.should.equal order
-              @tradeSpy.firstCall.args[0].offer.should.equal @order
-              @tradeSpy.firstCall.args[0].price.compareTo(amountPoint2).should.equal 0
-              @tradeSpy.firstCall.args[0].amount.compareTo(amount1000).should.equal 0
+              @tradeSpy.firstCall.args[0].timestamp.should.equal order.timestamp
+              @tradeSpy.firstCall.args[0].left.sequence.should.equal order.id
+              @tradeSpy.firstCall.args[0].left.newBidAmount.should.equal order.bidAmount.toString()
+              @tradeSpy.firstCall.args[0].right.sequence.should.equal @order.id
+              @tradeSpy.firstCall.args[0].right.newOfferAmount.should.equal @order.offerAmount.toString()
+              @tradeSpy.firstCall.args[0].price.should.equal @order.offerPrice.toString()
+              @tradeSpy.firstCall.args[0].amount.should.equal amount1000.toString()                
               
           describe 'and the right order is offering more than the left order is bidding', ->
             it 'should trade the amount the left order is bidding at the right order price, emit fill events and a trade event and return false', ->
@@ -870,10 +900,13 @@ describe 'Order', ->
 
               tradeSpy.should.not.have.been.called
               @tradeSpy.should.have.been.calledOnce
-              @tradeSpy.firstCall.args[0].bid.should.equal order
-              @tradeSpy.firstCall.args[0].offer.should.equal @order
-              @tradeSpy.firstCall.args[0].price.compareTo(amountPoint2).should.equal 0
-              @tradeSpy.firstCall.args[0].amount.compareTo(amount500).should.equal 0
+              @tradeSpy.firstCall.args[0].timestamp.should.equal order.timestamp
+              @tradeSpy.firstCall.args[0].left.sequence.should.equal order.id
+              @tradeSpy.firstCall.args[0].left.newBidAmount.should.equal order.bidAmount.toString()
+              @tradeSpy.firstCall.args[0].right.sequence.should.equal @order.id
+              @tradeSpy.firstCall.args[0].right.newOfferAmount.should.equal @order.offerAmount.toString()
+              @tradeSpy.firstCall.args[0].price.should.equal @order.offerPrice.toString()
+              @tradeSpy.firstCall.args[0].amount.should.equal amount500.toString()                
 
           describe 'and the right order is offering less than the left order is bidding', ->
             it 'should trade the amount the right order is offering at the right order price, emit fill events and a trade event and return true', ->
@@ -915,10 +948,13 @@ describe 'Order', ->
 
               tradeSpy.should.not.have.been.called
               @tradeSpy.should.have.been.calledOnce
-              @tradeSpy.firstCall.args[0].bid.should.equal order
-              @tradeSpy.firstCall.args[0].offer.should.equal @order
-              @tradeSpy.firstCall.args[0].price.compareTo(amountPoint2).should.equal 0
-              @tradeSpy.firstCall.args[0].amount.compareTo(amount1000).should.equal 0
+              @tradeSpy.firstCall.args[0].timestamp.should.equal order.timestamp
+              @tradeSpy.firstCall.args[0].left.sequence.should.equal order.id
+              @tradeSpy.firstCall.args[0].left.newBidAmount.should.equal order.bidAmount.toString()
+              @tradeSpy.firstCall.args[0].right.sequence.should.equal @order.id
+              @tradeSpy.firstCall.args[0].right.newOfferAmount.should.equal @order.offerAmount.toString()
+              @tradeSpy.firstCall.args[0].price.should.equal @order.offerPrice.toString()
+              @tradeSpy.firstCall.args[0].amount.should.equal amount1000.toString()                
             
     describe 'where the existing (right) order is a bid', ->
       beforeEach ->
@@ -979,10 +1015,13 @@ describe 'Order', ->
 
               tradeSpy.should.not.have.been.called
               @tradeSpy.should.have.been.calledOnce
-              @tradeSpy.firstCall.args[0].bid.should.equal @order
-              @tradeSpy.firstCall.args[0].offer.should.equal order
-              @tradeSpy.firstCall.args[0].price.compareTo(amount5).should.equal 0
-              @tradeSpy.firstCall.args[0].amount.compareTo(amount200).should.equal 0
+              @tradeSpy.firstCall.args[0].timestamp.should.equal order.timestamp
+              @tradeSpy.firstCall.args[0].left.sequence.should.equal order.id
+              @tradeSpy.firstCall.args[0].left.newOfferAmount.should.equal order.offerAmount.toString()
+              @tradeSpy.firstCall.args[0].right.sequence.should.equal @order.id
+              @tradeSpy.firstCall.args[0].right.newBidAmount.should.equal @order.bidAmount.toString()
+              @tradeSpy.firstCall.args[0].price.should.equal @order.bidPrice.toString()
+              @tradeSpy.firstCall.args[0].amount.should.equal amount200.toString()                
 
           describe 'and the right order is bidding more than the left order is offering', ->
             it 'should trade the amount the left order is offering at the right order price, emit fill events and a trade event and return false', ->
@@ -1024,10 +1063,13 @@ describe 'Order', ->
 
               tradeSpy.should.not.have.been.called
               @tradeSpy.should.have.been.calledOnce
-              @tradeSpy.firstCall.args[0].bid.should.equal @order
-              @tradeSpy.firstCall.args[0].offer.should.equal order
-              @tradeSpy.firstCall.args[0].price.compareTo(amount5).should.equal 0
-              @tradeSpy.firstCall.args[0].amount.compareTo(amount100).should.equal 0
+              @tradeSpy.firstCall.args[0].timestamp.should.equal order.timestamp
+              @tradeSpy.firstCall.args[0].left.sequence.should.equal order.id
+              @tradeSpy.firstCall.args[0].left.newOfferAmount.should.equal order.offerAmount.toString()
+              @tradeSpy.firstCall.args[0].right.sequence.should.equal @order.id
+              @tradeSpy.firstCall.args[0].right.newBidAmount.should.equal @order.bidAmount.toString()
+              @tradeSpy.firstCall.args[0].price.should.equal @order.bidPrice.toString()
+              @tradeSpy.firstCall.args[0].amount.should.equal amount100.toString()                
 
           describe 'and the right order is bidding less than the left order is offering', ->
             it 'should trade the amount the right order is bidding at the right order price, emit fill events and a trade event and return true', ->
@@ -1069,10 +1111,13 @@ describe 'Order', ->
 
               tradeSpy.should.not.have.been.called
               @tradeSpy.should.have.been.calledOnce
-              @tradeSpy.firstCall.args[0].bid.should.equal @order
-              @tradeSpy.firstCall.args[0].offer.should.equal order
-              @tradeSpy.firstCall.args[0].price.compareTo(amount5).should.equal 0
-              @tradeSpy.firstCall.args[0].amount.compareTo(amount200).should.equal 0
+              @tradeSpy.firstCall.args[0].timestamp.should.equal order.timestamp
+              @tradeSpy.firstCall.args[0].left.sequence.should.equal order.id
+              @tradeSpy.firstCall.args[0].left.newOfferAmount.should.equal order.offerAmount.toString()
+              @tradeSpy.firstCall.args[0].right.sequence.should.equal @order.id
+              @tradeSpy.firstCall.args[0].right.newBidAmount.should.equal @order.bidAmount.toString()
+              @tradeSpy.firstCall.args[0].price.should.equal @order.bidPrice.toString()
+              @tradeSpy.firstCall.args[0].amount.should.equal amount200.toString()                
 
         describe 'and the left order is a bid', ->
           describe 'and the right order is bidding exactly the amount that the left order is bidding multiplied by the right order price', ->
@@ -1115,10 +1160,13 @@ describe 'Order', ->
 
               tradeSpy.should.not.have.been.called
               @tradeSpy.should.have.been.calledOnce
-              @tradeSpy.firstCall.args[0].bid.should.equal @order
-              @tradeSpy.firstCall.args[0].offer.should.equal order
-              @tradeSpy.firstCall.args[0].price.compareTo(amount5).should.equal 0
-              @tradeSpy.firstCall.args[0].amount.compareTo(amount200).should.equal 0
+              @tradeSpy.firstCall.args[0].timestamp.should.equal order.timestamp
+              @tradeSpy.firstCall.args[0].left.sequence.should.equal order.id
+              @tradeSpy.firstCall.args[0].left.newBidAmount.should.equal order.bidAmount.toString()
+              @tradeSpy.firstCall.args[0].right.sequence.should.equal @order.id
+              @tradeSpy.firstCall.args[0].right.newBidAmount.should.equal @order.bidAmount.toString()
+              @tradeSpy.firstCall.args[0].price.should.equal @order.bidPrice.toString()
+              @tradeSpy.firstCall.args[0].amount.should.equal amount200.toString()                
 
           describe 'and the right order is bidding more than the left order is bidding multiplied by the right order price', ->
             it 'should trade the amount the left order is bidding at the right order price, emit fill events and a trade event and return false', ->
@@ -1160,10 +1208,13 @@ describe 'Order', ->
 
               tradeSpy.should.not.have.been.called
               @tradeSpy.should.have.been.calledOnce
-              @tradeSpy.firstCall.args[0].bid.should.equal @order
-              @tradeSpy.firstCall.args[0].offer.should.equal order
-              @tradeSpy.firstCall.args[0].price.compareTo(amount5).should.equal 0
-              @tradeSpy.firstCall.args[0].amount.compareTo(amount100).should.equal 0
+              @tradeSpy.firstCall.args[0].timestamp.should.equal order.timestamp
+              @tradeSpy.firstCall.args[0].left.sequence.should.equal order.id
+              @tradeSpy.firstCall.args[0].left.newBidAmount.should.equal order.bidAmount.toString()
+              @tradeSpy.firstCall.args[0].right.sequence.should.equal @order.id
+              @tradeSpy.firstCall.args[0].right.newBidAmount.should.equal @order.bidAmount.toString()
+              @tradeSpy.firstCall.args[0].price.should.equal @order.bidPrice.toString()
+              @tradeSpy.firstCall.args[0].amount.should.equal amount100.toString()                
               
           describe 'and the right order is bidding less than the left order is bidding multiplied by the right order price', ->
             it 'should trade the amount the right order is bidding at the right order price, emit fill events and a trade event and return true', ->
@@ -1205,10 +1256,13 @@ describe 'Order', ->
 
               tradeSpy.should.not.have.been.called
               @tradeSpy.should.have.been.calledOnce
-              @tradeSpy.firstCall.args[0].bid.should.equal @order
-              @tradeSpy.firstCall.args[0].offer.should.equal order
-              @tradeSpy.firstCall.args[0].price.compareTo(amount5).should.equal 0
-              @tradeSpy.firstCall.args[0].amount.compareTo(amount200).should.equal 0
+              @tradeSpy.firstCall.args[0].timestamp.should.equal order.timestamp
+              @tradeSpy.firstCall.args[0].left.sequence.should.equal order.id
+              @tradeSpy.firstCall.args[0].left.newBidAmount.should.equal order.bidAmount.toString()
+              @tradeSpy.firstCall.args[0].right.sequence.should.equal @order.id
+              @tradeSpy.firstCall.args[0].right.newBidAmount.should.equal @order.bidAmount.toString()
+              @tradeSpy.firstCall.args[0].price.should.equal @order.bidPrice.toString()
+              @tradeSpy.firstCall.args[0].amount.should.equal amount200.toString()                
 
   describe '#add', ->
     beforeEach ->

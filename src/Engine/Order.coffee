@@ -1,4 +1,4 @@
-Amount = require('./Amount')
+Amount = require('../Amount')
 EventEmitter = require('events').EventEmitter
 
 module.exports = class Order extends EventEmitter
@@ -105,10 +105,15 @@ module.exports = class Order extends EventEmitter
             fill.call order, leftOfferAmount, rightOfferAmount, @timestamp
             partialOffer.call @, rightOfferAmount, leftOfferAmount, @timestamp
             order.emit 'trade',
-              bid: order
-              offer: @
-              price: price
-              amount: leftOfferAmount
+              timestamp: @timestamp
+              left:
+                sequence: @id
+                newOfferAmount: @offerAmount.toString()
+              right:
+                sequence: order.id
+                newBidAmount: order.bidAmount.toString()
+              price: price.toString()
+              amount: leftOfferAmount.toString()
             return true
           else
             leftOfferAmount = @offerAmount
@@ -119,10 +124,15 @@ module.exports = class Order extends EventEmitter
               partialBid.call order, leftOfferAmount, rightOfferAmount, @timestamp
             fill.call @, rightOfferAmount, leftOfferAmount, @timestamp
             order.emit 'trade',
-              bid: order
-              offer: @
-              price: price
-              amount: leftOfferAmount
+              timestamp: @timestamp
+              left:
+                sequence: @id
+                newOfferAmount: @offerAmount.toString()
+              right:
+                sequence: order.id
+                newBidAmount: order.bidAmount.toString()
+              price: price.toString()
+              amount: leftOfferAmount.toString()
             return false
       else
         if order.offerPrice.multiply(@offerPrice).compareTo(Amount.ONE) <= 0
@@ -135,10 +145,15 @@ module.exports = class Order extends EventEmitter
             fill.call order, leftOfferAmount, rightOfferAmount, @timestamp
             partialOffer.call @, rightOfferAmount, leftOfferAmount, @timestamp
             order.emit 'trade',
-              bid: @
-              offer: order
-              price: price
-              amount: rightOfferAmount
+              timestamp: @timestamp
+              left:
+                sequence: @id
+                newOfferAmount: @offerAmount.toString()
+              right:
+                sequence: order.id
+                newOfferAmount: order.offerAmount.toString()
+              price: price.toString()
+              amount: rightOfferAmount.toString()
             return true
           else
             leftOfferAmount = @offerAmount
@@ -155,10 +170,15 @@ module.exports = class Order extends EventEmitter
               partialOffer.call order, leftOfferAmount, rightOfferAmount, @timestamp
             fill.call @, rightOfferAmount, leftOfferAmount, @timestamp
             order.emit 'trade',
-              bid: @
-              offer: order
-              price: price
-              amount: rightOfferAmount
+              timestamp: @timestamp
+              left:
+                sequence: @id
+                newOfferAmount: @offerAmount.toString()
+              right:
+                sequence: order.id
+                newOfferAmount: order.offerAmount.toString()
+              price: price.toString()
+              amount: rightOfferAmount.toString()
             return false
     else
       if order.offerPrice
@@ -172,10 +192,15 @@ module.exports = class Order extends EventEmitter
             fill.call order, leftOfferAmount, rightOfferAmount, @timestamp
             partialBid.call @, rightOfferAmount, leftOfferAmount, @timestamp
             order.emit 'trade',
-              bid: @
-              offer: order
-              price: price
-              amount: rightOfferAmount
+              timestamp: @timestamp
+              left:
+                sequence: @id
+                newBidAmount: @bidAmount.toString()
+              right:
+                sequence: order.id
+                newOfferAmount: order.offerAmount.toString()
+              price: price.toString()
+              amount: rightOfferAmount.toString()
             return true
           else
             rightOfferAmount = @bidAmount
@@ -186,10 +211,15 @@ module.exports = class Order extends EventEmitter
               partialOffer.call order, leftOfferAmount, rightOfferAmount, @timestamp
             fill.call @, rightOfferAmount, leftOfferAmount, @timestamp
             order.emit 'trade',
-              bid: @
-              offer: order
-              price: price
-              amount: rightOfferAmount
+              timestamp: @timestamp
+              left:
+                sequence: @id
+                newBidAmount: @bidAmount.toString()
+              right:
+                sequence: order.id
+                newOfferAmount: order.offerAmount.toString()
+              price: price.toString()
+              amount: rightOfferAmount.toString()
             return false
       else
         if order.bidPrice.multiply(@bidPrice).compareTo(Amount.ONE) >= 0
@@ -202,10 +232,15 @@ module.exports = class Order extends EventEmitter
             fill.call order, leftOfferAmount, rightOfferAmount, @timestamp
             partialBid.call @, rightOfferAmount, leftOfferAmount, @timestamp
             order.emit 'trade',
-              bid: order
-              offer: @
-              price: price
-              amount: leftOfferAmount
+              timestamp: @timestamp
+              left:
+                sequence: @id
+                newBidAmount: @bidAmount.toString()
+              right:
+                sequence: order.id
+                newBidAmount: order.bidAmount.toString()
+              price: price.toString()
+              amount: leftOfferAmount.toString()
             return true
           else
             # NB: Cannot think of any way to avoid this divide but
@@ -225,10 +260,15 @@ module.exports = class Order extends EventEmitter
               partialBid.call order, leftOfferAmount, rightOfferAmount, @timestamp
             fill.call @, rightOfferAmount, leftOfferAmount, @timestamp
             order.emit 'trade',
-              bid: order
-              offer: @
-              price: price
-              amount: leftOfferAmount
+              timestamp: @timestamp
+              left:
+                sequence: @id
+                newBidAmount: @bidAmount.toString()
+              right:
+                sequence: order.id
+                newBidAmount: order.bidAmount.toString()
+              price: price.toString()
+              amount: leftOfferAmount.toString()
             return false
 
   add: (order) =>

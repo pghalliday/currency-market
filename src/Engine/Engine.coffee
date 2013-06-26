@@ -1,6 +1,6 @@
 Book = require('./Book')
 Account = require('./Account')
-Amount = require('./Amount')
+Amount = require('../Amount')
 Order = require('./Order')
 EventEmitter = require('events').EventEmitter
 
@@ -67,7 +67,12 @@ module.exports = class Engine extends EventEmitter
             leftBook.submit order
             # forward trade events from the order
             order.on 'trade', (trade) =>
-              @emit 'trade', trade
+              delta =
+                sequence: @nextDeltaSequence
+                trade: trade
+              @nextDeltaSequence++
+              @emit 'delta', delta
+
             # emit an order added event
             @nextDeltaSequence++
             @emit 'delta', delta
@@ -107,7 +112,8 @@ module.exports = class Engine extends EventEmitter
 
   export: =>
     object = Object.create null
-    object.lastTransaction = @lastTransaction
+    object.nextOperationSequence = @nextOperationSequence
+    object.nextDeltaSequence = @nextDeltaSequence
     object.accounts = Object.create null
     for id, account of @accounts
       object.accounts[id] = account.export()
@@ -132,24 +138,21 @@ module.exports = class Engine extends EventEmitter
       for offerCurrency, book of books
         for order in book
           do (order) =>
-            if order.bidPrice
-              @submit new Order
-                id: order.id
-                timestamp: order.timestamp
-                account: order.account
-                offerCurrency: order.offerCurrency
-                bidCurrency: order.bidCurrency
-                bidPrice: new Amount order.bidPrice
-                bidAmount: new Amount order.bidAmount
-            else
-              @submit new Order
-                id: order.id
-                timestamp: order.timestamp
-                account: order.account
-                offerCurrency: order.offerCurrency
-                bidCurrency: order.bidCurrency
-                offerPrice: new Amount order.offerPrice
-                offerAmount: new Amount order.offerAmount
-    @lastTransaction = snapshot.lastTransaction
+            orderObject = new Order
+              id: order.id
+              timestamp: order.timestamp
+              account: order.account
+              bidCurrency: order.bidCurrency
+              offerCurrency: order.offerCurrency
+              bidPrice: if order.bidPrice then new Amount order.bidPrice else undefined
+              bidAmount: if order.bidAmount then new Amount order.bidAmount else undefined
+              offerPrice: if order.offerPrice then new Amount order.offerPrice else undefined
+              offerAmount: if order.offerAmount then new Amount order.offerAmount else undefined
+            account = @getAccount orderObject.account
+            leftBook = @getBook orderObject.bidCurrency, orderObject.offerCurrency
+            account.submit orderObject
+            leftBook.submit orderObject
+    @nextOperationSequence = snapshot.nextOperationSequence
+    @nextDeltaSequence = snapshot.nextDeltaSequence
 
 

@@ -7,7 +7,7 @@ sinonChai = require 'sinon-chai'
 chai.use sinonChai
 
 Balance = require '../../src/Engine/Balance'
-Amount = require '../../src/Engine/Amount'
+Amount = require '../../src/Amount'
 Order = require '../../src/Engine/Order'
 Account = require '../../src/Engine/Account'
 
@@ -137,9 +137,10 @@ describe 'Balance', ->
       offer.match bid
 
       calculateCommission.should.have.been.calledOnce
-      calculateCommission.firstCall.args[0].bidAmount.compareTo(amount25).should.equal 0
-      calculateCommission.firstCall.args[0].timestamp.should.equal '2' # should take the timestamp from the left order
-      calculateCommission.firstCall.args[0].bid.should.equal bid
+      calculateCommission.firstCall.args[0].amount.compareTo(amount25).should.equal 0
+      calculateCommission.firstCall.args[0].timestamp.should.equal offer.timestamp # should take the timestamp from the left order
+      calculateCommission.firstCall.args[0].account.should.equal bid.account
+      calculateCommission.firstCall.args[0].currency.should.equal bid.bidCurrency
       balance.funds.compareTo(amount220).should.equal 0
       commissionAccount.getBalance('BTC').funds.compareTo(amount5).should.equal 0
 
