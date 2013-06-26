@@ -79,6 +79,15 @@ module.exports = class Engine extends EventEmitter
             # check the books to see if any orders can be executed
             rightBook = @getBook order.offerCurrency, order.bidCurrency
             execute leftBook, rightBook
+          else if operation.cancel
+            order = account.orders[operation.cancel.sequence]
+            if order
+              @getBook(order.bidCurrency, order.offerCurrency).cancel order
+              account.cancel order
+              @nextDeltaSequence++
+              @emit 'delta', delta
+            else
+              throw new Error 'Order cannot be found'          
           else
             throw new Error 'Unknown operation'
         else
@@ -98,17 +107,6 @@ module.exports = class Engine extends EventEmitter
         tryAgain = leftOrder.match rightOrder
         if tryAgain
           execute leftBook, rightBook
-
-  cancel: (cancellation) =>
-    account = @getAccount cancellation.order.account
-    order = account.getBalance(cancellation.order.offerCurrency).offers[cancellation.order.id]
-    if order
-      @getBook(order.bidCurrency, order.offerCurrency).cancel order
-      account.cancel order
-      @lastTransaction = cancellation.id
-      @emit 'cancellation', cancellation
-    else
-      throw new Error 'Order cannot be found'
 
   export: =>
     object = Object.create null

@@ -59,16 +59,12 @@ describe 'Balance', ->
       balance.funds.compareTo(amount350).should.equal 0
 
   describe '#submitOffer', ->
-    it 'should lock the offer amount and record the offer in the offers collection', ->
+    it 'should lock the offer amount', ->
       balance = new Balance()
       balance.deposit '200'
-      offer1 = newOffer '1', amount50
-      balance.submitOffer offer1
-      balance.offers['1'].should.equals offer1
+      balance.submitOffer newOffer '1', amount50
       balance.lockedFunds.compareTo(amount50).should.equal 0
-      offer2 = newOffer '2', amount100
-      balance.submitOffer offer2
-      balance.offers['2'].should.equals offer2
+      balance.submitOffer newOffer '2', amount100
       balance.lockedFunds.compareTo(amount150).should.equal 0
 
     it 'should throw an error if there are not enough funds available to satisfy the order', ->
@@ -93,22 +89,6 @@ describe 'Balance', ->
         bid.match offer
         balance.lockedFunds.compareTo(Amount.ZERO).should.equal 0
         balance.funds.compareTo(amount150).should.equal 0
-
-    describe 'when a done event fires', ->
-      it 'should remove the offer from the offers collection', ->
-        balance = new Balance()
-        balance.deposit '200'
-        offer = newOffer '1', amount50
-        balance.submitOffer offer
-        bid = newBid '2', amount25
-        bid.match offer
-        balance.lockedFunds.compareTo(amount25).should.equal 0
-        balance.funds.compareTo(amount175).should.equal 0
-        bid = newBid '3', amount50
-        bid.match offer
-        balance.lockedFunds.compareTo(Amount.ZERO).should.equal 0
-        balance.funds.compareTo(amount150).should.equal 0
-        expect(balance.offers['1']).to.not.be.ok
 
   describe '#submitBid', ->
     it 'should wait for a fill event and deposit the correct amount of funds', ->
@@ -145,14 +125,13 @@ describe 'Balance', ->
       commissionAccount.getBalance('BTC').funds.compareTo(amount5).should.equal 0
 
   describe '#cancel', ->
-    it 'should unlock the offer amount and remove the offer from the offers collection', ->
+    it 'should unlock the offer amount', ->
       balance = new Balance()
       balance.deposit '200'
       offer = newOffer '1', amount50
       balance.submitOffer offer
       balance.cancel offer
       balance.lockedFunds.compareTo(Amount.ZERO).should.equal 0
-      expect(balance.offers['1']).to.not.be.ok
 
   describe '#withdraw', ->
     it 'should subtract the withdrawn amount from the funds', ->

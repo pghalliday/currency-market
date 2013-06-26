@@ -384,8 +384,8 @@ describe 'Engine', ->
         deltaSpy.secondCall.args[0].trade.price.should.equal operation1.submit.offerPrice
         deltaSpy.secondCall.args[0].trade.amount.should.equal '1000'
 
-        expect(@engine.getAccount('Peter').getBalance('EUR').offers['1']).to.not.be.ok
-        expect(@engine.getAccount('Paul').getBalance('BTC').offers['2']).to.not.be.ok
+        expect(@engine.getAccount('Peter').orders[1]).to.not.be.ok
+        expect(@engine.getAccount('Paul').orders[2]).to.not.be.ok
         @engine.getAccount('Peter').getBalance('EUR').funds.compareTo(amount1000).should.equal 0
         @engine.getAccount('Peter').getBalance('EUR').lockedFunds.compareTo(Amount.ZERO).should.equal 0
         @engine.getAccount('Peter').getBalance('BTC').funds.compareTo(amount199).should.equal 0
@@ -527,11 +527,11 @@ describe 'Engine', ->
             deltaSpy.getCall(3).args[0].trade.price.should.equal @operation3.submit.offerPrice
             deltaSpy.getCall(3).args[0].trade.amount.should.equal '250'
 
-            expect(@engine.getAccount('Peter').getBalance('EUR').offers[2]).to.not.be.ok
-            expect(@engine.getAccount('Peter').getBalance('EUR').offers[3]).to.not.be.ok
-            @engine.getAccount('Peter').getBalance('EUR').offers[4].offerAmount.compareTo(amount250).should.equal 0
-            @engine.getAccount('Peter').getBalance('EUR').offers[5].offerAmount.compareTo(amount500).should.equal 0
-            expect(@engine.getAccount('Paul').getBalance('BTC').offers[6]).to.not.be.ok
+            expect(@engine.getAccount('Peter').orders[2]).to.not.be.ok
+            expect(@engine.getAccount('Peter').orders[3]).to.not.be.ok
+            @engine.getAccount('Peter').orders[4].offerAmount.compareTo(amount250).should.equal 0
+            @engine.getAccount('Peter').orders[5].offerAmount.compareTo(amount500).should.equal 0
+            expect(@engine.getAccount('Paul').orders[6]).to.not.be.ok
             @engine.getAccount('Peter').getBalance('EUR').funds.compareTo(amount750).should.equal 0
             @engine.getAccount('Peter').getBalance('EUR').lockedFunds.compareTo(amount750).should.equal 0
             @engine.getAccount('Peter').getBalance('BTC').funds.compareTo(amount347).should.equal 0
@@ -611,11 +611,11 @@ describe 'Engine', ->
             deltaSpy.getCall(3).args[0].trade.price.should.equal @operation3.submit.offerPrice
             deltaSpy.getCall(3).args[0].trade.amount.should.equal '500'
 
-            expect(@engine.getAccount('Peter').getBalance('EUR').offers[2]).to.not.be.ok
-            expect(@engine.getAccount('Peter').getBalance('EUR').offers[3]).to.not.be.ok
-            expect(@engine.getAccount('Peter').getBalance('EUR').offers[4]).to.not.be.ok
-            @engine.getAccount('Peter').getBalance('EUR').offers[5].offerAmount.compareTo(amount500).should.equal 0
-            @engine.getAccount('Paul').getBalance('BTC').offers[6].bidAmount.compareTo(amount250).should.equal 0
+            expect(@engine.getAccount('Peter').orders[2]).to.not.be.ok
+            expect(@engine.getAccount('Peter').orders[3]).to.not.be.ok
+            expect(@engine.getAccount('Peter').orders[4]).to.not.be.ok
+            @engine.getAccount('Peter').orders[5].offerAmount.compareTo(amount500).should.equal 0
+            @engine.getAccount('Paul').orders[6].bidAmount.compareTo(amount250).should.equal 0
             @engine.getAccount('Peter').getBalance('EUR').funds.compareTo(amount500).should.equal 0
             @engine.getAccount('Peter').getBalance('EUR').lockedFunds.compareTo(amount500).should.equal 0
             @engine.getAccount('Peter').getBalance('BTC').funds.compareTo(amount472).should.equal 0
@@ -823,19 +823,16 @@ describe 'Engine', ->
             offerPrice: '100'
             offerAmount: '100'
         account.getBalance('EUR').lockedFunds.compareTo(amount150).should.equal 0
-        @engine.cancel
-          id: '123456791'
-          timestamp: '987654350'
-          order:
-            id: 1
-            account: 'Peter'
-            offerCurrency: 'EUR'
+        @engine.apply
+          reference: '550e8400-e29b-41d4-a716-446655440000'
+          account: 'Peter'
+          sequence: 3
+          timestamp: 1371737390976
+          cancel:
+            sequence: 1
         account.getBalance('EUR').lockedFunds.compareTo(amount100).should.equal 0
 
       it 'should remove the order from the orders collection and from the correct book, record the last transaction ID and emit an cancellation event', ->
-        cancellationSpy = sinon.spy()
-        @engine.on 'cancellation', cancellationSpy
-
         @engine.apply
           reference: '550e8400-e29b-41d4-a716-446655440000'
           account: 'Peter'
@@ -872,41 +869,44 @@ describe 'Engine', ->
             offerCurrency: 'BTC'
             bidPrice: '99'
             bidAmount: '50'
-        cancellation1 = 
-          id: '123456795'
-          timestamp: '987654349'
-          order:
-            id: 2
-            account: 'Peter'
-            offerCurrency: 'EUR'
-        @engine.cancel cancellation1
-        @engine.lastTransaction.should.equal '123456795'
-        expect(@engine.getAccount('Peter').getBalance('EUR').offers[2]).to.not.be.ok
+        deltaSpy = sinon.spy()
+        @engine.on 'delta', deltaSpy
+        operation1 = 
+          reference: '550e8400-e29b-41d4-a716-446655440000'
+          account: 'Peter'
+          sequence: 4
+          timestamp: 1371737390976
+          cancel:
+            sequence: 2
+        @engine.apply operation1
+        expect(@engine.getAccount('Peter').orders[2]).to.not.be.ok
         expect(@engine.getBook('BTC', 'EUR').highest).to.not.be.ok
-        cancellation2 = 
-          id: '123456796'
-          timestamp: '987654350'
-          order:
-            id: 3
-            account: 'Paul'
-            offerCurrency: 'BTC'
-        @engine.cancel cancellation2
-        @engine.lastTransaction.should.equal '123456796'
-        expect(@engine.getAccount('Paul').getBalance('BTC').offers[3]).to.not.be.ok
+        deltaSpy.should.have.been.calledOnce
+        deltaSpy.firstCall.args[0].sequence.should.equal 4
+        deltaSpy.firstCall.args[0].operation.should.equal operation1
+        operation2 = 
+          reference: '550e8400-e29b-41d4-a716-446655440000'
+          account: 'Paul'
+          sequence: 5
+          timestamp: 1371737390976
+          cancel:
+            sequence: 3
+        @engine.apply operation2
+        expect(@engine.getAccount('Paul').orders[3]).to.not.be.ok
         expect(@engine.getBook('EUR', 'BTC').highest).to.not.be.ok
-        cancellationSpy.should.have.been.calledTwice
-        cancellationSpy.firstCall.args[0].should.equal cancellation1
-        cancellationSpy.secondCall.args[0].should.equal cancellation2
+        deltaSpy.should.have.been.calledTwice
+        deltaSpy.secondCall.args[0].sequence.should.equal 5
+        deltaSpy.secondCall.args[0].operation.should.equal operation2
 
       it 'should throw an error if the order cannot be found', ->
         expect =>
-          @engine.cancel
-            id: '123456795'
-            timestamp: '987654349'
-            order:
-              id: '123456789'
-              account: 'Peter'
-              offerCurrency: 'EUR'          
+          @engine.apply
+            reference: '550e8400-e29b-41d4-a716-446655440000'
+            account: 'Peter'
+            sequence: 0
+            timestamp: 1371737390976
+            cancel:
+              sequence: 0
         .to.throw('Order cannot be found')
 
   describe '#getAccount', ->
@@ -1030,17 +1030,17 @@ describe 'Engine', ->
       engine.import @engine.export()
       engine.nextOperationSequence.should.equal @engine.nextOperationSequence
       engine.nextDeltaSequence.should.equal @engine.nextDeltaSequence
-      engine.cancel
-        id: '6'
-        timestamp: '6'
-        order:
-          id: 2
-          account: 'Paul'
-          offerCurrency: 'BTC'
       engine.apply
         reference: '550e8400-e29b-41d4-a716-446655440000'
         account: 'Paul'
         sequence: 5
+        timestamp: 1371737390976
+        cancel:
+          sequence: 2
+      engine.apply
+        reference: '550e8400-e29b-41d4-a716-446655440000'
+        account: 'Paul'
+        sequence: 6
         timestamp: 1371737390976
         submit:
           bidCurrency: 'EUR'

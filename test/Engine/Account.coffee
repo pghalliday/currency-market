@@ -73,8 +73,27 @@ describe 'Account', ->
         bidPrice: amount100
         bidAmount: amount10
       account.submit order
-      account.getBalance('EUR').offers['1'].should.equal order
+      account.orders['1'].should.equal order
       account.getBalance('EUR').lockedFunds.compareTo(amount1000).should.equal 0
+
+    describe 'when a done event fires', ->
+      it 'should remove the order from the orders collection', ->
+        account = new Account
+          id: '123456789'
+        account.deposit
+          currency: 'BTC'
+          amount: '200'
+        offer = newOffer '1', 'BTC', amount50
+        account.submit offer
+        bid = newBid '2', 'BTC', amount25
+        bid.match offer
+        account.getBalance('BTC').lockedFunds.compareTo(amount25).should.equal 0
+        account.getBalance('BTC').funds.compareTo(amount175).should.equal 0
+        bid = newBid '3', 'BTC', amount50
+        bid.match offer
+        account.getBalance('BTC').lockedFunds.compareTo(Amount.ZERO).should.equal 0
+        account.getBalance('BTC').funds.compareTo(amount150).should.equal 0
+        expect(account.orders['1']).to.not.be.ok
 
     describe 'when the order fill event fires', ->
       beforeEach ->
@@ -115,7 +134,7 @@ describe 'Account', ->
         @calculateCommission.firstCall.args[0].account.should.equal @order.account
         @calculateCommission.firstCall.args[0].currency.should.equal @order.bidCurrency
         @commissionAccount.getBalance('BTC').funds.compareTo(Amount.ONE).should.equal 0
-        @account.getBalance('EUR').offers['1'].should.equal @order
+        @account.orders['1'].should.equal @order
         @account.getBalance('EUR').lockedFunds.compareTo(amount500).should.equal 0
         @account.getBalance('EUR').funds.compareTo(amount500).should.equal 0
         @account.getBalance('BTC').funds.compareTo(amount4).should.equal 0
@@ -130,7 +149,7 @@ describe 'Account', ->
           offerPrice: amount100
           offerAmount: amount15
         order.match @order
-        expect(@account.getBalance('EUR').offers['1']).to.not.be.ok
+        expect(@account.orders['1']).to.not.be.ok
         @account.getBalance('EUR').lockedFunds.compareTo(Amount.ZERO).should.equal 0
 
   describe '#cancel', ->
@@ -150,7 +169,7 @@ describe 'Account', ->
         bidAmount: amount10
       account.submit order
       account.cancel order
-      expect(@account.getBalance('EUR').offers['1']).to.not.be.ok
+      expect(@account.orders['1']).to.not.be.ok
       account.getBalance('EUR').lockedFunds.compareTo(Amount.ZERO).should.equal 0
 
   describe '#getBalance', ->

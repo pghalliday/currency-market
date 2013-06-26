@@ -2,7 +2,6 @@ Amount = require('../Amount')
 
 module.exports = class Balance
   constructor: (params) ->
-    @offers = Object.create null
     @funds = Amount.ZERO
     @lockedFunds = Amount.ZERO
     if params
@@ -16,13 +15,10 @@ module.exports = class Balance
     if newLockedFunds.compareTo(@funds) > 0
       throw new Error('Cannot lock funds that are not available')
     else
-      @offers[order.id] = order
       @lockedFunds = newLockedFunds
       order.on 'fill', (fill) =>
         @lockedFunds = @lockedFunds.subtract fill.fundsUnlocked
         @funds = @funds.subtract fill.offerAmount
-      order.on 'done', =>
-        delete @offers[order.id]
 
   submitBid: (order) =>
     order.on 'fill', (fill) =>
@@ -41,7 +37,6 @@ module.exports = class Balance
 
   cancel: (order) =>
     @lockedFunds = @lockedFunds.subtract order.offerAmount    
-    delete @offers[order.id]
 
   withdraw: (amount) =>
     newFunds = @funds.subtract new Amount amount
@@ -54,7 +49,4 @@ module.exports = class Balance
     object = Object.create null
     object.funds = @funds.toString()
     object.lockedFunds = @lockedFunds.toString()
-    object.offers = Object.create null
-    for id, order of @offers
-      object.offers[id] = order.export()
     return object

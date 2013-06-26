@@ -2,6 +2,7 @@ Balance = require('./Balance')
 
 module.exports = class Account
   constructor: (params) ->
+    @orders = Object.create null
     if params && params.id
       @id = params.id
       @commission = params.commission
@@ -36,9 +37,13 @@ module.exports = class Account
   submit: (order) =>
     @getBalance(order.offerCurrency).submitOffer order
     @getBalance(order.bidCurrency).submitBid order
+    @orders[order.id] = order
+    order.on 'done', =>
+      delete @orders[order.id]
 
   cancel: (order) =>
     @getBalance(order.offerCurrency).cancel order
+    delete @orders[order.id]
 
   export: =>
     object = Object.create null
