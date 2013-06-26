@@ -18,5 +18,5 @@ Chef cookbook to create a `currency-market` development environment
 - Runs `npm test` to build and test everything
 
 ## License
-Copyright (c) 2013 Peter Halliday  
+Copyright &copy; 2013 Peter Halliday  
 Licensed under the MIT license.
