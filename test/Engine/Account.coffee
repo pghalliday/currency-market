@@ -25,23 +25,26 @@ amount200 = new Amount '200'
 amount300 = new Amount '300'
 amount500 = new Amount '500'
 amount1000 = new Amount '1000'
+amount2500 = new Amount '2500'
+amount3750 = new Amount '3750'
+amount6250 = new Amount '6250'
+amount8750 = new Amount '8750'
+amount11250 = new Amount '11250'
 
-newOffer = (id, currency, amount) ->
-  new Order
-    id: id
-    timestamp: '987654321'
-    account: 'name'
+newOffer = (sequence, amount) ->
+  params = 
+    sequence: sequence
+    timestamp: 1371737390976
     bidCurrency: 'EUR'
-    offerCurrency: currency
+    offerCurrency: 'BTC'
     offerAmount: amount
     offerPrice: amount100
 
-newBid = (id, currency, amount) ->
-  new Order
-    id: id
-    timestamp: '987654321'
-    account: 'name'
-    bidCurrency: currency
+newBid = (sequence, amount) ->
+  params = 
+    sequence: sequence
+    timestamp: 1371737390976
+    bidCurrency: 'BTC'
     offerCurrency: 'EUR'
     bidAmount: amount
     bidPrice: amount150
@@ -58,119 +61,79 @@ describe 'Account', ->
     .to.throw 'Account ID must be specified'
 
   describe '#submit', ->
-    it 'should add an order to the orders collection and lock the appropriate funds', ->
+    it 'should create a new order add it to the orders collection and lock the appropriate funds', ->
       account = new Account
         id: '123456789'
       account.deposit
         currency: 'EUR'
         amount: amount1000
-      order = new Order
-        id: '1'
-        timestamp: '1'
-        account: '123456789'
+      order = account.submit
+        sequence: 0
+        timestamp: 1371737390976
         offerCurrency: 'EUR'
         bidCurrency: 'BTC'
         bidPrice: amount100
         bidAmount: amount10
-      account.submit order
-      account.orders['1'].should.equal order
+      order.sequence.should.equal 0
+      order.timestamp.should.equal 1371737390976
+      order.account.should.equal account
+      order.offerBalance.should.equal account.getBalance 'EUR'
+      order.bidBalance.should.equal account.getBalance 'BTC'
+      order.bidPrice.compareTo(amount100).should.equal 0
+      order.bidAmount.compareTo(amount10).should.equal 0
+      account.orders[0].should.equal order
       account.getBalance('EUR').lockedFunds.compareTo(amount1000).should.equal 0
 
     describe 'when a done event fires', ->
       it 'should remove the order from the orders collection', ->
-        account = new Account
-          id: '123456789'
-        account.deposit
+        accountPeter = new Account
+          id: 'Peter'
+        accountPaul = new Account
+          id: 'Paul'
+        accountPeter.deposit
           currency: 'BTC'
           amount: amount200
-        offer = newOffer '1', 'BTC', amount50
-        account.submit offer
-        bid = newBid '2', 'BTC', amount25
-        bid.match offer
-        account.getBalance('BTC').lockedFunds.compareTo(amount25).should.equal 0
-        account.getBalance('BTC').funds.compareTo(amount175).should.equal 0
-        bid = newBid '3', 'BTC', amount50
-        bid.match offer
-        account.getBalance('BTC').lockedFunds.compareTo(Amount.ZERO).should.equal 0
-        account.getBalance('BTC').funds.compareTo(amount150).should.equal 0
-        expect(account.orders['1']).to.not.be.ok
-
-    describe 'when the order fill event fires', ->
-      beforeEach ->
-        @commissionAccount = new Account
-          id: 'commission'
-        @calculateCommission = sinon.stub().returns Amount.ONE
-        @account = new Account
-          id: '123456789'
-          commission:
-            account: @commissionAccount
-            calculate: @calculateCommission
-        @account.deposit
+        accountPaul.deposit
           currency: 'EUR'
-          amount: amount1000
-        @order = new Order
-          id: '1'
-          timestamp: '1'
-          account: '123456789'
-          offerCurrency: 'EUR'
-          bidCurrency: 'BTC'
-          bidPrice: amount100
-          bidAmount: amount10
-        @account.submit @order
-
-      it 'should adjust the locked funds, apply commission and make deposits and withdrawals to apply the fill', ->
-       order = new Order
-          id: '2'
-          timestamp: '2'
-          account: '12345523'
-          offerCurrency: 'BTC'
-          bidCurrency: 'EUR'
-          offerPrice: amount100
-          offerAmount: amount5
-        order.match @order
-        @calculateCommission.should.have.been.calledOnce
-        @calculateCommission.firstCall.args[0].amount.compareTo(amount5).should.equal 0
-        @calculateCommission.firstCall.args[0].timestamp.should.equal order.timestamp
-        @calculateCommission.firstCall.args[0].account.should.equal @order.account
-        @calculateCommission.firstCall.args[0].currency.should.equal @order.bidCurrency
-        @commissionAccount.getBalance('BTC').funds.compareTo(Amount.ONE).should.equal 0
-        @account.orders['1'].should.equal @order
-        @account.getBalance('EUR').lockedFunds.compareTo(amount500).should.equal 0
-        @account.getBalance('EUR').funds.compareTo(amount500).should.equal 0
-        @account.getBalance('BTC').funds.compareTo(amount4).should.equal 0
-
-      it 'should delete fully filled orders', ->
-       order = new Order
-          id: '2'
-          timestamp: '2'
-          account: '12345523'
-          offerCurrency: 'BTC'
-          bidCurrency: 'EUR'
-          offerPrice: amount100
-          offerAmount: amount15
-        order.match @order
-        expect(@account.orders['1']).to.not.be.ok
-        @account.getBalance('EUR').lockedFunds.compareTo(Amount.ZERO).should.equal 0
+          amount: amount11250
+        offer = accountPeter.submit newOffer 1, amount50
+        accountPeter.orders[1].should.equal offer
+        bid = accountPaul.submit newBid 2, amount25
+        accountPaul.orders[2].should.equal bid
+        bid.match offer
+        expect(accountPaul.orders[2]).to.not.be.ok
+        accountPeter.orders[1].should.equal offer
+        bid = accountPaul.submit newBid 3, amount50
+        accountPaul.orders[3].should.equal bid
+        bid.match offer
+        accountPaul.orders[3].should.be.ok
+        expect(accountPeter.orders[1]).to.not.be.ok
 
   describe '#cancel', ->
-    it 'should delete an order and unlock the appropriate funds', ->
+    it 'should error if the order cannot be found', ->
       account = new Account
-        id: '123456789'
+        id: 'Peter'
+      expect ->
+        account.cancel 0
+      .to.throw 'Order cannot be found'
+
+    it 'should delete the order from the orders collection, unlock the appropriate funds and return the order', ->
+      account = new Account
+        id: 'Peter'
       account.deposit
         currency: 'EUR'
         amount: amount1000
-      order = new Order
-        id: '1'
-        timestamp: '1'
-        account: '123456789'
+      order = account.submit
+        sequence: 0
+        timestamp: 1371737390976
         offerCurrency: 'EUR'
         bidCurrency: 'BTC'
         bidPrice: amount100
         bidAmount: amount10
-      account.submit order
-      account.cancel order
-      expect(@account.orders['1']).to.not.be.ok
+      cancelled = account.cancel 0
+      expect(account.orders[0]).to.not.be.ok
       account.getBalance('EUR').lockedFunds.compareTo(Amount.ZERO).should.equal 0
+      cancelled.should.equal order
 
   describe '#getBalance', ->
     it 'should return a balance object associated with the given currency', ->
@@ -231,8 +194,8 @@ describe 'Account', ->
       account.deposit
         currency: 'BTC'
         amount: amount200
-      account.submit newOffer '1', 'BTC', amount50
-      account.submit newOffer '2', 'BTC', amount100
+      account.submit newOffer 1, amount50
+      account.submit newOffer 2, amount100
       account.withdraw
         currency: 'BTC'
         amount: amount25
@@ -248,8 +211,8 @@ describe 'Account', ->
       account.deposit
         currency: 'BTC'
         amount: amount200
-      account.submit newOffer '1', 'BTC', amount50
-      account.submit newOffer '2', 'BTC', amount100
+      account.submit newOffer 1, amount50
+      account.submit newOffer 2, amount100
       expect ->
         account.withdraw
           currency: 'BTC'
@@ -263,8 +226,8 @@ describe 'Account', ->
       account.deposit
         currency: 'BTC'
         amount: amount200
-      account.submit newOffer '1', 'BTC', amount50
-      account.submit newOffer '2', 'BTC', amount100
+      account.submit newOffer 1, amount50
+      account.submit newOffer 2, amount100
       json = JSON.stringify account.export()
       object = JSON.parse json
       object.id.should.equal account.id

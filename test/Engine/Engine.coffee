@@ -55,7 +55,9 @@ amount5000 = new Amount '5000'
 
 describe 'Engine', ->
   beforeEach ->
-    @calculateCommission = sinon.stub().returns Amount.ONE
+    @calculateCommission = sinon.stub().returns
+      amount: Amount.ONE
+      reference: 'Flat 1'
     @engine = new Engine
       commission:
         account: 'commission'
@@ -297,7 +299,7 @@ describe 'Engine', ->
             offerPrice: amount100
             offerAmount: amount50
         @engine.apply operation1
-        @engine.getBook('BTC', 'EUR').highest.id.should.equal 2
+        @engine.getBook('BTC', 'EUR').highest.sequence.should.equal 2
         deltaSpy.should.have.been.calledOnce
         deltaSpy.firstCall.args[0].sequence.should.equal 2
         deltaSpy.firstCall.args[0].operation.should.equal operation1
@@ -312,7 +314,7 @@ describe 'Engine', ->
             bidPrice: amount99
             bidAmount: amount50
         @engine.apply operation2
-        @engine.getBook('EUR', 'BTC').highest.id.should.equal 3
+        @engine.getBook('EUR', 'BTC').highest.sequence.should.equal 3
         deltaSpy.should.have.been.calledTwice
         deltaSpy.secondCall.args[0].sequence.should.equal 3
         deltaSpy.secondCall.args[0].operation.should.equal operation2
@@ -365,12 +367,12 @@ describe 'Engine', ->
         @calculateCommission.should.have.been.calledTwice
         @calculateCommission.firstCall.args[0].amount.compareTo(amount200).should.equal 0
         @calculateCommission.firstCall.args[0].timestamp.should.equal operation2.timestamp
-        @calculateCommission.firstCall.args[0].account.should.equal operation1.account
+        @calculateCommission.firstCall.args[0].account.id.should.equal operation1.account
         @calculateCommission.firstCall.args[0].currency.should.equal operation1.submit.bidCurrency
         @engine.getAccount('commission').getBalance(operation1.submit.bidCurrency).funds.compareTo(Amount.ONE).should.equal 0
         @calculateCommission.secondCall.args[0].amount.compareTo(amount1000).should.equal 0
         @calculateCommission.secondCall.args[0].timestamp.should.equal operation2.timestamp
-        @calculateCommission.secondCall.args[0].account.should.equal operation2.account
+        @calculateCommission.secondCall.args[0].account.id.should.equal operation2.account
         @calculateCommission.secondCall.args[0].currency.should.equal operation2.submit.bidCurrency
         @engine.getAccount('commission').getBalance(operation2.submit.bidCurrency).funds.compareTo(Amount.ONE).should.equal 0
 
@@ -379,16 +381,16 @@ describe 'Engine', ->
         deltaSpy.secondCall.args[0].trade.timestamp.should.equal operation2.timestamp
         deltaSpy.secondCall.args[0].trade.left.sequence.should.equal operation2.sequence
         deltaSpy.secondCall.args[0].trade.left.newBidAmount.compareTo(Amount.ZERO).should.equal 0
-        deltaSpy.secondCall.args[0].trade.left.credit.compareTo(amount999).should.equal 0
-        deltaSpy.secondCall.args[0].trade.left.debit.compareTo(amount200).should.equal 0
-        deltaSpy.secondCall.args[0].trade.left.commision.compareTo(Amount.ONE).should.equal 0
-        deltaSpy.secondCall.args[0].trade.left.commisionReference.should.equal 'Flat 1 unit'
+        deltaSpy.secondCall.args[0].trade.left.balanceDeltas.debit.amount.compareTo(amount200).should.equal 0
+        deltaSpy.secondCall.args[0].trade.left.balanceDeltas.credit.amount.compareTo(amount999).should.equal 0
+        deltaSpy.secondCall.args[0].trade.left.balanceDeltas.credit.commission.amount.compareTo(Amount.ONE).should.equal 0
+        deltaSpy.secondCall.args[0].trade.left.balanceDeltas.credit.commission.reference.should.equal 'Flat 1'
         deltaSpy.secondCall.args[0].trade.right.sequence.should.equal operation1.sequence
         deltaSpy.secondCall.args[0].trade.right.newOfferAmount.compareTo(Amount.ZERO).should.equal 0
-        deltaSpy.secondCall.args[0].trade.right.credit.compareTo(amount199).should.equal 0
-        deltaSpy.secondCall.args[0].trade.right.debit.compareTo(amount1000).should.equal 0
-        deltaSpy.secondCall.args[0].trade.right.commision.compareTo(Amount.ONE).should.equal 0
-        deltaSpy.secondCall.args[0].trade.right.commisionReference.should.equal 'Flat 1 unit'
+        deltaSpy.secondCall.args[0].trade.right.balanceDeltas.debit.amount.compareTo(amount1000).should.equal 0
+        deltaSpy.secondCall.args[0].trade.right.balanceDeltas.credit.amount.compareTo(amount199).should.equal 0
+        deltaSpy.secondCall.args[0].trade.right.balanceDeltas.credit.commission.amount.compareTo(Amount.ONE).should.equal 0
+        deltaSpy.secondCall.args[0].trade.right.balanceDeltas.credit.commission.reference.should.equal 'Flat 1'
         deltaSpy.secondCall.args[0].trade.price.compareTo(operation1.submit.offerPrice).should.equal 0
         deltaSpy.secondCall.args[0].trade.amount.compareTo(amount1000).should.equal 0
 
@@ -465,7 +467,7 @@ describe 'Engine', ->
           @engine.apply @operation4
 
         describe 'and the last order can be completely satisfied', ->
-          it 'should correctly execute as many orders as it can and emit trade events', ->
+          it 'should correctly execute as many orders as it can and emit delta events', ->
             deltaSpy = sinon.spy()
             @engine.on 'delta', deltaSpy
 
@@ -484,27 +486,27 @@ describe 'Engine', ->
             @calculateCommission.callCount.should.equal 6
             @calculateCommission.getCall(0).args[0].amount.compareTo(amount100).should.equal 0
             @calculateCommission.getCall(0).args[0].timestamp.should.equal operation.timestamp
-            @calculateCommission.getCall(0).args[0].account.should.equal @operation1.account
+            @calculateCommission.getCall(0).args[0].account.id.should.equal @operation1.account
             @calculateCommission.getCall(0).args[0].currency.should.equal @operation1.submit.bidCurrency
             @calculateCommission.getCall(1).args[0].amount.compareTo(amount500).should.equal 0
             @calculateCommission.getCall(1).args[0].timestamp.should.equal operation.timestamp
-            @calculateCommission.getCall(1).args[0].account.should.equal operation.account
+            @calculateCommission.getCall(1).args[0].account.id.should.equal operation.account
             @calculateCommission.getCall(1).args[0].currency.should.equal operation.submit.bidCurrency
             @calculateCommission.getCall(2).args[0].amount.compareTo(amount125).should.equal 0
             @calculateCommission.getCall(2).args[0].timestamp.should.equal operation.timestamp
-            @calculateCommission.getCall(2).args[0].account.should.equal @operation2.account
+            @calculateCommission.getCall(2).args[0].account.id.should.equal @operation2.account
             @calculateCommission.getCall(2).args[0].currency.should.equal @operation2.submit.bidCurrency
             @calculateCommission.getCall(3).args[0].amount.compareTo(amount500).should.equal 0
             @calculateCommission.getCall(3).args[0].timestamp.should.equal operation.timestamp
-            @calculateCommission.getCall(3).args[0].account.should.equal operation.account
+            @calculateCommission.getCall(3).args[0].account.id.should.equal operation.account
             @calculateCommission.getCall(3).args[0].currency.should.equal operation.submit.bidCurrency
             @calculateCommission.getCall(4).args[0].amount.compareTo(amount125).should.equal 0
             @calculateCommission.getCall(4).args[0].timestamp.should.equal operation.timestamp
-            @calculateCommission.getCall(4).args[0].account.should.equal @operation3.account
+            @calculateCommission.getCall(4).args[0].account.id.should.equal @operation3.account
             @calculateCommission.getCall(4).args[0].currency.should.equal @operation3.submit.bidCurrency
             @calculateCommission.getCall(5).args[0].amount.compareTo(amount250).should.equal 0
             @calculateCommission.getCall(5).args[0].timestamp.should.equal operation.timestamp
-            @calculateCommission.getCall(5).args[0].account.should.equal operation.account
+            @calculateCommission.getCall(5).args[0].account.id.should.equal operation.account
             @calculateCommission.getCall(5).args[0].currency.should.equal operation.submit.bidCurrency
             @engine.getAccount('commission').getBalance('BTC').funds.compareTo(amount3).should.equal 0
             @engine.getAccount('commission').getBalance('EUR').funds.compareTo(amount3).should.equal 0
@@ -548,7 +550,7 @@ describe 'Engine', ->
             @engine.getAccount('Paul').getBalance('BTC').lockedFunds.compareTo(Amount.ZERO).should.equal 0
 
         describe 'and the last order cannot be completely satisfied', ->    
-          it 'should correctly execute as many orders as it can and emit trade events', ->
+          it 'should correctly execute as many orders as it can and emit delta events', ->
             deltaSpy = sinon.spy()
             @engine.on 'delta', deltaSpy
 
@@ -568,27 +570,27 @@ describe 'Engine', ->
             @calculateCommission.callCount.should.equal 6
             @calculateCommission.getCall(0).args[0].amount.compareTo(amount100).should.equal 0
             @calculateCommission.getCall(0).args[0].timestamp.should.equal operation.timestamp
-            @calculateCommission.getCall(0).args[0].account.should.equal @operation1.account
+            @calculateCommission.getCall(0).args[0].account.id.should.equal @operation1.account
             @calculateCommission.getCall(0).args[0].currency.should.equal @operation1.submit.bidCurrency
             @calculateCommission.getCall(1).args[0].amount.compareTo(amount500).should.equal 0
             @calculateCommission.getCall(1).args[0].timestamp.should.equal operation.timestamp
-            @calculateCommission.getCall(1).args[0].account.should.equal operation.account
+            @calculateCommission.getCall(1).args[0].account.id.should.equal operation.account
             @calculateCommission.getCall(1).args[0].currency.should.equal operation.submit.bidCurrency
             @calculateCommission.getCall(2).args[0].amount.compareTo(amount125).should.equal 0
             @calculateCommission.getCall(2).args[0].timestamp.should.equal operation.timestamp
-            @calculateCommission.getCall(2).args[0].account.should.equal @operation2.account
+            @calculateCommission.getCall(2).args[0].account.id.should.equal @operation2.account
             @calculateCommission.getCall(2).args[0].currency.should.equal @operation2.submit.bidCurrency
             @calculateCommission.getCall(3).args[0].amount.compareTo(amount500).should.equal 0
             @calculateCommission.getCall(3).args[0].timestamp.should.equal operation.timestamp
-            @calculateCommission.getCall(3).args[0].account.should.equal operation.account
+            @calculateCommission.getCall(3).args[0].account.id.should.equal operation.account
             @calculateCommission.getCall(3).args[0].currency.should.equal operation.submit.bidCurrency
             @calculateCommission.getCall(4).args[0].amount.compareTo(amount250).should.equal 0
             @calculateCommission.getCall(4).args[0].timestamp.should.equal operation.timestamp
-            @calculateCommission.getCall(4).args[0].account.should.equal @operation3.account
+            @calculateCommission.getCall(4).args[0].account.id.should.equal @operation3.account
             @calculateCommission.getCall(4).args[0].currency.should.equal @operation3.submit.bidCurrency
             @calculateCommission.getCall(5).args[0].amount.compareTo(amount500).should.equal 0
             @calculateCommission.getCall(5).args[0].timestamp.should.equal operation.timestamp
-            @calculateCommission.getCall(5).args[0].account.should.equal operation.account
+            @calculateCommission.getCall(5).args[0].account.id.should.equal operation.account
             @calculateCommission.getCall(5).args[0].currency.should.equal operation.submit.bidCurrency
             @engine.getAccount('commission').getBalance('BTC').funds.compareTo(amount3).should.equal 0
             @engine.getAccount('commission').getBalance('EUR').funds.compareTo(amount3).should.equal 0
@@ -989,7 +991,7 @@ describe 'Engine', ->
         for offerCurrency of books
           object.books[bidCurrency][offerCurrency].should.be.ok
 
-    it 'should be possible to recreate a engine from an exported snapshot', ->
+    it 'should be possible to recreate an engine from an exported snapshot', ->
       @engine.apply
         reference: '550e8400-e29b-41d4-a716-446655440000'
         account: 'Peter'

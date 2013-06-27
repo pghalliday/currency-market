@@ -1,4 +1,5 @@
-Balance = require('./Balance')
+Balance = require './Balance'
+Order = require './Order'
 
 module.exports = class Account
   constructor: (params) ->
@@ -36,16 +37,30 @@ module.exports = class Account
     else
       throw new Error 'Must supply a currency'
 
-  submit: (order) =>
-    @getBalance(order.offerCurrency).submitOffer order
-    @getBalance(order.bidCurrency).submitBid order
-    @orders[order.id] = order
+  submit: (params) =>
+    order = new Order
+      sequence: params.sequence
+      timestamp: params.timestamp
+      account: @
+      bidBalance: @getBalance params.bidCurrency
+      offerBalance: @getBalance params.offerCurrency
+      bidPrice: params.bidPrice
+      bidAmount: params.bidAmount
+      offerPrice: params.offerPrice
+      offerAmount: params.offerAmount
+    @orders[order.sequence] = order
     order.on 'done', =>
-      delete @orders[order.id]
+      delete @orders[order.sequence]
+    return order
 
-  cancel: (order) =>
-    @getBalance(order.offerCurrency).cancel order
-    delete @orders[order.id]
+  cancel: (sequence) =>
+    order = @orders[sequence]
+    if order
+      @getBalance(order.offerBalance.currency).unlock order.offerAmount
+      delete @orders[sequence]
+      return order
+    else
+      throw new Error 'Order cannot be found'          
 
   export: =>
     object = Object.create null

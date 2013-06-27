@@ -52,18 +52,16 @@ module.exports = class Engine extends EventEmitter
             @emit 'delta', delta
           else if operation.submit
             submit = operation.submit
-            order = new Order
-              id: operation.sequence
+            order = account.submit
+              sequence: operation.sequence
               timestamp: operation.timestamp
-              account: operation.account
               bidCurrency: submit.bidCurrency
               offerCurrency: submit.offerCurrency
               bidPrice: submit.bidPrice
               bidAmount: submit.bidAmount
               offerPrice: submit.offerPrice
               offerAmount: submit.offerAmount
-            leftBook = @getBook order.bidCurrency, order.offerCurrency
-            account.submit order
+            leftBook = @getBook submit.bidCurrency, submit.offerCurrency
             leftBook.submit order
             # forward trade events from the order
             order.on 'trade', (trade) =>
@@ -72,22 +70,17 @@ module.exports = class Engine extends EventEmitter
                 trade: trade
               @nextDeltaSequence++
               @emit 'delta', delta
-
             # emit an order added event
             @nextDeltaSequence++
             @emit 'delta', delta
             # check the books to see if any orders can be executed
-            rightBook = @getBook order.offerCurrency, order.bidCurrency
+            rightBook = @getBook submit.offerCurrency, submit.bidCurrency
             execute leftBook, rightBook
           else if operation.cancel
-            order = account.orders[operation.cancel.sequence]
-            if order
-              @getBook(order.bidCurrency, order.offerCurrency).cancel order
-              account.cancel order
-              @nextDeltaSequence++
-              @emit 'delta', delta
-            else
-              throw new Error 'Order cannot be found'          
+            order = account.cancel operation.cancel.sequence
+            @getBook(order.bidBalance.currency, order.offerBalance.currency).cancel order
+            @nextDeltaSequence++
+            @emit 'delta', delta
           else
             throw new Error 'Unknown operation'
         else
@@ -136,19 +129,17 @@ module.exports = class Engine extends EventEmitter
       for offerCurrency, book of books
         for order in book
           do (order) =>
-            orderObject = new Order
-              id: order.id
+            account = @getAccount order.account
+            orderObject = account.submit
+              sequence: order.sequence
               timestamp: order.timestamp
-              account: order.account
               bidCurrency: order.bidCurrency
               offerCurrency: order.offerCurrency
               bidPrice: if order.bidPrice then new Amount order.bidPrice else undefined
               bidAmount: if order.bidAmount then new Amount order.bidAmount else undefined
               offerPrice: if order.offerPrice then new Amount order.offerPrice else undefined
               offerAmount: if order.offerAmount then new Amount order.offerAmount else undefined
-            account = @getAccount orderObject.account
-            leftBook = @getBook orderObject.bidCurrency, orderObject.offerCurrency
-            account.submit orderObject
+            leftBook = @getBook order.bidCurrency, order.offerCurrency
             leftBook.submit orderObject
     @nextOperationSequence = snapshot.nextOperationSequence
     @nextDeltaSequence = snapshot.nextDeltaSequence

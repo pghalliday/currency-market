@@ -71,7 +71,7 @@ module.exports = class Order extends EventEmitter
         timestamp: timestamp
       debit: @offerBalance.applyOffer
         amount: offerAmount
-        fundsUnlocked: fundsUnlocked
+        fundsUnlocked: offerAmount
 
   partialBid = (bidAmount, offerAmount, timestamp) ->
     @bidAmount = @bidAmount.subtract bidAmount

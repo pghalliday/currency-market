@@ -6,9 +6,11 @@ assert = chai.assert
 Book = require '../../src/Engine/Book'
 Order = require '../../src/Engine/Order'
 Amount = require '../../src/Amount'
+Account = require '../../src/Engine/Account'
 
 amount5 = new Amount '5'
 amount10 = new Amount '10'
+amount15 = new Amount '15'
 amount48Point5 = new Amount '48.5'
 amount48Point75 = new Amount '48.75'
 amount49 = new Amount '49'
@@ -21,12 +23,17 @@ amount51 = new Amount '51'
 amount52 = new Amount '52'
 amount53 = new Amount '53'
 amount100 = new Amount '100'
+amount1000 = new Amount '1000'
 
-newOrder = (id, price) ->
-  new Order
-    id: id
-    timestamp: '987654321'
-    account: 'name'
+newOrder = (sequence, price) ->
+  account = new Account
+    id: 'Peter'
+  account.deposit
+    currency: 'EUR'
+    amount: amount100.multiply price
+  account.submit
+    sequence: sequence
+    timestamp: 1371737390976
     bidCurrency: 'BTC'
     offerCurrency: 'EUR'
     bidAmount: amount100
@@ -50,94 +57,101 @@ describe 'Book', ->
       #            8   9 10 11 12 13 14 15
       #
       book = new Book()
-      order1 = newOrder('1', amount50)
-      book.submit(order1)
-      book.next().should.equal(order1)
+      order1 = newOrder '1', amount50
+      book.submit order1
+      book.next().should.equal order1
 
-      order2 = newOrder('2', amount51)
-      book.submit(order2)
-      book.next().should.equal(order2)
+      order2 = newOrder '2', amount51
+      book.submit order2
+      book.next().should.equal order2
 
-      order3 = newOrder('3', amount49)
-      book.submit(order3)
-      book.next().should.equal(order2)
+      order3 = newOrder '3', amount49
+      book.submit order3
+      book.next().should.equal order2
 
-      order4 = newOrder('4', amount52)
-      book.submit(order4)
-      book.next().should.equal(order4)
+      order4 = newOrder '4', amount52
+      book.submit order4
+      book.next().should.equal order4
 
-      order5 = newOrder('5', amount50Point5)
-      book.submit(order5)
-      book.next().should.equal(order4)
+      order5 = newOrder '5', amount50Point5
+      book.submit order5
+      book.next().should.equal order4
 
-      order6 = newOrder('6', amount49Point5)
-      book.submit(order6)
-      book.next().should.equal(order4)
+      order6 = newOrder '6', amount49Point5
+      book.submit order6
+      book.next().should.equal order4
 
-      order7 = newOrder('7', amount48Point5)
-      book.submit(order7)
-      book.next().should.equal(order4)
+      order7 = newOrder '7', amount48Point5
+      book.submit order7
+      book.next().should.equal order4
 
-      order8 = newOrder('8', amount48Point5) # is equal to but should be placed lower than order 7
-      book.submit(order8)
-      book.next().should.equal(order4)
+      order8 = newOrder '8', amount48Point5 # is equal to but should be placed lower than order 7
+      book.submit order8
+      book.next().should.equal order4
 
-      order9 = newOrder('9', amount48Point75)
-      book.submit(order9)
-      book.next().should.equal(order4)
+      order9 = newOrder '9', amount48Point75
+      book.submit order9
+      book.next().should.equal order4
 
-      order10 = newOrder('10', amount49Point5) # is equal to but should be placed lower than order 6
-      book.submit(order10)
-      book.next().should.equal(order4)
+      order10 = newOrder '10', amount49Point5 # is equal to but should be placed lower than order 6
+      book.submit order10
+      book.next().should.equal order4
 
-      order11 = newOrder('11', amount49Point75)
-      book.submit(order11)
-      book.next().should.equal(order4)
+      order11 = newOrder '11', amount49Point75
+      book.submit order11
+      book.next().should.equal order4
 
-      order12 = newOrder('12', amount50Point5) # is equal to but should be placed lower than order 5
-      book.submit(order12)
-      book.next().should.equal(order4)
+      order12 = newOrder '12', amount50Point5 # is equal to but should be placed lower than order 5
+      book.submit order12
+      book.next().should.equal order4
 
-      order13 = newOrder('13', amount50Point75)
-      book.submit(order13)
-      book.next().should.equal(order4)
+      order13 = newOrder '13', amount50Point75
+      book.submit order13
+      book.next().should.equal order4
 
-      order14 = newOrder('14', amount52) # is equal to but should be placed lower than order 4
-      book.submit(order14)
-      book.next().should.equal(order4)
+      order14 = newOrder '14', amount52 # is equal to but should be placed lower than order 4
+      book.submit order14
+      book.next().should.equal order4
 
-      order15 = newOrder('15', amount53)
-      book.submit(order15)
-      book.next().should.equal(order15)
+      order15 = newOrder '15', amount53
+      book.submit order15
+      book.next().should.equal order15
 
     describe 'when the order fill event fires', ->
       beforeEach ->
-        @book = new Book()
-        @order = new Order
-          id: '1'
-          timestamp: '1'
-          account: '123456789'
+        account = new Account
+          id: 'Peter'
+        account.deposit
+          currency: 'EUR'
+          amount: amount1000
+        @order = account.submit
+          sequence: 1
+          timestamp: 1371737390976
           offerCurrency: 'EUR'
           bidCurrency: 'BTC'
           bidPrice: amount100
           bidAmount: amount10
+        @book = new Book()
         @book.submit @order
 
       it 'should should delete the order from the book when the amount reaches ZERO', ->
-        order = new Order
-          id: '2'
+        account = new Account
+          id: 'Paul'
+        account.deposit
+          currency: 'BTC'
+          amount: amount15
+        order = account.submit
+          sequence: '2'
           timestamp: '2'
-          account: '12345523'
           offerCurrency: 'BTC'
           bidCurrency: 'EUR'
           offerPrice: amount100
           offerAmount: amount5
         order.match @order
         @book.next().should.equal @order
-        order = new Order
-          id: '3'
+        order = account.submit
+          sequence: '3'
           timestamp: '2'
-          account: '12345523'
           offerCurrency: 'BTC'
           bidCurrency: 'EUR'
           offerPrice: amount100
