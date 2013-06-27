@@ -379,8 +379,16 @@ describe 'Engine', ->
         deltaSpy.secondCall.args[0].trade.timestamp.should.equal operation2.timestamp
         deltaSpy.secondCall.args[0].trade.left.sequence.should.equal operation2.sequence
         deltaSpy.secondCall.args[0].trade.left.newBidAmount.compareTo(Amount.ZERO).should.equal 0
+        deltaSpy.secondCall.args[0].trade.left.credit.compareTo(amount999).should.equal 0
+        deltaSpy.secondCall.args[0].trade.left.debit.compareTo(amount200).should.equal 0
+        deltaSpy.secondCall.args[0].trade.left.commision.compareTo(Amount.ONE).should.equal 0
+        deltaSpy.secondCall.args[0].trade.left.commisionReference.should.equal 'Flat 1 unit'
         deltaSpy.secondCall.args[0].trade.right.sequence.should.equal operation1.sequence
         deltaSpy.secondCall.args[0].trade.right.newOfferAmount.compareTo(Amount.ZERO).should.equal 0
+        deltaSpy.secondCall.args[0].trade.right.credit.compareTo(amount199).should.equal 0
+        deltaSpy.secondCall.args[0].trade.right.debit.compareTo(amount1000).should.equal 0
+        deltaSpy.secondCall.args[0].trade.right.commision.compareTo(Amount.ONE).should.equal 0
+        deltaSpy.secondCall.args[0].trade.right.commisionReference.should.equal 'Flat 1 unit'
         deltaSpy.secondCall.args[0].trade.price.compareTo(operation1.submit.offerPrice).should.equal 0
         deltaSpy.secondCall.args[0].trade.amount.compareTo(amount1000).should.equal 0
 

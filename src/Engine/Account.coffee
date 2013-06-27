@@ -13,6 +13,8 @@ module.exports = class Account
   getBalance: (currency) =>
     if !@balances[currency]
       @balances[currency] = new Balance
+        account: @
+        currency: currency
         commission: @commission
     return @balances[currency]
 

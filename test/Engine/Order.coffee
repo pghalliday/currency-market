@@ -8,6 +8,8 @@ chai.use sinonChai
 
 Order = require '../../src/Engine/Order'
 Amount = require '../../src/Amount'
+Balance = require '../../src/Engine/balance'
+Account = require '../../src/Engine/Account'
 
 amountPoint01 = new Amount '0.01'
 amountPoint2 = new Amount '0.2'
@@ -40,11 +42,13 @@ amount100 = new Amount '100'
 amount101 = new Amount '101'
 amount125 = new Amount '125'
 amount150 = new Amount '150'
+amount199 = new Amount '199'
 amount200 = new Amount '200'
 amount250 = new Amount '250'
 amount300 = new Amount '300'
 amount400 = new Amount '400'
 amount500 = new Amount '500'
+amount995 = new Amount '995'
 amount1000 = new Amount '1000'
 amount1500 = new Amount '1500'
 amount5000 = new Amount '5000'
@@ -74,263 +78,330 @@ newOfferOrder = (offerPrice, id) ->
     offerAmount: amount200
 
 describe 'Order', ->
-  it 'should throw an error if the ID is missing', ->
+  it 'should throw an error if the sequence is missing', ->
+    account = new Account
+      id: 'Peter'
     expect ->
       order = new Order
-        timestamp: '987654321'
-        account: 'name'
-        bidCurrency: 'BTC'
-        offerCurrency: 'EUR'
+        timestamp: 1371737390976
+        account: account
+        bidBalance: account.getBalance 'BTC'
+        offerBalance: account.getBalance 'EUR'
         bidPrice: amount100
         bidAmount: amount50
-    .to.throw('Order must have an ID')
+    .to.throw 'Order must have a sequence'
 
   it 'should throw an error if the timestamp is missing', ->
+    account = new Account
+      id: 'Peter'
     expect ->
       order = new Order
-        id: '123456789'
-        account: 'name'
-        bidCurrency: 'BTC'
-        offerCurrency: 'EUR'
+        sequence: 0
+        account: account
+        bidBalance: account.getBalance 'BTC'
+        offerBalance: account.getBalance 'EUR'
         bidPrice: amount100
         bidAmount: amount50
-    .to.throw('Order must have a time stamp')
+    .to.throw 'Order must have a timestamp'
 
-  it 'should throw an error if the account id is missing', ->
+  it 'should throw an error if the account is missing', ->
+    account = new Account
+      id: 'Peter'
     expect ->
       order = new Order
-        id: '123456789'
-        timestamp: '987654321'
-        bidCurrency: 'BTC'
-        offerCurrency: 'EUR'
+        sequence: 0
+        timestamp: 1371737390976
+        bidBalance: account.getBalance 'BTC'
+        offerBalance: account.getBalance 'EUR'
         bidPrice: amount100
         bidAmount: amount50
-    .to.throw('Order must be associated with an account')
+    .to.throw 'Order must be associated with an account'
 
-  it 'should throw an error if the bid currency is missing', ->
+  it 'should throw an error if the bid balance is missing', ->
+    account = new Account
+      id: 'Peter'
     expect ->
       order = new Order
-        id: '123456789'
-        timestamp: '987654321'
-        account: 'name'
-        offerCurrency: 'EUR'
+        sequence: 0
+        timestamp: 1371737390976
+        account: account
+        offerBalance: account.getBalance 'EUR'
         bidPrice: amount100
         bidAmount: amount50
-    .to.throw('Order must be associated with a bid currency')
+    .to.throw 'Order must be associated with a bid balance'
 
-  it 'should throw an error if the offer currency is missing', ->
+  it 'should throw an error if the offer balance is missing', ->
+    account = new Account
+      id: 'Peter'
     expect ->
       order = new Order
-        id: '123456789'
-        timestamp: '987654321'
-        account: 'name'
-        bidCurrency: 'BTC'
+        sequence: 0
+        timestamp: 1371737390976
+        account: account
+        bidBalance: account.getBalance 'BTC'
         bidPrice: amount100
         bidAmount: amount50
-    .to.throw('Order must be associated with an offer currency')
+    .to.throw 'Order must be associated with an offer balance'
 
   it 'should throw an error if only a bid price is given as it is not enough information to calculate the other fields a bid', ->
+    account = new Account
+      id: 'Peter'
     expect ->
       order = new Order
-        id: '123456789'
-        timestamp: '987654321'
-        account: 'name'
-        bidCurrency: 'BTC'
-        offerCurrency: 'EUR'
+        sequence: 0
+        timestamp: 1371737390976
+        account: account
+        bidBalance: account.getBalance 'BTC'
+        offerBalance: account.getBalance 'EUR'
         bidPrice: amount100
-    .to.throw('Must specify either bid amount and price or offer amount and price')
+    .to.throw 'Must specify either bid amount and price or offer amount and price'
 
   it 'should throw an error if only an offer price is given as it is not enough information to calculate the other fields a bid', ->
+    account = new Account
+      id: 'Peter'
     expect ->
       order = new Order
-        id: '123456789'
-        timestamp: '987654321'
-        account: 'name'
-        bidCurrency: 'BTC'
-        offerCurrency: 'EUR'
+        sequence: 0
+        timestamp: 1371737390976
+        account: account
+        bidBalance: account.getBalance 'BTC'
+        offerBalance: account.getBalance 'EUR'
         offerPrice: amount100
-    .to.throw('Must specify either bid amount and price or offer amount and price')
+    .to.throw 'Must specify either bid amount and price or offer amount and price'
 
   it 'should throw an error if only a bid amount is given as it is not enough information to calculate the other fields a bid', ->
+    account = new Account
+      id: 'Peter'
     expect ->
       order = new Order
-        id: '123456789'
-        timestamp: '987654321'
-        account: 'name'
-        bidCurrency: 'BTC'
-        offerCurrency: 'EUR'
+        sequence: 0
+        timestamp: 1371737390976
+        account: account
+        bidBalance: account.getBalance 'BTC'
+        offerBalance: account.getBalance 'EUR'
         bidAmount: amount100
-    .to.throw('Must specify either bid amount and price or offer amount and price')
+    .to.throw 'Must specify either bid amount and price or offer amount and price'
 
   it 'should throw an error if only a offer amount is given as it is not enough information to calculate the other fields a bid', ->
+    account = new Account
+      id: 'Peter'
     expect ->
       order = new Order
-        id: '123456789'
-        timestamp: '987654321'
-        account: 'name'
-        bidCurrency: 'BTC'
-        offerCurrency: 'EUR'
+        sequence: 0
+        timestamp: 1371737390976
+        account: account
+        bidBalance: account.getBalance 'BTC'
+        offerBalance: account.getBalance 'EUR'
         offerAmount: amount100
-    .to.throw('Must specify either bid amount and price or offer amount and price')
+    .to.throw 'Must specify either bid amount and price or offer amount and price'
 
   it 'should throw an error if both the bid price, bid amount and offer price are given as we do not want to trust the calculations of others', ->
+    account = new Account
+      id: 'Peter'
     expect ->
       order = new Order
-        id: '123456789'
-        timestamp: '987654321'
-        account: 'name'
-        bidCurrency: 'BTC'
-        offerCurrency: 'EUR'
+        sequence: 0
+        timestamp: 1371737390976
+        account: account
+        bidBalance: account.getBalance 'BTC'
+        offerBalance: account.getBalance 'EUR'
         bidPrice: amount100
         offerPrice: amount50
         bidAmount: amount50
-    .to.throw('Must specify either bid amount and price or offer amount and price')
+    .to.throw 'Must specify either bid amount and price or offer amount and price'
 
   it 'should throw an error if both the offer price, offer amount and bid price are given as we do not want to trust the calculations of others', ->
+    account = new Account
+      id: 'Peter'
     expect ->
       order = new Order
-        id: '123456789'
-        timestamp: '987654321'
-        account: 'name'
-        bidCurrency: 'BTC'
-        offerCurrency: 'EUR'
+        sequence: 0
+        timestamp: 1371737390976
+        account: account
+        bidBalance: account.getBalance 'BTC'
+        offerBalance: account.getBalance 'EUR'
         bidPrice: amount100
         offerPrice: amount50
         offerAmount: amount50
-    .to.throw('Must specify either bid amount and price or offer amount and price')
+    .to.throw 'Must specify either bid amount and price or offer amount and price'
 
   it 'should throw an error if the bid price, offer amount and bid amount are given as we do not want to trust the calculations of others', ->
+    account = new Account
+      id: 'Peter'
     expect ->
       order = new Order
-        id: '123456789'
-        timestamp: '987654321'
-        account: 'name'
-        bidCurrency: 'BTC'
-        offerCurrency: 'EUR'
+        sequence: 0
+        timestamp: 1371737390976
+        account: account
+        bidBalance: account.getBalance 'BTC'
+        offerBalance: account.getBalance 'EUR'
         bidPrice: amount100
         offerAmount: amount60
         bidAmount: amount50
-    .to.throw('Must specify either bid amount and price or offer amount and price')
+    .to.throw 'Must specify either bid amount and price or offer amount and price'
 
   it 'should throw an error if the offer price, offer amount and bid amount are given as we do not want to trust the calculations of others', ->
+    account = new Account
+      id: 'Peter'
     expect ->
       order = new Order
-        id: '123456789'
-        timestamp: '987654321'
-        account: 'name'
-        bidCurrency: 'BTC'
-        offerCurrency: 'EUR'
+        sequence: 0
+        timestamp: 1371737390976
+        account: account
+        bidBalance: account.getBalance 'BTC'
+        offerBalance: account.getBalance 'EUR'
         offerPrice: amount100
         offerAmount: amount60
         bidAmount: amount50
-    .to.throw('Must specify either bid amount and price or offer amount and price')
+    .to.throw 'Must specify either bid amount and price or offer amount and price'
 
   it 'should throw an error if only amounts are specified as we need to know which amount to satisfy if the order is excuted at a better price', ->
+    account = new Account
+      id: 'Peter'
     expect ->
       order = new Order
-        id: '123456789'
-        timestamp: '987654321'
-        account: 'name'
-        bidCurrency: 'BTC'
-        offerCurrency: 'EUR'
+        sequence: 0
+        timestamp: 1371737390976
+        account: account
+        bidBalance: account.getBalance 'BTC'
+        offerBalance: account.getBalance 'EUR'
         bidAmount: amount100
         offerAmount: amount50
-    .to.throw('Must specify either bid amount and price or offer amount and price')
+    .to.throw 'Must specify either bid amount and price or offer amount and price'
 
   it 'should throw an error if a bid amount and offer price are specified as we need to know which amount to satisfy if the order is excuted at a better price', ->
+    account = new Account
+      id: 'Peter'
     expect ->
       order = new Order
-        id: '123456789'
-        timestamp: '987654321'
-        account: 'name'
-        bidCurrency: 'BTC'
-        offerCurrency: 'EUR'
+        sequence: 0
+        timestamp: 1371737390976
+        account: account
+        bidBalance: account.getBalance 'BTC'
+        offerBalance: account.getBalance 'EUR'
         bidAmount: amount100
         offerPrice: amount50
-    .to.throw('Must specify either bid amount and price or offer amount and price')
+    .to.throw 'Must specify either bid amount and price or offer amount and price'
 
   it 'should throw an error if an offer amount and bid price are specified as we need to know which amount to satisfy if the order is excuted at a better price', ->
+    account = new Account
+      id: 'Peter'
     expect ->
       order = new Order
-        id: '123456789'
-        timestamp: '987654321'
-        account: 'name'
-        bidCurrency: 'BTC'
-        offerCurrency: 'EUR'
+        sequence: 0
+        timestamp: 1371737390976
+        account: account
+        bidBalance: account.getBalance 'BTC'
+        offerBalance: account.getBalance 'EUR'
         offerAmount: amount100
         bidPrice: amount50
-    .to.throw('Must specify either bid amount and price or offer amount and price')
+    .to.throw 'Must specify either bid amount and price or offer amount and price'
 
   it 'should throw an error if the bid amount is negative', ->
+    account = new Account
+      id: 'Peter'
     expect ->
       order = new Order
-        id: '123456789'
-        timestamp: '987654321'
-        account: 'name'
-        bidCurrency: 'BTC'
-        offerCurrency: 'EUR'
+        sequence: 0
+        timestamp: 1371737390976
+        account: account
+        bidBalance: account.getBalance 'BTC'
+        offerBalance: account.getBalance 'EUR'
         bidPrice: amount100
         bidAmount: amountMinus50
-    .to.throw('bid amount cannot be negative')
+    .to.throw 'bid amount cannot be negative'
 
   it 'should throw an error if the bid price is negative', ->
+    account = new Account
+      id: 'Peter'
     expect ->
       order = new Order
-        id: '123456789'
-        timestamp: '987654321'
-        account: 'name'
-        bidCurrency: 'BTC'
-        offerCurrency: 'EUR'
+        sequence: 0
+        timestamp: 1371737390976
+        account: account
+        bidBalance: account.getBalance 'BTC'
+        offerBalance: account.getBalance 'EUR'
         bidPrice: amountMinus100
         bidAmount: amount50
-    .to.throw('bid price cannot be negative')
+    .to.throw 'bid price cannot be negative'
 
   it 'should throw an error if the offer amount is negative', ->
+    account = new Account
+      id: 'Peter'
     expect ->
       order = new Order
-        id: '123456789'
-        timestamp: '987654321'
-        account: 'name'
-        bidCurrency: 'BTC'
-        offerCurrency: 'EUR'
+        sequence: 0
+        timestamp: 1371737390976
+        account: account
+        bidBalance: account.getBalance 'BTC'
+        offerBalance: account.getBalance 'EUR'
         offerPrice: amount100
         offerAmount: amountMinus50
-    .to.throw('offer amount cannot be negative')
+    .to.throw 'offer amount cannot be negative'
 
   it 'should throw an error if the offer price is negative', ->
+    account = new Account
+      id: 'Peter'
     expect ->
       order = new Order
-        id: '123456789'
-        timestamp: '987654321'
-        account: 'name'
-        bidCurrency: 'BTC'
-        offerCurrency: 'EUR'
+        sequence: 0
+        timestamp: 1371737390976
+        account: account
+        bidBalance: account.getBalance 'BTC'
+        offerBalance: account.getBalance 'EUR'
         offerPrice: amountMinus100
         offerAmount: amount50
-    .to.throw('offer price cannot be negative')
+    .to.throw 'offer price cannot be negative'
 
-  it 'should record the id, timestamp, account name, bid currency and offer currency', ->
+  it 'should error if there are not enough funds available to satisfy the order', ->
+    account = new Account
+      id: 'Peter'
+    bidBalance = account.getBalance 'BTC'
+    offerBalance = account.getBalance 'EUR'
+    expect ->
+      order = new Order
+        sequence: 0
+        timestamp: 1371737390976
+        account: account
+        bidBalance: bidBalance
+        offerBalance: offerBalance
+        bidPrice: amount100
+        bidAmount: amount50
+    .to.throw 'Cannot lock funds that are not available'
+
+  it 'should record the sequence, timestamp, account name, bid balance and offer balance and lock the correct amount of funds in offer balance', ->
+    account = new Account
+      id: 'Peter'
+    bidBalance = account.getBalance 'BTC'
+    offerBalance = account.getBalance 'EUR'
+    offerBalance.deposit amount5000
     order = new Order
-      id: '123456789'
-      timestamp: '987654321'
-      account: 'name'
-      bidCurrency: 'BTC'
-      offerCurrency: 'EUR'
+      sequence: 0
+      timestamp: 1371737390976
+      account: account
+      bidBalance: bidBalance
+      offerBalance: offerBalance
       bidPrice: amount100
       bidAmount: amount50
-    order.id.should.equal '123456789'
-    order.timestamp.should.equal '987654321'
-    order.account.should.equal 'name'
-    order.bidCurrency.should.equal 'BTC'
-    order.offerCurrency.should.equal 'EUR'
+    order.sequence.should.equal 0
+    order.timestamp.should.equal 1371737390976
+    order.account.should.equal account
+    order.bidBalance.should.equal bidBalance
+    order.offerBalance.should.equal offerBalance
+    offerBalance.lockedFunds.compareTo(amount5000).should.equal 0
 
   it 'should instantiate with an undefined parent, lower and higher orders, bid price and bid amount calculating the offer amount', ->
+    account = new Account
+      id: 'Peter'
+    bidBalance = account.getBalance 'BTC'
+    offerBalance = account.getBalance 'EUR'
+    offerBalance.deposit amount5000
     order = new Order
-      id: '123456789'
-      timestamp: '987654321'
-      account: 'name'
-      bidCurrency: 'BTC'
-      offerCurrency: 'EUR'
+      sequence: 0
+      timestamp: 1371737390976
+      account: account
+      bidBalance: bidBalance
+      offerBalance: offerBalance
       bidPrice: amount100
       bidAmount: amount50
     order.bidPrice.compareTo(amount100).should.equal 0
@@ -341,12 +412,17 @@ describe 'Order', ->
     expect(order.higher).to.not.be.ok
 
   it 'should instantiate with an undefined parent, lower and higher orders, offer price and offer amount calculating the bid amount', ->
+    account = new Account
+      id: 'Peter'
+    bidBalance = account.getBalance 'BTC'
+    offerBalance = account.getBalance 'EUR'
+    offerBalance.deposit amount5000
     order = new Order
-      id: '123456789'
-      timestamp: '987654321'
-      account: 'name'
-      bidCurrency: 'BTC'
-      offerCurrency: 'EUR'
+      sequence: 0
+      timestamp: 1371737390976
+      account: account
+      bidBalance: bidBalance
+      offerBalance: offerBalance
       offerPrice: amount100
       offerAmount: amount50
     order.offerPrice.compareTo(amount100).should.equal 0
@@ -359,311 +435,337 @@ describe 'Order', ->
   describe '#match', ->
     describe 'where the existing (right) order is an offer', ->
       beforeEach ->
+        @commissionAccount = new Account
+          id: 'commission'
+        @account = new Account
+          id: 'Peter'
+          commission:
+            account: @commissionAccount
+            calculate: (params) =>
+              commission = 
+                amount: amount1
+                reference: 'Peter commission level'
+        @bidBalance = @account.getBalance 'BTC'
+        @offerBalance = @account.getBalance 'EUR'
+        @offerBalance.deposit amount1000
         @order = new Order
-          id: '1'
-          timestamp: '1'
-          account: 'Peter'
-          bidCurrency: 'BTC'
-          offerCurrency: 'EUR'
+          sequence: 0
+          timestamp: 1371737390976
+          account: @account
+          bidBalance: @bidBalance
+          offerBalance: @offerBalance
           offerPrice: amountPoint2   # 5
           offerAmount: amount1000 # 200
         @doneSpy = sinon.spy()
         @order.on 'done', @doneSpy
-        @fillSpy = sinon.spy()
-        @order.on 'fill', @fillSpy
         @tradeSpy = sinon.spy()
         @order.on 'trade', @tradeSpy
 
       describe 'and the new (left) price is same', ->
         describe 'and the left order is a bid', ->
           describe 'and the right order is offering exactly the amount the left order is bidding', ->
-              it 'should trade the amount the right order is offering, emit fill events and a trade event and return false to indicate that no higher trades can be filled by the left order', ->
-                order = new Order
-                  id: '2'
-                  timestamp: '2'
-                  account: 'Paul'
-                  bidCurrency: 'EUR'
-                  offerCurrency: 'BTC'
-                  bidPrice: amountPoint2
-                  bidAmount: amount1000
-                doneSpy = sinon.spy()
-                order.on 'done', doneSpy
-                fillSpy = sinon.spy()
-                order.on 'fill', fillSpy
-                tradeSpy = sinon.spy()
-                order.on 'trade', tradeSpy
+            it.only 'should trade the amount the right order is offering, emit a trade event and return false to indicate that no higher trades can be filled by the left order', ->
+              account = new Account
+                id: 'Paul'
+                commission:
+                  account: @commissionAccount
+                  calculate: (params) =>
+                    commission = 
+                      amount: amount5
+                      reference: 'Paul commission level'
+              bidBalance = account.getBalance 'EUR'
+              offerBalance = account.getBalance 'BTC'
+              offerBalance.deposit amount200
+              order = new Order
+                sequence: 1
+                timestamp: 1371737390977
+                account: account
+                bidBalance: bidBalance
+                offerBalance: offerBalance
+                bidPrice: amountPoint2
+                bidAmount: amount1000
+              doneSpy = sinon.spy()
+              order.on 'done', doneSpy
+              tradeSpy = sinon.spy()
+              order.on 'trade', tradeSpy
 
-                order.match(@order).should.be.false
+              order.match(@order).should.be.false
 
-                doneSpy.should.have.been.calledOnce
-                @doneSpy.should.have.been.calledOnce
+              doneSpy.should.have.been.calledOnce
+              @doneSpy.should.have.been.calledOnce
 
-                fillSpy.should.have.been.calledOnce
-                fillSpy.firstCall.args[0].offerAmount.compareTo(amount200).should.equal 0
-                fillSpy.firstCall.args[0].bidAmount.compareTo(amount1000).should.equal 0
-                fillSpy.firstCall.args[0].timestamp.should.equal '2'
-                fillSpy.firstCall.args[0].fundsUnlocked.compareTo(amount200).should.equal 0
-                order.offerAmount.compareTo(Amount.ZERO).should.equal 0
-                order.bidAmount.compareTo(Amount.ZERO).should.equal 0
+              offerBalance.funds.compareTo(Amount.ZERO).should.equal 0
+              bidBalance.funds.compareTo(amount995).should.equal 0
+              @commissionAccount.getBalance('EUR').funds.compareTo(amount5).should.equal 0
 
-                @fillSpy.should.have.been.calledOnce
-                @fillSpy.firstCall.args[0].bidAmount.compareTo(amount200).should.equal 0
-                @fillSpy.firstCall.args[0].offerAmount.compareTo(amount1000).should.equal 0
-                @fillSpy.firstCall.args[0].timestamp.should.equal '2'
-                @fillSpy.firstCall.args[0].fundsUnlocked.compareTo(amount1000).should.equal 0
-                @order.bidAmount.compareTo(Amount.ZERO).should.equal 0
-                @order.offerAmount.compareTo(Amount.ZERO).should.equal 0
+              order.offerAmount.compareTo(Amount.ZERO).should.equal 0
+              order.bidAmount.compareTo(Amount.ZERO).should.equal 0
 
-                tradeSpy.should.not.have.been.called
-                @tradeSpy.should.have.been.calledOnce
-                @tradeSpy.firstCall.args[0].timestamp.should.equal order.timestamp
-                @tradeSpy.firstCall.args[0].left.sequence.should.equal order.id
-                @tradeSpy.firstCall.args[0].left.newBidAmount.compareTo(order.bidAmount).should.equal 0
-                @tradeSpy.firstCall.args[0].right.sequence.should.equal @order.id
-                @tradeSpy.firstCall.args[0].right.newOfferAmount.compareTo(@order.offerAmount).should.equal 0
-                @tradeSpy.firstCall.args[0].price.compareTo(@order.offerPrice).should.equal 0
-                @tradeSpy.firstCall.args[0].amount.compareTo(amount1000).should.equal 0
+              @offerBalance.funds.compareTo(Amount.ZERO).should.equal 0
+              @bidBalance.funds.compareTo(amount199).should.equal 0
+              @commissionAccount.getBalance('BTC').funds.compareTo(amount1).should.equal 0
+
+              @order.bidAmount.compareTo(Amount.ZERO).should.equal 0
+              @order.offerAmount.compareTo(Amount.ZERO).should.equal 0
+
+              tradeSpy.should.not.have.been.called
+              @tradeSpy.should.have.been.calledOnce
+              @tradeSpy.firstCall.args[0].timestamp.should.equal order.timestamp
+              @tradeSpy.firstCall.args[0].left.sequence.should.equal order.sequence
+              @tradeSpy.firstCall.args[0].left.newBidAmount.compareTo(order.bidAmount).should.equal 0
+              @tradeSpy.firstCall.args[0].left.balanceDeltas.debit.amount.compareTo(amount200).should.equal 0
+              @tradeSpy.firstCall.args[0].left.balanceDeltas.credit.amount.compareTo(amount995).should.equal 0
+              @tradeSpy.firstCall.args[0].left.balanceDeltas.credit.commission.amount.compareTo(amount5).should.equal 0
+              @tradeSpy.firstCall.args[0].left.balanceDeltas.credit.commission.reference.should.equal 'Paul commission level'
+              @tradeSpy.firstCall.args[0].right.sequence.should.equal @order.sequence
+              @tradeSpy.firstCall.args[0].right.newOfferAmount.compareTo(@order.offerAmount).should.equal 0
+              @tradeSpy.firstCall.args[0].right.balanceDeltas.debit.amount.compareTo(amount1000).should.equal 0
+              @tradeSpy.firstCall.args[0].right.balanceDeltas.credit.amount.compareTo(amount199).should.equal 0
+              @tradeSpy.firstCall.args[0].right.balanceDeltas.credit.commission.amount.compareTo(amount1).should.equal 0
+              @tradeSpy.firstCall.args[0].right.balanceDeltas.credit.commission.reference.should.equal 'Peter commission level'
+              @tradeSpy.firstCall.args[0].price.compareTo(@order.offerPrice).should.equal 0
+              @tradeSpy.firstCall.args[0].amount.compareTo(amount1000).should.equal 0
 
           describe 'and the right order is offering more than the left order is bidding', ->
-              it 'should trade the amount the left order is offering, emit fill events and a trade event and return false to indicate that higher trades may still be filled by the left order', ->
-                order = new Order
-                  id: '2'
-                  timestamp: '2'
-                  account: 'Paul'
-                  bidCurrency: 'EUR'
-                  offerCurrency: 'BTC'
-                  bidPrice: amountPoint2
-                  bidAmount: amount500
-                doneSpy = sinon.spy()
-                order.on 'done', doneSpy
-                fillSpy = sinon.spy()
-                order.on 'fill', fillSpy
-                tradeSpy = sinon.spy()
-                order.on 'trade', tradeSpy
-                
-                order.match(@order).should.be.false
+            it 'should trade the amount the left order is offering, emit fill events and a trade event and return false to indicate that higher trades may still be filled by the left order', ->
+              order = new Order
+                id: '2'
+                timestamp: '2'
+                account: 'Paul'
+                bidCurrency: 'EUR'
+                offerCurrency: 'BTC'
+                bidPrice: amountPoint2
+                bidAmount: amount500
+              doneSpy = sinon.spy()
+              order.on 'done', doneSpy
+              fillSpy = sinon.spy()
+              order.on 'fill', fillSpy
+              tradeSpy = sinon.spy()
+              order.on 'trade', tradeSpy
+              
+              order.match(@order).should.be.false
 
-                doneSpy.should.have.been.calledOnce
-                @doneSpy.should.not.have.been.called
+              doneSpy.should.have.been.calledOnce
+              @doneSpy.should.not.have.been.called
 
-                fillSpy.should.have.been.calledOnce
-                fillSpy.firstCall.args[0].offerAmount.compareTo(amount100).should.equal 0
-                fillSpy.firstCall.args[0].bidAmount.compareTo(amount500).should.equal 0
-                fillSpy.firstCall.args[0].timestamp.should.equal '2'
-                fillSpy.firstCall.args[0].fundsUnlocked.compareTo(amount100).should.equal 0
-                order.offerAmount.compareTo(Amount.ZERO).should.equal 0
-                order.bidAmount.compareTo(Amount.ZERO).should.equal 0
+              fillSpy.should.have.been.calledOnce
+              fillSpy.firstCall.args[0].offerAmount.compareTo(amount100).should.equal 0
+              fillSpy.firstCall.args[0].bidAmount.compareTo(amount500).should.equal 0
+              fillSpy.firstCall.args[0].timestamp.should.equal '2'
+              fillSpy.firstCall.args[0].fundsUnlocked.compareTo(amount100).should.equal 0
+              order.offerAmount.compareTo(Amount.ZERO).should.equal 0
+              order.bidAmount.compareTo(Amount.ZERO).should.equal 0
 
-                @fillSpy.should.have.been.calledOnce
-                @fillSpy.firstCall.args[0].bidAmount.compareTo(amount100).should.equal 0
-                @fillSpy.firstCall.args[0].offerAmount.compareTo(amount500).should.equal 0
-                @fillSpy.firstCall.args[0].timestamp.should.equal '2'
-                @fillSpy.firstCall.args[0].fundsUnlocked.compareTo(amount500).should.equal 0
-                @order.bidAmount.compareTo(amount100).should.equal 0
-                @order.offerAmount.compareTo(amount500).should.equal 0
+              @fillSpy.should.have.been.calledOnce
+              @fillSpy.firstCall.args[0].bidAmount.compareTo(amount100).should.equal 0
+              @fillSpy.firstCall.args[0].offerAmount.compareTo(amount500).should.equal 0
+              @fillSpy.firstCall.args[0].timestamp.should.equal '2'
+              @fillSpy.firstCall.args[0].fundsUnlocked.compareTo(amount500).should.equal 0
+              @order.bidAmount.compareTo(amount100).should.equal 0
+              @order.offerAmount.compareTo(amount500).should.equal 0
 
-                tradeSpy.should.not.have.been.called
-                @tradeSpy.should.have.been.calledOnce
-                @tradeSpy.firstCall.args[0].timestamp.should.equal order.timestamp
-                @tradeSpy.firstCall.args[0].left.sequence.should.equal order.id
-                @tradeSpy.firstCall.args[0].left.newBidAmount.compareTo(order.bidAmount).should.equal 0
-                @tradeSpy.firstCall.args[0].right.sequence.should.equal @order.id
-                @tradeSpy.firstCall.args[0].right.newOfferAmount.compareTo(@order.offerAmount).should.equal 0
-                @tradeSpy.firstCall.args[0].price.compareTo(@order.offerPrice).should.equal 0
-                @tradeSpy.firstCall.args[0].amount.compareTo(amount500).should.equal 0
+              tradeSpy.should.not.have.been.called
+              @tradeSpy.should.have.been.calledOnce
+              @tradeSpy.firstCall.args[0].timestamp.should.equal order.timestamp
+              @tradeSpy.firstCall.args[0].left.sequence.should.equal order.id
+              @tradeSpy.firstCall.args[0].left.newBidAmount.compareTo(order.bidAmount).should.equal 0
+              @tradeSpy.firstCall.args[0].right.sequence.should.equal @order.id
+              @tradeSpy.firstCall.args[0].right.newOfferAmount.compareTo(@order.offerAmount).should.equal 0
+              @tradeSpy.firstCall.args[0].price.compareTo(@order.offerPrice).should.equal 0
+              @tradeSpy.firstCall.args[0].amount.compareTo(amount500).should.equal 0
 
           describe 'and the right order is offering less than the left order is bidding', ->
-              it 'should trade the amount the right order is offering, emit fill events and a trade event and return true', ->
-                order = new Order
-                  id: '2'
-                  timestamp: '2'
-                  account: 'Paul'
-                  bidCurrency: 'EUR'
-                  offerCurrency: 'BTC'
-                  bidPrice: amountPoint2
-                  bidAmount: amount1500
-                doneSpy = sinon.spy()
-                order.on 'done', doneSpy
-                fillSpy = sinon.spy()
-                order.on 'fill', fillSpy
-                tradeSpy = sinon.spy()
-                order.on 'trade', tradeSpy
-                
-                order.match(@order).should.be.true
+            it 'should trade the amount the right order is offering, emit fill events and a trade event and return true', ->
+              order = new Order
+                id: '2'
+                timestamp: '2'
+                account: 'Paul'
+                bidCurrency: 'EUR'
+                offerCurrency: 'BTC'
+                bidPrice: amountPoint2
+                bidAmount: amount1500
+              doneSpy = sinon.spy()
+              order.on 'done', doneSpy
+              fillSpy = sinon.spy()
+              order.on 'fill', fillSpy
+              tradeSpy = sinon.spy()
+              order.on 'trade', tradeSpy
+              
+              order.match(@order).should.be.true
 
-                doneSpy.should.not.have.been.called
-                @doneSpy.should.have.been.calledOnce
+              doneSpy.should.not.have.been.called
+              @doneSpy.should.have.been.calledOnce
 
-                fillSpy.should.have.been.calledOnce
-                fillSpy.firstCall.args[0].offerAmount.compareTo(amount200).should.equal 0
-                fillSpy.firstCall.args[0].bidAmount.compareTo(amount1000).should.equal 0
-                fillSpy.firstCall.args[0].timestamp.should.equal '2'
-                fillSpy.firstCall.args[0].fundsUnlocked.compareTo(amount200).should.equal 0
-                order.offerAmount.compareTo(amount100).should.equal 0
-                order.bidAmount.compareTo(amount500).should.equal 0
+              fillSpy.should.have.been.calledOnce
+              fillSpy.firstCall.args[0].offerAmount.compareTo(amount200).should.equal 0
+              fillSpy.firstCall.args[0].bidAmount.compareTo(amount1000).should.equal 0
+              fillSpy.firstCall.args[0].timestamp.should.equal '2'
+              fillSpy.firstCall.args[0].fundsUnlocked.compareTo(amount200).should.equal 0
+              order.offerAmount.compareTo(amount100).should.equal 0
+              order.bidAmount.compareTo(amount500).should.equal 0
 
-                @fillSpy.should.have.been.calledOnce
-                @fillSpy.firstCall.args[0].bidAmount.compareTo(amount200).should.equal 0
-                @fillSpy.firstCall.args[0].offerAmount.compareTo(amount1000).should.equal 0
-                @fillSpy.firstCall.args[0].timestamp.should.equal '2'
-                @fillSpy.firstCall.args[0].fundsUnlocked.compareTo(amount1000).should.equal 0
-                @order.bidAmount.compareTo(Amount.ZERO).should.equal 0
-                @order.offerAmount.compareTo(Amount.ZERO).should.equal 0
+              @fillSpy.should.have.been.calledOnce
+              @fillSpy.firstCall.args[0].bidAmount.compareTo(amount200).should.equal 0
+              @fillSpy.firstCall.args[0].offerAmount.compareTo(amount1000).should.equal 0
+              @fillSpy.firstCall.args[0].timestamp.should.equal '2'
+              @fillSpy.firstCall.args[0].fundsUnlocked.compareTo(amount1000).should.equal 0
+              @order.bidAmount.compareTo(Amount.ZERO).should.equal 0
+              @order.offerAmount.compareTo(Amount.ZERO).should.equal 0
 
-                tradeSpy.should.not.have.been.called
-                @tradeSpy.should.have.been.calledOnce
-                @tradeSpy.firstCall.args[0].timestamp.should.equal order.timestamp
-                @tradeSpy.firstCall.args[0].left.sequence.should.equal order.id
-                @tradeSpy.firstCall.args[0].left.newBidAmount.compareTo(order.bidAmount).should.equal 0
-                @tradeSpy.firstCall.args[0].right.sequence.should.equal @order.id
-                @tradeSpy.firstCall.args[0].right.newOfferAmount.compareTo(@order.offerAmount).should.equal 0
-                @tradeSpy.firstCall.args[0].price.compareTo(@order.offerPrice).should.equal 0
-                @tradeSpy.firstCall.args[0].amount.compareTo(amount1000).should.equal 0
+              tradeSpy.should.not.have.been.called
+              @tradeSpy.should.have.been.calledOnce
+              @tradeSpy.firstCall.args[0].timestamp.should.equal order.timestamp
+              @tradeSpy.firstCall.args[0].left.sequence.should.equal order.id
+              @tradeSpy.firstCall.args[0].left.newBidAmount.compareTo(order.bidAmount).should.equal 0
+              @tradeSpy.firstCall.args[0].right.sequence.should.equal @order.id
+              @tradeSpy.firstCall.args[0].right.newOfferAmount.compareTo(@order.offerAmount).should.equal 0
+              @tradeSpy.firstCall.args[0].price.compareTo(@order.offerPrice).should.equal 0
+              @tradeSpy.firstCall.args[0].amount.compareTo(amount1000).should.equal 0
 
         describe 'and the left order is an offer', ->
           describe 'and the right order is offering exactly the amount the left order is offering', ->
-              it 'should trade the amount the right order is offering, emit a fill events and a trade event and return false', ->
-                order = new Order
-                  id: '2'
-                  timestamp: '2'
-                  account: 'Paul'
-                  bidCurrency: 'EUR'
-                  offerCurrency: 'BTC'
-                  offerPrice: amount5
-                  offerAmount: amount200
-                doneSpy = sinon.spy()
-                order.on 'done', doneSpy
-                fillSpy = sinon.spy()
-                order.on 'fill', fillSpy
-                tradeSpy = sinon.spy()
-                order.on 'trade', tradeSpy
-                
-                order.match(@order).should.be.false
+            it 'should trade the amount the right order is offering, emit a fill events and a trade event and return false', ->
+              order = new Order
+                id: '2'
+                timestamp: '2'
+                account: 'Paul'
+                bidCurrency: 'EUR'
+                offerCurrency: 'BTC'
+                offerPrice: amount5
+                offerAmount: amount200
+              doneSpy = sinon.spy()
+              order.on 'done', doneSpy
+              fillSpy = sinon.spy()
+              order.on 'fill', fillSpy
+              tradeSpy = sinon.spy()
+              order.on 'trade', tradeSpy
+              
+              order.match(@order).should.be.false
 
-                doneSpy.should.have.been.calledOnce
-                @doneSpy.should.have.been.calledOnce
+              doneSpy.should.have.been.calledOnce
+              @doneSpy.should.have.been.calledOnce
 
-                fillSpy.should.have.been.calledOnce
-                fillSpy.firstCall.args[0].offerAmount.compareTo(amount200).should.equal 0
-                fillSpy.firstCall.args[0].bidAmount.compareTo(amount1000).should.equal 0
-                fillSpy.firstCall.args[0].timestamp.should.equal '2'
-                fillSpy.firstCall.args[0].fundsUnlocked.compareTo(amount200).should.equal 0
-                order.offerAmount.compareTo(Amount.ZERO).should.equal 0
-                order.bidAmount.compareTo(Amount.ZERO).should.equal 0
+              fillSpy.should.have.been.calledOnce
+              fillSpy.firstCall.args[0].offerAmount.compareTo(amount200).should.equal 0
+              fillSpy.firstCall.args[0].bidAmount.compareTo(amount1000).should.equal 0
+              fillSpy.firstCall.args[0].timestamp.should.equal '2'
+              fillSpy.firstCall.args[0].fundsUnlocked.compareTo(amount200).should.equal 0
+              order.offerAmount.compareTo(Amount.ZERO).should.equal 0
+              order.bidAmount.compareTo(Amount.ZERO).should.equal 0
 
-                @fillSpy.should.have.been.calledOnce
-                @fillSpy.firstCall.args[0].bidAmount.compareTo(amount200).should.equal 0
-                @fillSpy.firstCall.args[0].offerAmount.compareTo(amount1000).should.equal 0
-                @fillSpy.firstCall.args[0].timestamp.should.equal '2'
-                @fillSpy.firstCall.args[0].fundsUnlocked.compareTo(amount1000).should.equal 0
-                @order.bidAmount.compareTo(Amount.ZERO).should.equal 0
-                @order.offerAmount.compareTo(Amount.ZERO).should.equal 0
+              @fillSpy.should.have.been.calledOnce
+              @fillSpy.firstCall.args[0].bidAmount.compareTo(amount200).should.equal 0
+              @fillSpy.firstCall.args[0].offerAmount.compareTo(amount1000).should.equal 0
+              @fillSpy.firstCall.args[0].timestamp.should.equal '2'
+              @fillSpy.firstCall.args[0].fundsUnlocked.compareTo(amount1000).should.equal 0
+              @order.bidAmount.compareTo(Amount.ZERO).should.equal 0
+              @order.offerAmount.compareTo(Amount.ZERO).should.equal 0
 
-                tradeSpy.should.not.have.been.called
-                @tradeSpy.should.have.been.calledOnce
-                @tradeSpy.firstCall.args[0].timestamp.should.equal order.timestamp
-                @tradeSpy.firstCall.args[0].left.sequence.should.equal order.id
-                @tradeSpy.firstCall.args[0].left.newOfferAmount.compareTo(order.offerAmount).should.equal 0
-                @tradeSpy.firstCall.args[0].right.sequence.should.equal @order.id
-                @tradeSpy.firstCall.args[0].right.newOfferAmount.compareTo(@order.offerAmount).should.equal 0
-                @tradeSpy.firstCall.args[0].price.compareTo(@order.offerPrice).should.equal 0
-                @tradeSpy.firstCall.args[0].amount.compareTo(amount1000).should.equal 0
+              tradeSpy.should.not.have.been.called
+              @tradeSpy.should.have.been.calledOnce
+              @tradeSpy.firstCall.args[0].timestamp.should.equal order.timestamp
+              @tradeSpy.firstCall.args[0].left.sequence.should.equal order.id
+              @tradeSpy.firstCall.args[0].left.newOfferAmount.compareTo(order.offerAmount).should.equal 0
+              @tradeSpy.firstCall.args[0].right.sequence.should.equal @order.id
+              @tradeSpy.firstCall.args[0].right.newOfferAmount.compareTo(@order.offerAmount).should.equal 0
+              @tradeSpy.firstCall.args[0].price.compareTo(@order.offerPrice).should.equal 0
+              @tradeSpy.firstCall.args[0].amount.compareTo(amount1000).should.equal 0
 
           describe 'and the right order is offering more than the left order is offering', ->
-              it 'should trade the amount the left order is offering, emit a fill events and a trade event and return false', ->
-                order = new Order
-                  id: '2'
-                  timestamp: '2'
-                  account: 'Paul'
-                  bidCurrency: 'EUR'
-                  offerCurrency: 'BTC'
-                  offerPrice: amount5
-                  offerAmount: amount100
-                doneSpy = sinon.spy()
-                order.on 'done', doneSpy
-                fillSpy = sinon.spy()
-                order.on 'fill', fillSpy
-                tradeSpy = sinon.spy()
-                order.on 'trade', tradeSpy
-                
-                order.match(@order).should.be.false
+            it 'should trade the amount the left order is offering, emit a fill events and a trade event and return false', ->
+              order = new Order
+                id: '2'
+                timestamp: '2'
+                account: 'Paul'
+                bidCurrency: 'EUR'
+                offerCurrency: 'BTC'
+                offerPrice: amount5
+                offerAmount: amount100
+              doneSpy = sinon.spy()
+              order.on 'done', doneSpy
+              fillSpy = sinon.spy()
+              order.on 'fill', fillSpy
+              tradeSpy = sinon.spy()
+              order.on 'trade', tradeSpy
+              
+              order.match(@order).should.be.false
 
-                doneSpy.should.have.been.calledOnce
-                @doneSpy.should.not.have.been.called
+              doneSpy.should.have.been.calledOnce
+              @doneSpy.should.not.have.been.called
 
-                fillSpy.should.have.been.calledOnce
-                fillSpy.firstCall.args[0].offerAmount.compareTo(amount100).should.equal 0
-                fillSpy.firstCall.args[0].bidAmount.compareTo(amount500).should.equal 0
-                fillSpy.firstCall.args[0].timestamp.should.equal '2'
-                fillSpy.firstCall.args[0].fundsUnlocked.compareTo(amount100).should.equal 0
-                order.offerAmount.compareTo(Amount.ZERO).should.equal 0
-                order.bidAmount.compareTo(Amount.ZERO).should.equal 0
+              fillSpy.should.have.been.calledOnce
+              fillSpy.firstCall.args[0].offerAmount.compareTo(amount100).should.equal 0
+              fillSpy.firstCall.args[0].bidAmount.compareTo(amount500).should.equal 0
+              fillSpy.firstCall.args[0].timestamp.should.equal '2'
+              fillSpy.firstCall.args[0].fundsUnlocked.compareTo(amount100).should.equal 0
+              order.offerAmount.compareTo(Amount.ZERO).should.equal 0
+              order.bidAmount.compareTo(Amount.ZERO).should.equal 0
 
-                @fillSpy.should.have.been.calledOnce
-                @fillSpy.firstCall.args[0].bidAmount.compareTo(amount100).should.equal 0
-                @fillSpy.firstCall.args[0].offerAmount.compareTo(amount500).should.equal 0
-                @fillSpy.firstCall.args[0].timestamp.should.equal '2'
-                @fillSpy.firstCall.args[0].fundsUnlocked.compareTo(amount500).should.equal 0
-                @order.bidAmount.compareTo(amount100).should.equal 0
-                @order.offerAmount.compareTo(amount500).should.equal 0
+              @fillSpy.should.have.been.calledOnce
+              @fillSpy.firstCall.args[0].bidAmount.compareTo(amount100).should.equal 0
+              @fillSpy.firstCall.args[0].offerAmount.compareTo(amount500).should.equal 0
+              @fillSpy.firstCall.args[0].timestamp.should.equal '2'
+              @fillSpy.firstCall.args[0].fundsUnlocked.compareTo(amount500).should.equal 0
+              @order.bidAmount.compareTo(amount100).should.equal 0
+              @order.offerAmount.compareTo(amount500).should.equal 0
 
-                tradeSpy.should.not.have.been.called
-                @tradeSpy.should.have.been.calledOnce
-                @tradeSpy.firstCall.args[0].timestamp.should.equal order.timestamp
-                @tradeSpy.firstCall.args[0].left.sequence.should.equal order.id
-                @tradeSpy.firstCall.args[0].left.newOfferAmount.compareTo(order.offerAmount).should.equal 0
-                @tradeSpy.firstCall.args[0].right.sequence.should.equal @order.id
-                @tradeSpy.firstCall.args[0].right.newOfferAmount.compareTo(@order.offerAmount).should.equal 0
-                @tradeSpy.firstCall.args[0].price.compareTo(@order.offerPrice).should.equal 0
-                @tradeSpy.firstCall.args[0].amount.compareTo(amount500).should.equal 0                
+              tradeSpy.should.not.have.been.called
+              @tradeSpy.should.have.been.calledOnce
+              @tradeSpy.firstCall.args[0].timestamp.should.equal order.timestamp
+              @tradeSpy.firstCall.args[0].left.sequence.should.equal order.id
+              @tradeSpy.firstCall.args[0].left.newOfferAmount.compareTo(order.offerAmount).should.equal 0
+              @tradeSpy.firstCall.args[0].right.sequence.should.equal @order.id
+              @tradeSpy.firstCall.args[0].right.newOfferAmount.compareTo(@order.offerAmount).should.equal 0
+              @tradeSpy.firstCall.args[0].price.compareTo(@order.offerPrice).should.equal 0
+              @tradeSpy.firstCall.args[0].amount.compareTo(amount500).should.equal 0                
 
           describe 'and the right order is offering less than the left order is offering', ->
-              it 'should trade the amount the right order is offering, emit fill events and a trade event and return true', ->
-                order = new Order
-                  id: '2'
-                  timestamp: '2'
-                  account: 'Paul'
-                  bidCurrency: 'EUR'
-                  offerCurrency: 'BTC'
-                  offerPrice: amount5
-                  offerAmount: amount300
-                doneSpy = sinon.spy()
-                order.on 'done', doneSpy
-                fillSpy = sinon.spy()
-                order.on 'fill', fillSpy
-                tradeSpy = sinon.spy()
-                order.on 'trade', tradeSpy
-                
-                order.match(@order).should.be.true
+            it 'should trade the amount the right order is offering, emit fill events and a trade event and return true', ->
+              order = new Order
+                id: '2'
+                timestamp: '2'
+                account: 'Paul'
+                bidCurrency: 'EUR'
+                offerCurrency: 'BTC'
+                offerPrice: amount5
+                offerAmount: amount300
+              doneSpy = sinon.spy()
+              order.on 'done', doneSpy
+              fillSpy = sinon.spy()
+              order.on 'fill', fillSpy
+              tradeSpy = sinon.spy()
+              order.on 'trade', tradeSpy
+              
+              order.match(@order).should.be.true
 
-                doneSpy.should.not.have.been.called
-                @doneSpy.should.have.been.calledOnce
+              doneSpy.should.not.have.been.called
+              @doneSpy.should.have.been.calledOnce
 
-                fillSpy.should.have.been.calledOnce
-                fillSpy.firstCall.args[0].offerAmount.compareTo(amount200).should.equal 0
-                fillSpy.firstCall.args[0].bidAmount.compareTo(amount1000).should.equal 0
-                fillSpy.firstCall.args[0].timestamp.should.equal '2'
-                fillSpy.firstCall.args[0].fundsUnlocked.compareTo(amount200).should.equal 0
-                order.offerAmount.compareTo(amount100).should.equal 0
-                order.bidAmount.compareTo(amount500).should.equal 0
+              fillSpy.should.have.been.calledOnce
+              fillSpy.firstCall.args[0].offerAmount.compareTo(amount200).should.equal 0
+              fillSpy.firstCall.args[0].bidAmount.compareTo(amount1000).should.equal 0
+              fillSpy.firstCall.args[0].timestamp.should.equal '2'
+              fillSpy.firstCall.args[0].fundsUnlocked.compareTo(amount200).should.equal 0
+              order.offerAmount.compareTo(amount100).should.equal 0
+              order.bidAmount.compareTo(amount500).should.equal 0
 
-                @fillSpy.should.have.been.calledOnce
-                @fillSpy.firstCall.args[0].bidAmount.compareTo(amount200).should.equal 0
-                @fillSpy.firstCall.args[0].offerAmount.compareTo(amount1000).should.equal 0
-                @fillSpy.firstCall.args[0].timestamp.should.equal '2'
-                @fillSpy.firstCall.args[0].fundsUnlocked.compareTo(amount1000).should.equal 0
-                @order.bidAmount.compareTo(Amount.ZERO).should.equal 0
-                @order.offerAmount.compareTo(Amount.ZERO).should.equal 0
+              @fillSpy.should.have.been.calledOnce
+              @fillSpy.firstCall.args[0].bidAmount.compareTo(amount200).should.equal 0
+              @fillSpy.firstCall.args[0].offerAmount.compareTo(amount1000).should.equal 0
+              @fillSpy.firstCall.args[0].timestamp.should.equal '2'
+              @fillSpy.firstCall.args[0].fundsUnlocked.compareTo(amount1000).should.equal 0
+              @order.bidAmount.compareTo(Amount.ZERO).should.equal 0
+              @order.offerAmount.compareTo(Amount.ZERO).should.equal 0
 
-                tradeSpy.should.not.have.been.called
-                @tradeSpy.should.have.been.calledOnce
-                @tradeSpy.firstCall.args[0].timestamp.should.equal order.timestamp
-                @tradeSpy.firstCall.args[0].left.sequence.should.equal order.id
-                @tradeSpy.firstCall.args[0].left.newOfferAmount.compareTo(order.offerAmount).should.equal 0
-                @tradeSpy.firstCall.args[0].right.sequence.should.equal @order.id
-                @tradeSpy.firstCall.args[0].right.newOfferAmount.compareTo(@order.offerAmount).should.equal 0
-                @tradeSpy.firstCall.args[0].price.compareTo(@order.offerPrice).should.equal 0
-                @tradeSpy.firstCall.args[0].amount.compareTo(amount1000).should.equal 0                
+              tradeSpy.should.not.have.been.called
+              @tradeSpy.should.have.been.calledOnce
+              @tradeSpy.firstCall.args[0].timestamp.should.equal order.timestamp
+              @tradeSpy.firstCall.args[0].left.sequence.should.equal order.id
+              @tradeSpy.firstCall.args[0].left.newOfferAmount.compareTo(order.offerAmount).should.equal 0
+              @tradeSpy.firstCall.args[0].right.sequence.should.equal @order.id
+              @tradeSpy.firstCall.args[0].right.newOfferAmount.compareTo(@order.offerAmount).should.equal 0
+              @tradeSpy.firstCall.args[0].price.compareTo(@order.offerPrice).should.equal 0
+              @tradeSpy.firstCall.args[0].amount.compareTo(amount1000).should.equal 0                
 
       describe 'and the new (left) price is the better', ->
         describe 'and the left order is an offer', ->              

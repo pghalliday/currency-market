@@ -3,25 +3,25 @@ EventEmitter = require('events').EventEmitter
 
 module.exports = class Order extends EventEmitter
   constructor: (params) ->
-    @id =  params.id
-    if !@id
-      throw new Error('Order must have an ID')
+    @sequence =  params.sequence
+    if typeof @sequence == 'undefined'
+      throw new Error('Order must have a sequence')
 
     @timestamp = params.timestamp
-    if !@timestamp
-      throw new Error('Order must have a time stamp')
+    if typeof @timestamp == 'undefined'
+      throw new Error('Order must have a timestamp')
 
     @account = params.account
     if !@account
       throw new Error('Order must be associated with an account')
 
-    @bidCurrency = params.bidCurrency
-    if !@bidCurrency
-      throw new Error('Order must be associated with a bid currency')
+    @bidBalance = params.bidBalance
+    if !@bidBalance
+      throw new Error('Order must be associated with a bid balance')
 
-    @offerCurrency = params.offerCurrency
-    if !@offerCurrency
-      throw new Error('Order must be associated with an offer currency')
+    @offerBalance = params.offerBalance
+    if !@offerBalance
+      throw new Error('Order must be associated with an offer balance')
 
     if params.offerPrice
       @offerPrice = params.offerPrice
@@ -60,37 +60,45 @@ module.exports = class Order extends EventEmitter
             throw new Error('Must specify either bid amount and price or offer amount and price')
       else
           throw new Error('Must specify either bid amount and price or offer amount and price')
+    @offerBalance.lock @offerAmount
 
   partialOffer = (bidAmount, offerAmount, timestamp) ->
     @offerAmount = @offerAmount.subtract offerAmount
     @bidAmount = @offerAmount.multiply @offerPrice
-    @emit 'fill', 
-      offerAmount: offerAmount
-      bidAmount: bidAmount
-      fundsUnlocked: offerAmount
-      timestamp: timestamp
+    balanceDeltas =
+      credit: @bidBalance.applyBid
+        amount: bidAmount
+        timestamp: timestamp
+      debit: @offerBalance.applyOffer
+        amount: offerAmount
+        fundsUnlocked: fundsUnlocked
 
   partialBid = (bidAmount, offerAmount, timestamp) ->
     @bidAmount = @bidAmount.subtract bidAmount
     newOfferAmount = @bidAmount.multiply @bidPrice
     fundsUnlocked = @offerAmount.subtract newOfferAmount
     @offerAmount = newOfferAmount
-    @emit 'fill',
-      offerAmount: offerAmount
-      bidAmount: bidAmount
-      fundsUnlocked: fundsUnlocked
-      timestamp: timestamp
+    balanceDeltas =
+      credit: @bidBalance.applyBid
+        amount: bidAmount
+        timestamp: timestamp
+      debit: @offerBalance.applyOffer
+        amount: offerAmount
+        fundsUnlocked: fundsUnlocked
 
   fill = (bidAmount, offerAmount, timestamp) ->
     fundsUnlocked = @offerAmount
     @bidAmount = Amount.ZERO
     @offerAmount = Amount.ZERO
-    @emit 'fill', 
-      offerAmount: offerAmount
-      bidAmount: bidAmount
-      fundsUnlocked: fundsUnlocked
-      timestamp: timestamp
+    balanceDeltas =
+      credit: @bidBalance.applyBid
+        amount: bidAmount
+        timestamp: timestamp
+      debit: @offerBalance.applyOffer
+        amount: offerAmount
+        fundsUnlocked: fundsUnlocked
     @emit 'done'
+    return balanceDeltas
 
   match: (order) =>
     if @offerPrice
@@ -102,16 +110,18 @@ module.exports = class Order extends EventEmitter
           if compareAmounts > 0
             leftOfferAmount = order.bidAmount
             rightOfferAmount = order.offerAmount
-            fill.call order, leftOfferAmount, rightOfferAmount, @timestamp
-            partialOffer.call @, rightOfferAmount, leftOfferAmount, @timestamp
+            rightBalanceDeltas = fill.call order, leftOfferAmount, rightOfferAmount, @timestamp
+            leftBalanceDeltas = partialOffer.call @, rightOfferAmount, leftOfferAmount, @timestamp
             order.emit 'trade',
               timestamp: @timestamp
               left:
-                sequence: @id
+                sequence: @sequence
                 newOfferAmount: @offerAmount
+                balanceDeltas: leftBalanceDeltas
               right:
-                sequence: order.id
+                sequence: order.sequence
                 newBidAmount: order.bidAmount
+                balanceDeltas: rightBalanceDeltas
               price: price
               amount: leftOfferAmount
             return true
@@ -119,18 +129,20 @@ module.exports = class Order extends EventEmitter
             leftOfferAmount = @offerAmount
             rightOfferAmount = leftOfferAmount.multiply price
             if compareAmounts == 0
-              fill.call order, leftOfferAmount, rightOfferAmount, @timestamp
+              rightBalanceDeltas = fill.call order, leftOfferAmount, rightOfferAmount, @timestamp
             else
-              partialBid.call order, leftOfferAmount, rightOfferAmount, @timestamp
-            fill.call @, rightOfferAmount, leftOfferAmount, @timestamp
+              rightBalanceDeltas = partialBid.call order, leftOfferAmount, rightOfferAmount, @timestamp
+            leftBalanceDeltas = fill.call @, rightOfferAmount, leftOfferAmount, @timestamp
             order.emit 'trade',
               timestamp: @timestamp
               left:
-                sequence: @id
+                sequence: @sequence
                 newOfferAmount: @offerAmount
+                balanceDeltas: leftBalanceDeltas
               right:
-                sequence: order.id
+                sequence: order.sequence
                 newBidAmount: order.bidAmount
+                balanceDeltas: rightBalanceDeltas
               price: price
               amount: leftOfferAmount
             return false
@@ -142,16 +154,18 @@ module.exports = class Order extends EventEmitter
           if compareAmounts > 0
             leftOfferAmount = order.bidAmount
             rightOfferAmount = order.offerAmount
-            fill.call order, leftOfferAmount, rightOfferAmount, @timestamp
-            partialOffer.call @, rightOfferAmount, leftOfferAmount, @timestamp
+            rightBalanceDeltas = fill.call order, leftOfferAmount, rightOfferAmount, @timestamp
+            leftBalanceDeltas = partialOffer.call @, rightOfferAmount, leftOfferAmount, @timestamp
             order.emit 'trade',
               timestamp: @timestamp
               left:
-                sequence: @id
+                sequence: @sequence
                 newOfferAmount: @offerAmount
+                balanceDeltas: leftBalanceDeltas
               right:
-                sequence: order.id
+                sequence: order.sequence
                 newOfferAmount: order.offerAmount
+                balanceDeltas: rightBalanceDeltas
               price: price
               amount: rightOfferAmount
             return true
@@ -165,18 +179,20 @@ module.exports = class Order extends EventEmitter
             # if you allow your market to be priced in either direction
             rightOfferAmount = leftOfferAmount.divide price
             if compareAmounts == 0
-              fill.call order, leftOfferAmount, rightOfferAmount, @timestamp
+              rightBalanceDeltas = fill.call order, leftOfferAmount, rightOfferAmount, @timestamp
             else
-              partialOffer.call order, leftOfferAmount, rightOfferAmount, @timestamp
-            fill.call @, rightOfferAmount, leftOfferAmount, @timestamp
+              rightBalanceDeltas = partialOffer.call order, leftOfferAmount, rightOfferAmount, @timestamp
+            leftBalanceDeltas = fill.call @, rightOfferAmount, leftOfferAmount, @timestamp
             order.emit 'trade',
               timestamp: @timestamp
               left:
-                sequence: @id
+                sequence: @sequence
                 newOfferAmount: @offerAmount
+                balanceDeltas: leftBalanceDeltas
               right:
-                sequence: order.id
+                sequence: order.sequence
                 newOfferAmount: order.offerAmount
+                balanceDeltas: rightBalanceDeltas
               price: price
               amount: rightOfferAmount
             return false
@@ -189,16 +205,18 @@ module.exports = class Order extends EventEmitter
           if compareAmounts > 0
             rightOfferAmount = order.offerAmount
             leftOfferAmount = rightOfferAmount.multiply price
-            fill.call order, leftOfferAmount, rightOfferAmount, @timestamp
-            partialBid.call @, rightOfferAmount, leftOfferAmount, @timestamp
+            rightBalanceDeltas = fill.call order, leftOfferAmount, rightOfferAmount, @timestamp
+            leftBalanceDeltas = partialBid.call @, rightOfferAmount, leftOfferAmount, @timestamp
             order.emit 'trade',
               timestamp: @timestamp
               left:
-                sequence: @id
+                sequence: @sequence
                 newBidAmount: @bidAmount
+                balanceDeltas: leftBalanceDeltas
               right:
-                sequence: order.id
+                sequence: order.sequence
                 newOfferAmount: order.offerAmount
+                balanceDeltas: rightBalanceDeltas
               price: price
               amount: rightOfferAmount
             return true
@@ -206,18 +224,20 @@ module.exports = class Order extends EventEmitter
             rightOfferAmount = @bidAmount
             leftOfferAmount = rightOfferAmount.multiply price
             if compareAmounts == 0
-              fill.call order, leftOfferAmount, rightOfferAmount, @timestamp
+              rightBalanceDeltas = fill.call order, leftOfferAmount, rightOfferAmount, @timestamp
             else
-              partialOffer.call order, leftOfferAmount, rightOfferAmount, @timestamp
-            fill.call @, rightOfferAmount, leftOfferAmount, @timestamp
+              rightBalanceDeltas = partialOffer.call order, leftOfferAmount, rightOfferAmount, @timestamp
+            leftBalanceDeltas = fill.call @, rightOfferAmount, leftOfferAmount, @timestamp
             order.emit 'trade',
               timestamp: @timestamp
               left:
-                sequence: @id
+                sequence: @sequence
                 newBidAmount: @bidAmount
+                balanceDeltas: leftBalanceDeltas
               right:
-                sequence: order.id
+                sequence: order.sequence
                 newOfferAmount: order.offerAmount
+                balanceDeltas: rightBalanceDeltas
               price: price
               amount: rightOfferAmount
             return false
@@ -229,16 +249,18 @@ module.exports = class Order extends EventEmitter
           if compareAmounts > 0
             leftOfferAmount = order.bidAmount
             rightOfferAmount = order.offerAmount
-            fill.call order, leftOfferAmount, rightOfferAmount, @timestamp
-            partialBid.call @, rightOfferAmount, leftOfferAmount, @timestamp
+            rightBalanceDeltas = fill.call order, leftOfferAmount, rightOfferAmount, @timestamp
+            leftBalanceDeltas = partialBid.call @, rightOfferAmount, leftOfferAmount, @timestamp
             order.emit 'trade',
               timestamp: @timestamp
               left:
-                sequence: @id
+                sequence: @sequence
                 newBidAmount: @bidAmount
+                balanceDeltas: leftBalanceDeltas
               right:
-                sequence: order.id
+                sequence: order.sequence
                 newBidAmount: order.bidAmount
+                balanceDeltas: rightBalanceDeltas
               price: price
               amount: leftOfferAmount
             return true
@@ -255,18 +277,20 @@ module.exports = class Order extends EventEmitter
             # division as there is no remainder)
             rightOfferAmount = leftOfferAmount.multiply price
             if compareAmounts == 0
-              fill.call order, leftOfferAmount, rightOfferAmount, @timestamp
+              rightBalanceDeltas = fill.call order, leftOfferAmount, rightOfferAmount, @timestamp
             else
-              partialBid.call order, leftOfferAmount, rightOfferAmount, @timestamp
-            fill.call @, rightOfferAmount, leftOfferAmount, @timestamp
+              rightBalanceDeltas = partialBid.call order, leftOfferAmount, rightOfferAmount, @timestamp
+            leftBalanceDeltas = fill.call @, rightOfferAmount, leftOfferAmount, @timestamp
             order.emit 'trade',
               timestamp: @timestamp
               left:
-                sequence: @id
+                sequence: @sequence
                 newBidAmount: @bidAmount
+                balanceDeltas: leftBalanceDeltas
               right:
-                sequence: order.id
+                sequence: order.sequence
                 newBidAmount: order.bidAmount
+                balanceDeltas: rightBalanceDeltas
               price: price
               amount: leftOfferAmount
             return false
@@ -352,11 +376,11 @@ module.exports = class Order extends EventEmitter
 
   export: =>
     object = Object.create null
-    object.id = @id
+    object.sequence = @sequence
     object.timestamp = @timestamp
-    object.account = @account
-    object.bidCurrency = @bidCurrency
-    object.offerCurrency = @offerCurrency
+    object.account = @account.id
+    object.bidCurrency = @bidBalance.currency
+    object.offerCurrency = @offerBalance.currency
     if @bidPrice
       object.bidPrice = @bidPrice.toString()
       object.bidAmount = @bidAmount.toString()

@@ -1,42 +1,23 @@
-Amount = require('../Amount')
+Amount = require '../Amount'
 
 module.exports = class Balance
   constructor: (params) ->
-    @funds = Amount.ZERO
-    @lockedFunds = Amount.ZERO
-    if params
-      @commission = params.commission
+    if params.account
+      if params.currency
+        @funds = Amount.ZERO
+        @lockedFunds = Amount.ZERO
+        @account = params.account
+        @currency = params.currency
+        if params.commission
+          @commissionBalance = params.commission.account.getBalance @currency
+          @commissionCalculate = params.commission.calculate
+      else
+        throw new Error 'Must supply a currency'
+    else
+      throw new Error 'Must supply an account'
 
   deposit: (amount) =>
     @funds = @funds.add amount
-
-  submitOffer: (order) =>
-    newLockedFunds = @lockedFunds.add order.offerAmount
-    if newLockedFunds.compareTo(@funds) > 0
-      throw new Error('Cannot lock funds that are not available')
-    else
-      @lockedFunds = newLockedFunds
-      order.on 'fill', (fill) =>
-        @lockedFunds = @lockedFunds.subtract fill.fundsUnlocked
-        @funds = @funds.subtract fill.offerAmount
-
-  submitBid: (order) =>
-    order.on 'fill', (fill) =>
-      if @commission
-        commission = @commission.calculate
-          amount: fill.bidAmount
-          timestamp: fill.timestamp
-          account: order.account
-          currency: order.bidCurrency
-        @funds = @funds.add fill.bidAmount.subtract commission
-        @commission.account.deposit
-          currency: order.bidCurrency
-          amount: commission
-      else
-        @funds = @funds.add fill.bidAmount
-
-  cancel: (order) =>
-    @lockedFunds = @lockedFunds.subtract order.offerAmount    
 
   withdraw: (amount) =>
     newFunds = @funds.subtract amount
@@ -44,6 +25,41 @@ module.exports = class Balance
       throw new Error('Cannot withdraw funds that are not available')
     else
       @funds = newFunds
+
+  lock: (amount) =>
+    newLockedFunds = @lockedFunds.add amount
+    if newLockedFunds.compareTo(@funds) > 0
+      throw new Error('Cannot lock funds that are not available')
+    else
+      @lockedFunds = newLockedFunds    
+
+  unlock: (amount) =>
+    @lockedFunds = @lockedFunds.subtract amount    
+
+  applyOffer: (params) =>
+    debit = 
+      amount: params.amount
+    @lockedFunds = @lockedFunds.subtract params.fundsUnlocked
+    @funds = @funds.subtract debit.amount
+    return debit
+
+  applyBid: (params) =>
+    if @commissionBalance
+      credit =
+        commission: @commissionCalculate
+          amount: params.amount
+          timestamp: params.timestamp
+          account: @account
+          currency: @currency
+      credit.amount = params.amount.subtract credit.commission.amount
+      @funds = @funds.add credit.amount
+      @commissionBalance.deposit credit.commission.amount
+      return credit
+    else
+      credit =
+        amount: params.amount
+      @funds = @funds.add credit.amount
+      return credit
 
   export: =>
     object = Object.create null
