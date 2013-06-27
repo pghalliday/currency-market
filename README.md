@@ -2,6 +2,7 @@ currency-market
 ===============
 
 [![Build Status](https://travis-ci.org/pghalliday/currency-market.png)](https://travis-ci.org/pghalliday/currency-market)
+[![Dependency Status](https://gemnasium.com/pghalliday/currency-market.png)](https://gemnasium.com/pghalliday/currency-market)
 
 A synchronous implementation of a limit order based currency market
 
