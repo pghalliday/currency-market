@@ -58,10 +58,10 @@ module.exports = class Engine extends EventEmitter
               account: operation.account
               bidCurrency: submit.bidCurrency
               offerCurrency: submit.offerCurrency
-              bidPrice: if submit.bidPrice then new Amount submit.bidPrice else undefined
-              bidAmount: if submit.bidAmount then new Amount submit.bidAmount else undefined
-              offerPrice: if submit.offerPrice then new Amount submit.offerPrice else undefined
-              offerAmount: if submit.offerAmount then new Amount submit.offerAmount else undefined
+              bidPrice: submit.bidPrice
+              bidAmount: submit.bidAmount
+              offerPrice: submit.offerPrice
+              offerAmount: submit.offerAmount
             leftBook = @getBook order.bidCurrency, order.offerCurrency
             account.submit order
             leftBook.submit order
@@ -131,7 +131,7 @@ module.exports = class Engine extends EventEmitter
           timestamp: 0
           deposit:
             currency: currency
-            amount: balance.funds
+            amount: new Amount balance.funds
     for bidCurrency, books of snapshot.books
       for offerCurrency, book of books
         for order in book

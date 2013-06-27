@@ -53,15 +53,15 @@ describe 'Balance', ->
   describe '#deposit', ->
     it 'should add the deposited amount to the funds', ->
       balance = new Balance()
-      balance.deposit '200'
+      balance.deposit amount200
       balance.funds.compareTo(amount200).should.equal 0
-      balance.deposit '150'
+      balance.deposit amount150
       balance.funds.compareTo(amount350).should.equal 0
 
   describe '#submitOffer', ->
     it 'should lock the offer amount', ->
       balance = new Balance()
-      balance.deposit '200'
+      balance.deposit amount200
       balance.submitOffer newOffer '1', amount50
       balance.lockedFunds.compareTo(amount50).should.equal 0
       balance.submitOffer newOffer '2', amount100
@@ -69,7 +69,7 @@ describe 'Balance', ->
 
     it 'should throw an error if there are not enough funds available to satisfy the order', ->
       balance = new Balance()
-      balance.deposit '200'
+      balance.deposit amount200
       balance.submitOffer newOffer '1', amount100
       expect ->
         balance.submitOffer newOffer '2', amount150
@@ -78,7 +78,7 @@ describe 'Balance', ->
     describe 'when a fill event fires', ->
       it 'should unlock funds and withdraw the correct amount', ->
         balance = new Balance()
-        balance.deposit '200'
+        balance.deposit amount200
         offer = newOffer '1', amount50
         balance.submitOffer offer
         bid = newBid '2', amount25
@@ -93,7 +93,7 @@ describe 'Balance', ->
   describe '#submitBid', ->
     it 'should wait for a fill event and deposit the correct amount of funds', ->
       balance = new Balance()
-      balance.deposit '200'
+      balance.deposit amount200
       offer = newOffer '1', amount50
       bid = newBid '2', amount25
       balance.submitBid bid
@@ -110,7 +110,7 @@ describe 'Balance', ->
           account: commissionAccount
           calculate: calculateCommission
 
-      balance.deposit '200'
+      balance.deposit amount200
       bid = newBid '1', amount25
       offer = newOffer '2', amount50
       balance.submitBid bid
@@ -127,7 +127,7 @@ describe 'Balance', ->
   describe '#cancel', ->
     it 'should unlock the offer amount', ->
       balance = new Balance()
-      balance.deposit '200'
+      balance.deposit amount200
       offer = newOffer '1', amount50
       balance.submitOffer offer
       balance.cancel offer
@@ -136,27 +136,27 @@ describe 'Balance', ->
   describe '#withdraw', ->
     it 'should subtract the withdrawn amount from the funds', ->
       balance = new Balance()
-      balance.deposit '200'
+      balance.deposit amount200
       balance.submitOffer newOffer '1', amount50
       balance.submitOffer newOffer '2', amount100
-      balance.withdraw '25'
+      balance.withdraw amount25
       balance.funds.compareTo(amount175).should.equal 0
-      balance.withdraw '25'
+      balance.withdraw amount25
       balance.funds.compareTo(amount150).should.equal 0
 
     it 'should throw an error if the withdrawal amount is greater than the funds available taking into account the locked funds', ->
       balance = new Balance()
-      balance.deposit '200'
+      balance.deposit amount200
       balance.submitOffer newOffer '1', amount50
       balance.submitOffer newOffer '2', amount100
       expect ->
-        balance.withdraw '100'
+        balance.withdraw amount100
       .to.throw 'Cannot withdraw funds that are not available'
 
   describe '#export', ->
     it 'should return a JSON stringifiable object containing a snapshot of the balance', ->
       balance = new Balance()
-      balance.deposit '200'
+      balance.deposit amount200
       balance.submitOffer newOffer '1', amount50
       balance.submitOffer newOffer '2', amount100
       json = JSON.stringify balance.export()

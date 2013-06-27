@@ -104,7 +104,7 @@ describe 'Engine', ->
           timestamp: 1371737390976
           unknown:
             currency: 'EUR'
-            amount: '5000'
+            amount: amount5000
       .to.throw 'Unknown operation'
 
     describe 'deposit', ->
@@ -116,7 +116,7 @@ describe 'Engine', ->
             sequence: 0
             timestamp: 1371737390976
             deposit:
-              amount: '5000'
+              amount: amount5000
         .to.throw 'Must supply a currency'
 
       it 'should throw an error if no amount is supplied', ->
@@ -141,7 +141,7 @@ describe 'Engine', ->
           timestamp: 1371737390976
           deposit:
             currency: 'EUR'
-            amount: '5000'
+            amount: amount5000
         @engine.apply operation
         account.getBalance('EUR').funds.compareTo(amount5000).should.equal 0
         deltaSpy.should.have.been.calledOnce
@@ -154,7 +154,7 @@ describe 'Engine', ->
           timestamp: 1371737390976
           deposit:
             currency: 'BTC'
-            amount: '50'
+            amount: amount50
         @engine.apply operation
         account.getBalance('BTC').funds.compareTo(amount50).should.equal 0
         deltaSpy.should.have.been.calledTwice
@@ -170,7 +170,7 @@ describe 'Engine', ->
             sequence: 0
             timestamp: 1371737390976
             withdraw:
-              amount: '5000'
+              amount: amount5000
         .to.throw 'Must supply a currency'
 
       it 'should throw an error if no amount is supplied', ->
@@ -195,7 +195,7 @@ describe 'Engine', ->
           timestamp: 1371737390976
           deposit:
             currency: 'BTC'
-            amount: '200'
+            amount: amount200
         operation = 
           reference: '550e8400-e29b-41d4-a716-446655440000'
           account: 'Peter'
@@ -203,7 +203,7 @@ describe 'Engine', ->
           timestamp: 1371737390976
           withdraw:
             currency: 'BTC'
-            amount: '50'
+            amount: amount50
         @engine.apply operation
         account.getBalance('BTC').funds.compareTo(amount150).should.equal 0
         deltaSpy.should.have.been.calledTwice
@@ -216,7 +216,7 @@ describe 'Engine', ->
           timestamp: 1371737390976
           withdraw:
             currency: 'BTC'
-            amount: '75'
+            amount: amount75
         @engine.apply operation
         account.getBalance('BTC').funds.compareTo(amount75).should.equal 0
         deltaSpy.should.have.been.calledThrice
@@ -229,7 +229,7 @@ describe 'Engine', ->
           timestamp: 1371737390976
           withdraw:
             currency: 'BTC'
-            amount: '100'
+            amount: amount100
         expect =>            
           @engine.apply operation
         .to.throw 'Cannot withdraw funds that are not available'
@@ -244,7 +244,7 @@ describe 'Engine', ->
           timestamp: 1371737390976
           deposit:
             currency: 'EUR'
-            amount: '200'
+            amount: amount200
         @engine.apply
           reference: '550e8400-e29b-41d4-a716-446655440000'
           account: 'Peter'
@@ -253,8 +253,8 @@ describe 'Engine', ->
           submit:
             bidCurrency: 'BTC'
             offerCurrency: 'EUR'
-            offerPrice: '100'
-            offerAmount: '50'
+            offerPrice: amount100
+            offerAmount: amount50
         @engine.apply
           reference: '550e8400-e29b-41d4-a716-446655440000'
           account: 'Peter'
@@ -263,8 +263,8 @@ describe 'Engine', ->
           submit:
             bidCurrency: 'USD'
             offerCurrency: 'EUR'
-            offerPrice: '100'
-            offerAmount: '100'
+            offerPrice: amount100
+            offerAmount: amount100
         account.getBalance('EUR').lockedFunds.compareTo(amount150).should.equal 0
 
       it 'should record an order, submit it to the correct book and emit a delta event', ->
@@ -275,7 +275,7 @@ describe 'Engine', ->
           timestamp: 1371737390976
           deposit:
             currency: 'EUR'
-            amount: '200'
+            amount: amount200
         @engine.apply
           reference: '550e8400-e29b-41d4-a716-446655440000'
           account: 'Paul'
@@ -283,7 +283,7 @@ describe 'Engine', ->
           timestamp: 1371737390976
           deposit:
             currency: 'BTC'
-            amount: '4950'
+            amount: amount4950
         deltaSpy = sinon.spy()
         @engine.on 'delta', deltaSpy
         operation1 =
@@ -294,8 +294,8 @@ describe 'Engine', ->
           submit:
             bidCurrency: 'BTC'
             offerCurrency: 'EUR'
-            offerPrice: '100'
-            offerAmount: '50'
+            offerPrice: amount100
+            offerAmount: amount50
         @engine.apply operation1
         @engine.getBook('BTC', 'EUR').highest.id.should.equal 2
         deltaSpy.should.have.been.calledOnce
@@ -309,8 +309,8 @@ describe 'Engine', ->
           submit:
             bidCurrency: 'EUR'
             offerCurrency: 'BTC'
-            bidPrice: '99'
-            bidAmount: '50'
+            bidPrice: amount99
+            bidAmount: amount50
         @engine.apply operation2
         @engine.getBook('EUR', 'BTC').highest.id.should.equal 3
         deltaSpy.should.have.been.calledTwice
@@ -325,7 +325,7 @@ describe 'Engine', ->
           timestamp: 1371737390976
           deposit:
             currency: 'EUR'
-            amount: '2000'
+            amount: amount2000
         @engine.apply
           reference: '550e8400-e29b-41d4-a716-446655440000'
           account: 'Paul'
@@ -333,7 +333,7 @@ describe 'Engine', ->
           timestamp: 1371737390976
           deposit:
             currency: 'BTC'
-            amount: '400'
+            amount: amount400
 
         operation1 =
           reference: '550e8400-e29b-41d4-a716-446655440000'
@@ -343,8 +343,8 @@ describe 'Engine', ->
           submit:
             bidCurrency: 'BTC'
             offerCurrency: 'EUR'
-            offerPrice: '0.2'
-            offerAmount: '1000'
+            offerPrice: amountPoint2
+            offerAmount: amount1000
         @engine.apply operation1
 
         deltaSpy = sinon.spy()
@@ -358,8 +358,8 @@ describe 'Engine', ->
           submit:
             bidCurrency: 'EUR'
             offerCurrency: 'BTC'
-            bidPrice: '0.2'
-            bidAmount: '1000'
+            bidPrice: amountPoint2
+            bidAmount: amount1000
         @engine.apply operation2
 
         @calculateCommission.should.have.been.calledTwice
@@ -378,11 +378,11 @@ describe 'Engine', ->
         deltaSpy.secondCall.args[0].sequence.should.equal 4
         deltaSpy.secondCall.args[0].trade.timestamp.should.equal operation2.timestamp
         deltaSpy.secondCall.args[0].trade.left.sequence.should.equal operation2.sequence
-        deltaSpy.secondCall.args[0].trade.left.newBidAmount.should.equal '0'
+        deltaSpy.secondCall.args[0].trade.left.newBidAmount.compareTo(Amount.ZERO).should.equal 0
         deltaSpy.secondCall.args[0].trade.right.sequence.should.equal operation1.sequence
-        deltaSpy.secondCall.args[0].trade.right.newOfferAmount.should.equal '0'
-        deltaSpy.secondCall.args[0].trade.price.should.equal operation1.submit.offerPrice
-        deltaSpy.secondCall.args[0].trade.amount.should.equal '1000'
+        deltaSpy.secondCall.args[0].trade.right.newOfferAmount.compareTo(Amount.ZERO).should.equal 0
+        deltaSpy.secondCall.args[0].trade.price.compareTo(operation1.submit.offerPrice).should.equal 0
+        deltaSpy.secondCall.args[0].trade.amount.compareTo(amount1000).should.equal 0
 
         expect(@engine.getAccount('Peter').orders[1]).to.not.be.ok
         expect(@engine.getAccount('Paul').orders[2]).to.not.be.ok
@@ -402,7 +402,7 @@ describe 'Engine', ->
             timestamp: 1371737390976
             deposit:
               currency: 'EUR'
-              amount: '2000'
+              amount: amount2000
           @engine.apply
             reference: '550e8400-e29b-41d4-a716-446655440000'
             account: 'Paul'
@@ -410,7 +410,7 @@ describe 'Engine', ->
             timestamp: 1371737390976
             deposit:
               currency: 'BTC'
-              amount: '1000'
+              amount: amount1000
           @operation1 =
             reference: '550e8400-e29b-41d4-a716-446655440000'
             account: 'Peter'
@@ -419,8 +419,8 @@ describe 'Engine', ->
             submit:
               bidCurrency: 'BTC'
               offerCurrency: 'EUR'
-              offerPrice: '0.2'
-              offerAmount: '500'
+              offerPrice: amountPoint2
+              offerAmount: amount500
           @engine.apply @operation1
           @operation2 =
             reference: '550e8400-e29b-41d4-a716-446655440000'
@@ -430,8 +430,8 @@ describe 'Engine', ->
             submit:
               bidCurrency: 'BTC'
               offerCurrency: 'EUR'
-              offerPrice: '0.25'
-              offerAmount: '500'
+              offerPrice: amountPoint25
+              offerAmount: amount500
           @engine.apply @operation2
           @operation3 =
             reference: '550e8400-e29b-41d4-a716-446655440000'
@@ -441,8 +441,8 @@ describe 'Engine', ->
             submit:
               bidCurrency: 'BTC'
               offerCurrency: 'EUR'
-              offerPrice: '0.5'
-              offerAmount: '500'
+              offerPrice: amountPoint5
+              offerAmount: amount500
           @engine.apply @operation3
           @operation4 =
             reference: '550e8400-e29b-41d4-a716-446655440000'
@@ -452,8 +452,8 @@ describe 'Engine', ->
             submit:
               bidCurrency: 'BTC'
               offerCurrency: 'EUR'
-              offerPrice: '1'
-              offerAmount: '500'
+              offerPrice: Amount.ONE
+              offerAmount: amount500
           @engine.apply @operation4
 
         describe 'and the last order can be completely satisfied', ->
@@ -469,8 +469,8 @@ describe 'Engine', ->
               submit:
                 bidCurrency: 'EUR'
                 offerCurrency: 'BTC'
-                bidPrice: '0.5'
-                bidAmount: '1250'
+                bidPrice: amountPoint5
+                bidAmount: amount1250
             @engine.apply operation
 
             @calculateCommission.callCount.should.equal 6
@@ -505,27 +505,27 @@ describe 'Engine', ->
             deltaSpy.getCall(1).args[0].sequence.should.equal 7
             deltaSpy.getCall(1).args[0].trade.timestamp.should.equal operation.timestamp
             deltaSpy.getCall(1).args[0].trade.left.sequence.should.equal operation.sequence
-            deltaSpy.getCall(1).args[0].trade.left.newBidAmount.should.equal '750'
+            deltaSpy.getCall(1).args[0].trade.left.newBidAmount.compareTo(amount750).should.equal 0
             deltaSpy.getCall(1).args[0].trade.right.sequence.should.equal @operation1.sequence
-            deltaSpy.getCall(1).args[0].trade.right.newOfferAmount.should.equal '0'
-            deltaSpy.getCall(1).args[0].trade.price.should.equal @operation1.submit.offerPrice
-            deltaSpy.getCall(1).args[0].trade.amount.should.equal '500'
+            deltaSpy.getCall(1).args[0].trade.right.newOfferAmount.compareTo(Amount.ZERO).should.equal 0
+            deltaSpy.getCall(1).args[0].trade.price.compareTo(@operation1.submit.offerPrice).should.equal 0
+            deltaSpy.getCall(1).args[0].trade.amount.compareTo(amount500).should.equal 0
             deltaSpy.getCall(2).args[0].sequence.should.equal 8
             deltaSpy.getCall(2).args[0].trade.timestamp.should.equal operation.timestamp
             deltaSpy.getCall(2).args[0].trade.left.sequence.should.equal operation.sequence
-            deltaSpy.getCall(2).args[0].trade.left.newBidAmount.should.equal '250'
+            deltaSpy.getCall(2).args[0].trade.left.newBidAmount.compareTo(amount250).should.equal 0
             deltaSpy.getCall(2).args[0].trade.right.sequence.should.equal @operation2.sequence
-            deltaSpy.getCall(2).args[0].trade.right.newOfferAmount.should.equal '0'
-            deltaSpy.getCall(2).args[0].trade.price.should.equal @operation2.submit.offerPrice
-            deltaSpy.getCall(2).args[0].trade.amount.should.equal '500'
+            deltaSpy.getCall(2).args[0].trade.right.newOfferAmount.compareTo(Amount.ZERO).should.equal 0
+            deltaSpy.getCall(2).args[0].trade.price.compareTo(@operation2.submit.offerPrice).should.equal 0
+            deltaSpy.getCall(2).args[0].trade.amount.compareTo(amount500).should.equal 0
             deltaSpy.getCall(3).args[0].sequence.should.equal 9
             deltaSpy.getCall(3).args[0].trade.timestamp.should.equal operation.timestamp
             deltaSpy.getCall(3).args[0].trade.left.sequence.should.equal operation.sequence
-            deltaSpy.getCall(3).args[0].trade.left.newBidAmount.should.equal '0'
+            deltaSpy.getCall(3).args[0].trade.left.newBidAmount.compareTo(Amount.ZERO).should.equal 0
             deltaSpy.getCall(3).args[0].trade.right.sequence.should.equal @operation3.sequence
-            deltaSpy.getCall(3).args[0].trade.right.newOfferAmount.should.equal '250'
-            deltaSpy.getCall(3).args[0].trade.price.should.equal @operation3.submit.offerPrice
-            deltaSpy.getCall(3).args[0].trade.amount.should.equal '250'
+            deltaSpy.getCall(3).args[0].trade.right.newOfferAmount.compareTo(amount250).should.equal 0
+            deltaSpy.getCall(3).args[0].trade.price.compareTo(@operation3.submit.offerPrice).should.equal 0
+            deltaSpy.getCall(3).args[0].trade.amount.compareTo(amount250).should.equal 0
 
             expect(@engine.getAccount('Peter').orders[2]).to.not.be.ok
             expect(@engine.getAccount('Peter').orders[3]).to.not.be.ok
@@ -552,8 +552,8 @@ describe 'Engine', ->
               submit:
                 bidCurrency: 'EUR'
                 offerCurrency: 'BTC'
-                bidPrice: '0.5'
-                bidAmount: '1750'
+                bidPrice: amountPoint5
+                bidAmount: amount1750
             @engine.apply operation
 
             @calculateCommission.callCount.should.equal 6
@@ -589,27 +589,27 @@ describe 'Engine', ->
             deltaSpy.getCall(1).args[0].sequence.should.equal 7
             deltaSpy.getCall(1).args[0].trade.timestamp.should.equal operation.timestamp
             deltaSpy.getCall(1).args[0].trade.left.sequence.should.equal operation.sequence
-            deltaSpy.getCall(1).args[0].trade.left.newBidAmount.should.equal '1250'
+            deltaSpy.getCall(1).args[0].trade.left.newBidAmount.compareTo(amount1250).should.equal 0
             deltaSpy.getCall(1).args[0].trade.right.sequence.should.equal @operation1.sequence
-            deltaSpy.getCall(1).args[0].trade.right.newOfferAmount.should.equal '0'
-            deltaSpy.getCall(1).args[0].trade.price.should.equal @operation1.submit.offerPrice
-            deltaSpy.getCall(1).args[0].trade.amount.should.equal '500'
+            deltaSpy.getCall(1).args[0].trade.right.newOfferAmount.compareTo(Amount.ZERO).should.equal 0
+            deltaSpy.getCall(1).args[0].trade.price.compareTo(@operation1.submit.offerPrice).should.equal 0
+            deltaSpy.getCall(1).args[0].trade.amount.compareTo(amount500).should.equal 0
             deltaSpy.getCall(2).args[0].sequence.should.equal 8
             deltaSpy.getCall(2).args[0].trade.timestamp.should.equal operation.timestamp
             deltaSpy.getCall(2).args[0].trade.left.sequence.should.equal operation.sequence
-            deltaSpy.getCall(2).args[0].trade.left.newBidAmount.should.equal '750'
+            deltaSpy.getCall(2).args[0].trade.left.newBidAmount.compareTo(amount750).should.equal 0
             deltaSpy.getCall(2).args[0].trade.right.sequence.should.equal @operation2.sequence
-            deltaSpy.getCall(2).args[0].trade.right.newOfferAmount.should.equal '0'
-            deltaSpy.getCall(2).args[0].trade.price.should.equal @operation2.submit.offerPrice
-            deltaSpy.getCall(2).args[0].trade.amount.should.equal '500'
+            deltaSpy.getCall(2).args[0].trade.right.newOfferAmount.compareTo(Amount.ZERO).should.equal 0
+            deltaSpy.getCall(2).args[0].trade.price.compareTo(@operation2.submit.offerPrice).should.equal 0
+            deltaSpy.getCall(2).args[0].trade.amount.compareTo(amount500).should.equal 0
             deltaSpy.getCall(3).args[0].sequence.should.equal 9
             deltaSpy.getCall(3).args[0].trade.timestamp.should.equal operation.timestamp
             deltaSpy.getCall(3).args[0].trade.left.sequence.should.equal operation.sequence
-            deltaSpy.getCall(3).args[0].trade.left.newBidAmount.should.equal '250'
+            deltaSpy.getCall(3).args[0].trade.left.newBidAmount.compareTo(amount250).should.equal 0
             deltaSpy.getCall(3).args[0].trade.right.sequence.should.equal @operation3.sequence
-            deltaSpy.getCall(3).args[0].trade.right.newOfferAmount.should.equal '0'
-            deltaSpy.getCall(3).args[0].trade.price.should.equal @operation3.submit.offerPrice
-            deltaSpy.getCall(3).args[0].trade.amount.should.equal '500'
+            deltaSpy.getCall(3).args[0].trade.right.newOfferAmount.compareTo(Amount.ZERO).should.equal 0
+            deltaSpy.getCall(3).args[0].trade.price.compareTo(@operation3.submit.offerPrice).should.equal 0
+            deltaSpy.getCall(3).args[0].trade.amount.compareTo(amount500).should.equal 0
 
             expect(@engine.getAccount('Peter').orders[2]).to.not.be.ok
             expect(@engine.getAccount('Peter').orders[3]).to.not.be.ok
@@ -631,7 +631,7 @@ describe 'Engine', ->
           timestamp: 1371737390976
           deposit:
             currency: 'EUR'
-            amount: '8236'
+            amount: new Amount '8236'
         @engine.apply
           reference: '550e8400-e29b-41d4-a716-446655440000'
           account: '100000'
@@ -640,8 +640,8 @@ describe 'Engine', ->
           submit:
             bidCurrency: 'BTC'
             offerCurrency: 'EUR'
-            bidPrice: '116'
-            bidAmount: '71'
+            bidPrice: new Amount '116'
+            bidAmount: new Amount '71'
         @engine.apply
           reference: '550e8400-e29b-41d4-a716-446655440000'
           account: '100001'
@@ -649,7 +649,7 @@ describe 'Engine', ->
           timestamp: 1371737390976
           deposit:
             currency: 'BTC'
-            amount: '34'
+            amount: new Amount '34'
         @engine.apply
           reference: '550e8400-e29b-41d4-a716-446655440000'
           account: '100001'
@@ -658,8 +658,8 @@ describe 'Engine', ->
           submit:
             bidCurrency: 'EUR'
             offerCurrency: 'BTC'
-            offerPrice: '114'
-            offerAmount: '34'
+            offerPrice: new Amount '114'
+            offerAmount: new Amount '34'
         @engine.apply
           reference: '550e8400-e29b-41d4-a716-446655440000'
           account: '100002'
@@ -667,7 +667,7 @@ describe 'Engine', ->
           timestamp: 1371737390976
           deposit:
             currency: 'BTC'
-            amount: '52'
+            amount: new Amount '52'
         @engine.apply
           reference: '550e8400-e29b-41d4-a716-446655440000'
           account: '100002'
@@ -676,8 +676,8 @@ describe 'Engine', ->
           submit:
             bidCurrency: 'EUR'
             offerCurrency: 'BTC'
-            offerPrice: '110'
-            offerAmount: '52'
+            offerPrice: new Amount '110'
+            offerAmount: new Amount '52'
 
       it 'should execute BID/OFFER orders correctly and not throw an unlock funds error when ? (captured from a failing random performance test)', ->
         @engine.apply
@@ -687,7 +687,7 @@ describe 'Engine', ->
           timestamp: 1371737390976
           deposit:
             currency: 'BTC'
-            amount: '54'
+            amount: new Amount '54'
         @engine.apply
           reference: '550e8400-e29b-41d4-a716-446655440000'
           account: '100000'
@@ -696,8 +696,8 @@ describe 'Engine', ->
           submit:
             bidCurrency: 'EUR'
             offerCurrency: 'BTC'
-            offerPrice: '89'
-            offerAmount: '54'
+            offerPrice: new Amount '89'
+            offerAmount: new Amount '54'
         @engine.apply
           reference: '550e8400-e29b-41d4-a716-446655440000'
           account: '100001'
@@ -705,7 +705,7 @@ describe 'Engine', ->
           timestamp: 1371737390976
           deposit:
             currency: 'EUR'
-            amount: '5252'
+            amount: new Amount '5252'
         @engine.apply
           reference: '550e8400-e29b-41d4-a716-446655440000'
           account: '100001'
@@ -714,8 +714,8 @@ describe 'Engine', ->
           submit:
             bidCurrency: 'BTC'
             offerCurrency: 'EUR'
-            bidPrice: '101'
-            bidAmount: '52'
+            bidPrice: new Amount '101'
+            bidAmount: new Amount '52'
         @engine.apply
           reference: '550e8400-e29b-41d4-a716-446655440000'
           account: '100002'
@@ -723,7 +723,7 @@ describe 'Engine', ->
           timestamp: 1371737390976
           deposit:
             currency: 'EUR'
-            amount: '4815'
+            amount: new Amount '4815'
         @engine.apply
           reference: '550e8400-e29b-41d4-a716-446655440000'
           account: '100002'
@@ -732,8 +732,8 @@ describe 'Engine', ->
           submit:
             bidCurrency: 'BTC'
             offerCurrency: 'EUR'
-            bidPrice: '107'
-            bidAmount: '45'
+            bidPrice: new Amount '107'
+            bidAmount: new Amount '45'
 
       it 'should execute BID/BID orders correctly and not throw an unlock funds error when ? (captured from a failing random performance test)', ->
         @engine.apply
@@ -743,7 +743,7 @@ describe 'Engine', ->
           timestamp: 1371737390976
           deposit:
             currency: 'EUR'
-            amount: '7540'
+            amount: new Amount '7540'
         @engine.apply
           reference: '550e8400-e29b-41d4-a716-446655440000'
           account: '100000'
@@ -752,8 +752,8 @@ describe 'Engine', ->
           submit:
             bidCurrency: 'BTC'
             offerCurrency: 'EUR'
-            bidPrice: '116'
-            bidAmount: '65'
+            bidPrice: new Amount '116'
+            bidAmount: new Amount '65'
         @engine.apply
           reference: '550e8400-e29b-41d4-a716-446655440000'
           account: '100001'
@@ -761,7 +761,7 @@ describe 'Engine', ->
           timestamp: 1371737390976
           deposit:
             currency: 'BTC'
-            amount: '47.000000000000000047'
+            amount: new Amount '47.000000000000000047'
         @engine.apply
           reference: '550e8400-e29b-41d4-a716-446655440000'
           account: '100001'
@@ -770,8 +770,8 @@ describe 'Engine', ->
           submit:
             bidCurrency: 'EUR'
             offerCurrency: 'BTC'
-            bidPrice: '0.009900990099009901'
-            bidAmount: '4747'
+            bidPrice: new Amount '0.009900990099009901'
+            bidAmount: new Amount '4747'
         @engine.apply
           reference: '550e8400-e29b-41d4-a716-446655440000'
           account: '100003'
@@ -779,7 +779,7 @@ describe 'Engine', ->
           timestamp: 1371737390976
           deposit:
             currency: 'BTC'
-            amount: '53.99999999999999865'
+            amount: new Amount '53.99999999999999865'
         @engine.apply
           reference: '550e8400-e29b-41d4-a716-446655440000'
           account: '100003'
@@ -788,8 +788,8 @@ describe 'Engine', ->
           submit:
             bidCurrency: 'EUR'
             offerCurrency: 'BTC'
-            bidPrice: '0.011235955056179775'
-            bidAmount: '4806'
+            bidPrice: new Amount '0.011235955056179775'
+            bidAmount: new Amount '4806'
 
     describe 'cancel', ->
       it 'should unlock the correct funds in the correct account', ->
@@ -801,7 +801,7 @@ describe 'Engine', ->
           timestamp: 1371737390976
           deposit:
             currency: 'EUR'
-            amount: '200'
+            amount: amount200
         @engine.apply
           reference: '550e8400-e29b-41d4-a716-446655440000'
           account: 'Peter'
@@ -810,8 +810,8 @@ describe 'Engine', ->
           submit:
             bidCurrency: 'BTC'
             offerCurrency: 'EUR'
-            offerPrice: '100'
-            offerAmount: '50'
+            offerPrice: amount100
+            offerAmount: amount50
         @engine.apply
           reference: '550e8400-e29b-41d4-a716-446655440000'
           account: 'Peter'
@@ -820,8 +820,8 @@ describe 'Engine', ->
           submit:
             bidCurrency: 'USD'
             offerCurrency: 'EUR'
-            offerPrice: '100'
-            offerAmount: '100'
+            offerPrice: amount100
+            offerAmount: amount100
         account.getBalance('EUR').lockedFunds.compareTo(amount150).should.equal 0
         @engine.apply
           reference: '550e8400-e29b-41d4-a716-446655440000'
@@ -840,7 +840,7 @@ describe 'Engine', ->
           timestamp: 1371737390976
           deposit:
             currency: 'EUR'
-            amount: '200'
+            amount: amount200
         @engine.apply
           reference: '550e8400-e29b-41d4-a716-446655440000'
           account: 'Paul'
@@ -848,7 +848,7 @@ describe 'Engine', ->
           timestamp: 1371737390976
           deposit:
             currency: 'BTC'
-            amount: '4950'
+            amount: amount4950
         @engine.apply
           reference: '550e8400-e29b-41d4-a716-446655440000'
           account: 'Peter'
@@ -857,8 +857,8 @@ describe 'Engine', ->
           submit:
             bidCurrency: 'BTC'
             offerCurrency: 'EUR'
-            offerPrice: '100'
-            offerAmount: '50'
+            offerPrice: amount100
+            offerAmount: amount50
         @engine.apply
           reference: '550e8400-e29b-41d4-a716-446655440000'
           account: 'Paul'
@@ -867,8 +867,8 @@ describe 'Engine', ->
           submit:
             bidCurrency: 'EUR'
             offerCurrency: 'BTC'
-            bidPrice: '99'
-            bidAmount: '50'
+            bidPrice: amount99
+            bidAmount: amount50
         deltaSpy = sinon.spy()
         @engine.on 'delta', deltaSpy
         operation1 = 
@@ -937,7 +937,7 @@ describe 'Engine', ->
         timestamp: 1371737390976
         deposit:
           currency: 'EUR'
-          amount: '200'
+          amount: amount200
       @engine.apply
         reference: '550e8400-e29b-41d4-a716-446655440000'
         account: 'Paul'
@@ -945,7 +945,7 @@ describe 'Engine', ->
         timestamp: 1371737390976
         deposit:
           currency: 'BTC'
-          amount: '4950'
+          amount: amount4950
       @engine.apply
         reference: '550e8400-e29b-41d4-a716-446655440000'
         account: 'Peter'
@@ -954,8 +954,8 @@ describe 'Engine', ->
         submit:
           bidCurrency: 'BTC'
           offerCurrency: 'EUR'
-          offerPrice: '100'
-          offerAmount: '50'
+          offerPrice: amount100
+          offerAmount: amount50
       @engine.apply
         reference: '550e8400-e29b-41d4-a716-446655440000'
         account: 'Paul'
@@ -964,8 +964,8 @@ describe 'Engine', ->
         submit:
           bidCurrency: 'EUR'
           offerCurrency: 'BTC'
-          bidPrice: '99'
-          bidAmount: '50'
+          bidPrice: amount99
+          bidAmount: amount50
       json = JSON.stringify @engine.export()
       object = JSON.parse json
       object.nextOperationSequence.should.equal @engine.nextOperationSequence
@@ -989,7 +989,7 @@ describe 'Engine', ->
         timestamp: 1371737390976
         deposit:
           currency: 'EUR'
-          amount: '1000'
+          amount: amount1000
       @engine.apply
         reference: '550e8400-e29b-41d4-a716-446655440000'
         account: 'Paul'
@@ -997,7 +997,7 @@ describe 'Engine', ->
         timestamp: 1371737390976
         deposit:
           currency: 'BTC'
-          amount: '10'
+          amount: amount10
       @engine.apply
         reference: '550e8400-e29b-41d4-a716-446655440000'
         account: 'Paul'
@@ -1006,8 +1006,8 @@ describe 'Engine', ->
         submit:
           bidCurrency: 'EUR'
           offerCurrency: 'BTC'
-          offerPrice: '101'
-          offerAmount: '10'
+          offerPrice: amount101
+          offerAmount: amount10
       @engine.apply
         reference: '550e8400-e29b-41d4-a716-446655440000'
         account: 'Peter'
@@ -1016,8 +1016,8 @@ describe 'Engine', ->
         submit:
           bidCurrency: 'BTC'
           offerCurrency: 'EUR'
-          bidPrice: '100'
-          bidAmount: '10'
+          bidPrice: amount100
+          bidAmount: amount10
       @engine.apply
         reference: '550e8400-e29b-41d4-a716-446655440000'
         account: 'Paul'
@@ -1025,7 +1025,7 @@ describe 'Engine', ->
         timestamp: 1371737390976
         deposit:
           currency: 'BTC'
-          amount: '10'
+          amount: amount10
       engine = new Engine()
       engine.import @engine.export()
       engine.nextOperationSequence.should.equal @engine.nextOperationSequence
@@ -1045,8 +1045,8 @@ describe 'Engine', ->
         submit:
           bidCurrency: 'EUR'
           offerCurrency: 'BTC'
-          offerPrice: '100'
-          offerAmount: '10'
+          offerPrice: amount100
+          offerAmount: amount10
       engine.getAccount('Peter').getBalance('EUR').funds.compareTo(Amount.ZERO).should.equal 0
       engine.getAccount('Peter').getBalance('BTC').funds.compareTo(amount10).should.equal 0
       engine.getAccount('Paul').getBalance('EUR').funds.compareTo(amount1000).should.equal 0

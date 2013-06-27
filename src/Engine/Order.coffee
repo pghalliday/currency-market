@@ -108,12 +108,12 @@ module.exports = class Order extends EventEmitter
               timestamp: @timestamp
               left:
                 sequence: @id
-                newOfferAmount: @offerAmount.toString()
+                newOfferAmount: @offerAmount
               right:
                 sequence: order.id
-                newBidAmount: order.bidAmount.toString()
-              price: price.toString()
-              amount: leftOfferAmount.toString()
+                newBidAmount: order.bidAmount
+              price: price
+              amount: leftOfferAmount
             return true
           else
             leftOfferAmount = @offerAmount
@@ -127,12 +127,12 @@ module.exports = class Order extends EventEmitter
               timestamp: @timestamp
               left:
                 sequence: @id
-                newOfferAmount: @offerAmount.toString()
+                newOfferAmount: @offerAmount
               right:
                 sequence: order.id
-                newBidAmount: order.bidAmount.toString()
-              price: price.toString()
-              amount: leftOfferAmount.toString()
+                newBidAmount: order.bidAmount
+              price: price
+              amount: leftOfferAmount
             return false
       else
         if order.offerPrice.multiply(@offerPrice).compareTo(Amount.ONE) <= 0
@@ -148,12 +148,12 @@ module.exports = class Order extends EventEmitter
               timestamp: @timestamp
               left:
                 sequence: @id
-                newOfferAmount: @offerAmount.toString()
+                newOfferAmount: @offerAmount
               right:
                 sequence: order.id
-                newOfferAmount: order.offerAmount.toString()
-              price: price.toString()
-              amount: rightOfferAmount.toString()
+                newOfferAmount: order.offerAmount
+              price: price
+              amount: rightOfferAmount
             return true
           else
             leftOfferAmount = @offerAmount
@@ -173,12 +173,12 @@ module.exports = class Order extends EventEmitter
               timestamp: @timestamp
               left:
                 sequence: @id
-                newOfferAmount: @offerAmount.toString()
+                newOfferAmount: @offerAmount
               right:
                 sequence: order.id
-                newOfferAmount: order.offerAmount.toString()
-              price: price.toString()
-              amount: rightOfferAmount.toString()
+                newOfferAmount: order.offerAmount
+              price: price
+              amount: rightOfferAmount
             return false
     else
       if order.offerPrice
@@ -195,12 +195,12 @@ module.exports = class Order extends EventEmitter
               timestamp: @timestamp
               left:
                 sequence: @id
-                newBidAmount: @bidAmount.toString()
+                newBidAmount: @bidAmount
               right:
                 sequence: order.id
-                newOfferAmount: order.offerAmount.toString()
-              price: price.toString()
-              amount: rightOfferAmount.toString()
+                newOfferAmount: order.offerAmount
+              price: price
+              amount: rightOfferAmount
             return true
           else
             rightOfferAmount = @bidAmount
@@ -214,12 +214,12 @@ module.exports = class Order extends EventEmitter
               timestamp: @timestamp
               left:
                 sequence: @id
-                newBidAmount: @bidAmount.toString()
+                newBidAmount: @bidAmount
               right:
                 sequence: order.id
-                newOfferAmount: order.offerAmount.toString()
-              price: price.toString()
-              amount: rightOfferAmount.toString()
+                newOfferAmount: order.offerAmount
+              price: price
+              amount: rightOfferAmount
             return false
       else
         if order.bidPrice.multiply(@bidPrice).compareTo(Amount.ONE) >= 0
@@ -235,12 +235,12 @@ module.exports = class Order extends EventEmitter
               timestamp: @timestamp
               left:
                 sequence: @id
-                newBidAmount: @bidAmount.toString()
+                newBidAmount: @bidAmount
               right:
                 sequence: order.id
-                newBidAmount: order.bidAmount.toString()
-              price: price.toString()
-              amount: leftOfferAmount.toString()
+                newBidAmount: order.bidAmount
+              price: price
+              amount: leftOfferAmount
             return true
           else
             # NB: Cannot think of any way to avoid this divide but
@@ -263,12 +263,12 @@ module.exports = class Order extends EventEmitter
               timestamp: @timestamp
               left:
                 sequence: @id
-                newBidAmount: @bidAmount.toString()
+                newBidAmount: @bidAmount
               right:
                 sequence: order.id
-                newBidAmount: order.bidAmount.toString()
-              price: price.toString()
-              amount: leftOfferAmount.toString()
+                newBidAmount: order.bidAmount
+              price: price
+              amount: leftOfferAmount
             return false
 
   add: (order) =>

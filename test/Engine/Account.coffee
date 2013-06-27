@@ -63,7 +63,7 @@ describe 'Account', ->
         id: '123456789'
       account.deposit
         currency: 'EUR'
-        amount: '1000'
+        amount: amount1000
       order = new Order
         id: '1'
         timestamp: '1'
@@ -82,7 +82,7 @@ describe 'Account', ->
           id: '123456789'
         account.deposit
           currency: 'BTC'
-          amount: '200'
+          amount: amount200
         offer = newOffer '1', 'BTC', amount50
         account.submit offer
         bid = newBid '2', 'BTC', amount25
@@ -107,7 +107,7 @@ describe 'Account', ->
             calculate: @calculateCommission
         @account.deposit
           currency: 'EUR'
-          amount: '1000'
+          amount: amount1000
         @order = new Order
           id: '1'
           timestamp: '1'
@@ -158,7 +158,7 @@ describe 'Account', ->
         id: '123456789'
       account.deposit
         currency: 'EUR'
-        amount: '1000'
+        amount: amount1000
       order = new Order
         id: '1'
         timestamp: '1'
@@ -189,7 +189,7 @@ describe 'Account', ->
         id: '123456789'
       expect =>
         account.deposit
-          amount: '50'
+          amount: amount50
       .to.throw 'Must supply a currency'
 
     it 'should throw an error if no amount is supplied', ->
@@ -205,7 +205,7 @@ describe 'Account', ->
         id: '123456789'
       account.deposit
         currency: 'BTC'
-        amount: '50'
+        amount: amount50
       account.getBalance('BTC').funds.compareTo(amount50).should.equal 0
 
   describe '#withdraw', ->
@@ -214,7 +214,7 @@ describe 'Account', ->
         id: '123456789'
       expect =>
         account.withdraw
-          amount: '50'
+          amount: amount50
       .to.throw 'Must supply a currency'
 
     it 'should throw an error if no amount is supplied', ->
@@ -230,16 +230,16 @@ describe 'Account', ->
         id: '123456789'
       account.deposit
         currency: 'BTC'
-        amount: '200'
+        amount: amount200
       account.submit newOffer '1', 'BTC', amount50
       account.submit newOffer '2', 'BTC', amount100
       account.withdraw
         currency: 'BTC'
-        amount: '25'
+        amount: amount25
       account.getBalance('BTC').funds.compareTo(amount175).should.equal 0
       account.withdraw
         currency: 'BTC'
-        amount: '25'
+        amount: amount25
       account.getBalance('BTC').funds.compareTo(amount150).should.equal 0
 
     it 'should throw an error if the withdrawal amount is greater than the funds available', ->
@@ -247,13 +247,13 @@ describe 'Account', ->
         id: '123456789'
       account.deposit
         currency: 'BTC'
-        amount: '200'
+        amount: amount200
       account.submit newOffer '1', 'BTC', amount50
       account.submit newOffer '2', 'BTC', amount100
       expect ->
         account.withdraw
           currency: 'BTC'
-          amount: '100'
+          amount: amount200
       .to.throw 'Cannot withdraw funds that are not available'
 
   describe '#export', ->
@@ -262,7 +262,7 @@ describe 'Account', ->
         id: '123456789'
       account.deposit
         currency: 'BTC'
-        amount: '200'
+        amount: amount200
       account.submit newOffer '1', 'BTC', amount50
       account.submit newOffer '2', 'BTC', amount100
       json = JSON.stringify account.export()
