@@ -8,7 +8,7 @@ chai.use sinonChai
 
 Order = require '../../src/Engine/Order'
 Amount = require '../../src/Amount'
-Balance = require '../../src/Engine/balance'
+Balance = require '../../src/Engine/Balance'
 Account = require '../../src/Engine/Account'
 
 amountPoint01 = new Amount '0.01'
