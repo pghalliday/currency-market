@@ -53,7 +53,7 @@ amount2500 = new Amount '2500'
 amount4950 = new Amount '4950'
 amount5000 = new Amount '5000'
 
-describe.skip 'Engine', ->
+describe 'Engine', ->
   beforeEach ->
     @calculateCommission = sinon.stub().returns
       amount: Amount.ONE

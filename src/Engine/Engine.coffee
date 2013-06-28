@@ -105,8 +105,8 @@ module.exports = class Engine extends EventEmitter
           trade: result.trade
         @nextDeltaSequence++
         @emit 'delta', delta
-      if !result.complete
-        @execute leftBook, rightBook
+        if !result.complete
+          @execute leftBook, rightBook
 
   export: =>
     object = Object.create null
@@ -137,17 +137,18 @@ module.exports = class Engine extends EventEmitter
         for order in book
           do (order) =>
             account = @getAccount order.account
-            orderObject = account.submit
+            book = @getBook order.bidCurrency, order.offerCurrency
+            orderObject = new Order
               sequence: order.sequence
               timestamp: order.timestamp
-              bidCurrency: order.bidCurrency
-              offerCurrency: order.offerCurrency
+              account: account
+              book: book
               bidPrice: if order.bidPrice then new Amount order.bidPrice else undefined
               bidAmount: if order.bidAmount then new Amount order.bidAmount else undefined
               offerPrice: if order.offerPrice then new Amount order.offerPrice else undefined
               offerAmount: if order.offerAmount then new Amount order.offerAmount else undefined
-            leftBook = @getBook order.bidCurrency, order.offerCurrency
-            leftBook.submit orderObject
+            account.submit orderObject
+            book.submit orderObject
     @nextOperationSequence = snapshot.nextOperationSequence
     @nextDeltaSequence = snapshot.nextDeltaSequence
 

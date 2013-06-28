@@ -8,6 +8,8 @@ Order = require '../../src/Engine/Order'
 Amount = require '../../src/Amount'
 Account = require '../../src/Engine/Account'
 
+amountPoint05 = new Amount '0.05'
+amountPoint1 = new Amount '0.1'
 amount5 = new Amount '5'
 amount10 = new Amount '10'
 amount15 = new Amount '15'
@@ -159,10 +161,9 @@ describe 'Book', ->
       expect(nextHigher).to.not.be.ok
 
     it 'should handle bids and offers in the same book', ->
-      order1 = @newBid amount50
-      @book.submit order1
-      order2 = @newOffer amount50
-      @book.submit order2
+      @book.submit @newBid amount10
+      @book.submit @newOffer amountPoint05
+      @book.submit @newBid amount10
 
   describe '#cancel', ->
     beforeEach ->

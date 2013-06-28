@@ -1,7 +1,6 @@
 Amount = require('../Amount')
-EventEmitter = require('events').EventEmitter
 
-module.exports = class Order extends EventEmitter
+module.exports = class Order
   constructor: (params) ->
     @sequence =  params.sequence
     if typeof @sequence == 'undefined'

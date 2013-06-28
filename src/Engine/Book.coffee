@@ -32,8 +32,6 @@ module.exports = class Book
     else
       @head = order
       @highest = order
-    order.on 'done', =>
-      @cancel order
     return nextHigher
   
   cancel: (order) =>
