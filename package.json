@@ -29,7 +29,7 @@
     "prepublish": "grunt",
     "test": "grunt",
     "travis-cov": {
-      "threshold": 100
+      "threshold": 82
     }
   },
   "dependencies": {},

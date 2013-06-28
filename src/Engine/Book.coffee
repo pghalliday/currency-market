@@ -1,25 +1,40 @@
 Amount = require '../Amount'
 
 module.exports = class Book
-  constructor: ->
+  constructor: (params) ->
+    @bidCurrency = params.bidCurrency
+    if @bidCurrency
+      @offerCurrency = params.offerCurrency
+      if !@offerCurrency
+        throw new Error 'Must supply an offer currency'
+    else
+      throw new Error 'Must supply a bid currency'
 
   submit: (order) =>
+    nextHigher = undefined
     if @head
-      if order.bidPrice
-        isHighest = order.bidPrice.compareTo(@highest.bidPrice) > 0
+      if @highest.bidPrice
+        if order.bidPrice
+          isHighest = order.bidPrice.compareTo(@highest.bidPrice) > 0
+        else
+          isHighest = order.offerPrice.multiply(@highest.bidPrice).compareTo(Amount.ONE) < 0
       else
-        isHighest = order.offerPrice.compareTo(@highest.offerPrice) < 0
+        if order.offerPrice
+          isHighest = order.offerPrice.compareTo(@highest.offerPrice) < 0
+        else
+          isHighest = order.bidPrice.multiply(@highest.offerPrice).compareTo(Amount.ONE) > 0
 
       if isHighest
         @highest.add order
         @highest = order
       else
-        @head.add order
+        nextHigher = @head.add order
     else
       @head = order
       @highest = order
     order.on 'done', =>
       @cancel order
+    return nextHigher
   
   cancel: (order) =>
     parent = order.parent

@@ -15,13 +15,12 @@ module.exports = class Order extends EventEmitter
     if !@account
       throw new Error('Order must be associated with an account')
 
-    @bidBalance = params.bidBalance
-    if !@bidBalance
-      throw new Error('Order must be associated with a bid balance')
-
-    @offerBalance = params.offerBalance
-    if !@offerBalance
-      throw new Error('Order must be associated with an offer balance')
+    @book = params.book
+    if @book
+      @bidBalance = @account.getBalance @book.bidCurrency
+      @offerBalance = @account.getBalance @book.offerCurrency
+    else
+      throw new Error('Order must be associated with a book')
 
     if params.offerPrice
       @offerPrice = params.offerPrice
@@ -60,7 +59,6 @@ module.exports = class Order extends EventEmitter
             throw new Error('Must specify either bid amount and price or offer amount and price')
       else
           throw new Error('Must specify either bid amount and price or offer amount and price')
-    @offerBalance.lock @offerAmount
 
   partialOffer = (bidAmount, offerAmount, timestamp) ->
     @offerAmount = @offerAmount.subtract offerAmount
@@ -97,10 +95,13 @@ module.exports = class Order extends EventEmitter
       debit: @offerBalance.applyOffer
         amount: offerAmount
         fundsUnlocked: fundsUnlocked
-    @emit 'done'
+    @account.complete @
+    @book.cancel @
     return balanceDeltas
 
   match: (order) =>
+    result = 
+      complete: false
     if @offerPrice
       if order.bidPrice
         if order.bidPrice.compareTo(@offerPrice) >= 0
@@ -112,7 +113,7 @@ module.exports = class Order extends EventEmitter
             rightOfferAmount = order.offerAmount
             rightBalanceDeltas = fill.call order, leftOfferAmount, rightOfferAmount, @timestamp
             leftBalanceDeltas = partialOffer.call @, rightOfferAmount, leftOfferAmount, @timestamp
-            order.emit 'trade',
+            result.trade = 
               timestamp: @timestamp
               left:
                 sequence: @sequence
@@ -124,7 +125,7 @@ module.exports = class Order extends EventEmitter
                 balanceDeltas: rightBalanceDeltas
               price: price
               amount: leftOfferAmount
-            return true
+            return result
           else
             leftOfferAmount = @offerAmount
             rightOfferAmount = leftOfferAmount.multiply price
@@ -133,7 +134,8 @@ module.exports = class Order extends EventEmitter
             else
               rightBalanceDeltas = partialBid.call order, leftOfferAmount, rightOfferAmount, @timestamp
             leftBalanceDeltas = fill.call @, rightOfferAmount, leftOfferAmount, @timestamp
-            order.emit 'trade',
+            result.complete = true
+            result.trade = 
               timestamp: @timestamp
               left:
                 sequence: @sequence
@@ -145,7 +147,6 @@ module.exports = class Order extends EventEmitter
                 balanceDeltas: rightBalanceDeltas
               price: price
               amount: leftOfferAmount
-            return false
       else
         if order.offerPrice.multiply(@offerPrice).compareTo(Amount.ONE) <= 0
           # prices overlap so we make a trade
@@ -156,7 +157,7 @@ module.exports = class Order extends EventEmitter
             rightOfferAmount = order.offerAmount
             rightBalanceDeltas = fill.call order, leftOfferAmount, rightOfferAmount, @timestamp
             leftBalanceDeltas = partialOffer.call @, rightOfferAmount, leftOfferAmount, @timestamp
-            order.emit 'trade',
+            result.trade = 
               timestamp: @timestamp
               left:
                 sequence: @sequence
@@ -168,7 +169,6 @@ module.exports = class Order extends EventEmitter
                 balanceDeltas: rightBalanceDeltas
               price: price
               amount: rightOfferAmount
-            return true
           else
             leftOfferAmount = @offerAmount
             # NB: Cannot think of any way to avoid this divide but
@@ -183,7 +183,8 @@ module.exports = class Order extends EventEmitter
             else
               rightBalanceDeltas = partialOffer.call order, leftOfferAmount, rightOfferAmount, @timestamp
             leftBalanceDeltas = fill.call @, rightOfferAmount, leftOfferAmount, @timestamp
-            order.emit 'trade',
+            result.complete = true
+            result.trade = 
               timestamp: @timestamp
               left:
                 sequence: @sequence
@@ -195,7 +196,6 @@ module.exports = class Order extends EventEmitter
                 balanceDeltas: rightBalanceDeltas
               price: price
               amount: rightOfferAmount
-            return false
     else
       if order.offerPrice
         if @bidPrice.compareTo(order.offerPrice) >= 0
@@ -207,7 +207,7 @@ module.exports = class Order extends EventEmitter
             leftOfferAmount = rightOfferAmount.multiply price
             rightBalanceDeltas = fill.call order, leftOfferAmount, rightOfferAmount, @timestamp
             leftBalanceDeltas = partialBid.call @, rightOfferAmount, leftOfferAmount, @timestamp
-            order.emit 'trade',
+            result.trade = 
               timestamp: @timestamp
               left:
                 sequence: @sequence
@@ -219,7 +219,6 @@ module.exports = class Order extends EventEmitter
                 balanceDeltas: rightBalanceDeltas
               price: price
               amount: rightOfferAmount
-            return true
           else
             rightOfferAmount = @bidAmount
             leftOfferAmount = rightOfferAmount.multiply price
@@ -228,7 +227,8 @@ module.exports = class Order extends EventEmitter
             else
               rightBalanceDeltas = partialOffer.call order, leftOfferAmount, rightOfferAmount, @timestamp
             leftBalanceDeltas = fill.call @, rightOfferAmount, leftOfferAmount, @timestamp
-            order.emit 'trade',
+            result.complete = true
+            result.trade = 
               timestamp: @timestamp
               left:
                 sequence: @sequence
@@ -240,7 +240,6 @@ module.exports = class Order extends EventEmitter
                 balanceDeltas: rightBalanceDeltas
               price: price
               amount: rightOfferAmount
-            return false
       else
         if order.bidPrice.multiply(@bidPrice).compareTo(Amount.ONE) >= 0
           # prices overlap so we make a trade
@@ -251,7 +250,7 @@ module.exports = class Order extends EventEmitter
             rightOfferAmount = order.offerAmount
             rightBalanceDeltas = fill.call order, leftOfferAmount, rightOfferAmount, @timestamp
             leftBalanceDeltas = partialBid.call @, rightOfferAmount, leftOfferAmount, @timestamp
-            order.emit 'trade',
+            result.trade = 
               timestamp: @timestamp
               left:
                 sequence: @sequence
@@ -263,7 +262,6 @@ module.exports = class Order extends EventEmitter
                 balanceDeltas: rightBalanceDeltas
               price: price
               amount: leftOfferAmount
-            return true
           else
             # NB: Cannot think of any way to avoid this divide but
             # must ensure that we round down as rounding up could
@@ -281,7 +279,8 @@ module.exports = class Order extends EventEmitter
             else
               rightBalanceDeltas = partialBid.call order, leftOfferAmount, rightOfferAmount, @timestamp
             leftBalanceDeltas = fill.call @, rightOfferAmount, leftOfferAmount, @timestamp
-            order.emit 'trade',
+            result.complete = true
+            result.trade = 
               timestamp: @timestamp
               left:
                 sequence: @sequence
@@ -293,9 +292,9 @@ module.exports = class Order extends EventEmitter
                 balanceDeltas: rightBalanceDeltas
               price: price
               amount: leftOfferAmount
-            return false
+    return result
 
-  add: (order) =>
+  add: (order, nextHigher) =>
     if @bidPrice
       if order.bidPrice
         isHigher = order.bidPrice.compareTo(@bidPrice) > 0
@@ -309,17 +308,20 @@ module.exports = class Order extends EventEmitter
 
     if isHigher
       if @higher
-        @higher.add order
+        nextHigher = @higher.add order, nextHigher
       else
         @higher = order
         order.parent = @
     else
       if @lower
-        @lower.add order
+        nextHigher = @lower.add order, @
       else
+        nextHigher = @
         @lower = order
         order.parent = @
+    return nextHigher
 
+  # private function only used by delete
   addLowest: (order) =>
     if @lower
       @lower.addLowest order
@@ -379,8 +381,8 @@ module.exports = class Order extends EventEmitter
     object.sequence = @sequence
     object.timestamp = @timestamp
     object.account = @account.id
-    object.bidCurrency = @bidBalance.currency
-    object.offerCurrency = @offerBalance.currency
+    object.bidCurrency = @book.bidCurrency
+    object.offerCurrency = @book.offerCurrency
     if @bidPrice
       object.bidPrice = @bidPrice.toString()
       object.bidAmount = @bidAmount.toString()

@@ -8,8 +8,8 @@ chai.use sinonChai
 
 Order = require '../../src/Engine/Order'
 Amount = require '../../src/Amount'
-Balance = require '../../src/Engine/Balance'
 Account = require '../../src/Engine/Account'
+Book = require '../../src/Engine/Book'
 
 amountPoint01 = new Amount '0.01'
 amountPoint2 = new Amount '0.2'
@@ -55,84 +55,161 @@ amount500 = new Amount '500'
 amount995 = new Amount '995'
 amount1000 = new Amount '1000'
 amount1500 = new Amount '1500'
+amount2000 = new Amount '2000'
 amount5000 = new Amount '5000'
 amount7500 = new Amount '7500'
 amount15000 = new Amount '15000'
+amount19800 = new Amount '19800'
+amount19900 = new Amount '19900'
+amount20000 = new Amount '20000'
+amount99000 = new Amount '99000'
+amount99500 = new Amount '99500'
+amount100000 = new Amount '100000'
 
 amountMinus50 = new Amount '-50'
 amountMinus100 = new Amount '-100'
 
-newBidOrder = (bidPrice, sequence) ->
-  account = new Account
-    id: 'Peter'
-  bidBalance = account.getBalance 'EUR'
-  offerBalance = account.getBalance 'BTC'
-  offerBalance.deposit amount15000
-  new Order
-    sequence: sequence || 0
-    timestamp: 1371737390976
-    account: account
-    bidBalance: bidBalance
-    offerBalance: offerBalance
-    bidPrice: bidPrice
-    bidAmount: amount200
-
-newOfferOrder = (offerPrice, sequence) ->
-  account = new Account
-    id: 'Peter'
-  bidBalance = account.getBalance 'EUR'
-  offerBalance = account.getBalance 'BTC'
-  offerBalance.deposit amount200
-  new Order
-    sequence: sequence || 0
-    timestamp: 1371737390976
-    account: account
-    bidBalance: bidBalance
-    offerBalance: offerBalance
-    offerPrice: offerPrice
-    offerAmount: amount200
-
 describe 'Order', ->
+  beforeEach ->
+    sequence = 0
+    timestamp = 1371737390976
+
+    @bookBTCEUR = new Book
+      bidCurrency: 'BTC'
+      offerCurrency: 'EUR'
+    @bookEURBTC = new Book
+      bidCurrency: 'EUR'
+      offerCurrency: 'BTC'
+      
+    @commissionAccount = new Account
+      id: 'commission'
+    @balanceCommissionBTC = @commissionAccount.getBalance 'BTC'
+    @balanceCommissionEUR = @commissionAccount.getBalance 'EUR'
+
+    @accountPeter = new Account
+      id: 'Peter'
+      commission:
+        account: @commissionAccount
+        calculate: (params) =>
+          commission = 
+            amount: amount1
+            reference: 'Peter commission level'
+    @accountPeter.deposit
+      currency: 'EUR'
+      amount: amount100000
+    @balancePeterBTC = @accountPeter.getBalance 'BTC'
+    @balancePeterEUR = @accountPeter.getBalance 'EUR'
+
+    @peterBidBTC = (params) =>
+      order = new Order
+        sequence: sequence++
+        timestamp: timestamp++
+        account: @accountPeter
+        book: @bookBTCEUR
+        bidPrice: params.price
+        bidAmount: params.amount
+      if !params.skipSubmit
+        @accountPeter.submit order
+        @bookBTCEUR.submit order
+      return order
+    @peterOfferEUR = (params) =>
+      order = new Order
+        sequence: sequence++
+        timestamp: timestamp++
+        account: @accountPeter
+        book: @bookBTCEUR
+        offerPrice: params.price
+        offerAmount: params.amount
+      if !params.skipSubmit
+        @accountPeter.submit order
+        @bookBTCEUR.submit order
+      return order
+
+    @accountPaul = new Account
+      id: 'Paul'
+      commission:
+        account: @commissionAccount
+        calculate: (params) =>
+          commission = 
+            amount: amount5
+            reference: 'Paul commission level'
+    @accountPaul.deposit
+      currency: 'BTC'
+      amount: amount20000
+    @balancePaulBTC = @accountPaul.getBalance 'BTC'
+    @balancePaulEUR = @accountPaul.getBalance 'EUR'
+
+    @paulBidEUR = (params) =>
+      order = new Order
+        sequence: sequence++
+        timestamp: timestamp++
+        account: @accountPaul
+        book: @bookEURBTC
+        bidPrice: params.price
+        bidAmount: params.amount
+      if !params.skipSubmit
+        @accountPaul.submit order
+        @bookEURBTC.submit order
+      return order
+    @paulOfferBTC = (params) =>
+      order = new Order
+        sequence: sequence++
+        timestamp: timestamp++
+        account: @accountPaul
+        book: @bookEURBTC
+        offerPrice: params.price
+        offerAmount: params.amount    
+      if !params.skipSubmit
+        @accountPaul.submit order
+        @bookEURBTC.submit order
+      return order
+
   it 'should throw an error if the sequence is missing', ->
+    book = new Book
+      bidCurrency: 'BTC'
+      offerCurrency: 'EUR'
     account = new Account
       id: 'Peter'
     expect ->
       order = new Order
         timestamp: 1371737390976
         account: account
-        bidBalance: account.getBalance 'BTC'
-        offerBalance: account.getBalance 'EUR'
+        book: book
         bidPrice: amount100
         bidAmount: amount50
     .to.throw 'Order must have a sequence'
 
   it 'should throw an error if the timestamp is missing', ->
+    book = new Book
+      bidCurrency: 'BTC'
+      offerCurrency: 'EUR'
     account = new Account
       id: 'Peter'
     expect ->
       order = new Order
         sequence: 0
         account: account
-        bidBalance: account.getBalance 'BTC'
-        offerBalance: account.getBalance 'EUR'
+        book: book
         bidPrice: amount100
         bidAmount: amount50
     .to.throw 'Order must have a timestamp'
 
   it 'should throw an error if the account is missing', ->
+    book = new Book
+      bidCurrency: 'BTC'
+      offerCurrency: 'EUR'
     account = new Account
       id: 'Peter'
     expect ->
       order = new Order
         sequence: 0
         timestamp: 1371737390976
-        bidBalance: account.getBalance 'BTC'
-        offerBalance: account.getBalance 'EUR'
+        book: book
         bidPrice: amount100
         bidAmount: amount50
     .to.throw 'Order must be associated with an account'
 
-  it 'should throw an error if the bid balance is missing', ->
+  it 'should throw an error if the book is missing', ->
     account = new Account
       id: 'Peter'
     expect ->
@@ -140,25 +217,14 @@ describe 'Order', ->
         sequence: 0
         timestamp: 1371737390976
         account: account
-        offerBalance: account.getBalance 'EUR'
         bidPrice: amount100
         bidAmount: amount50
-    .to.throw 'Order must be associated with a bid balance'
-
-  it 'should throw an error if the offer balance is missing', ->
-    account = new Account
-      id: 'Peter'
-    expect ->
-      order = new Order
-        sequence: 0
-        timestamp: 1371737390976
-        account: account
-        bidBalance: account.getBalance 'BTC'
-        bidPrice: amount100
-        bidAmount: amount50
-    .to.throw 'Order must be associated with an offer balance'
+    .to.throw 'Order must be associated with a book'
 
   it 'should throw an error if only a bid price is given as it is not enough information to calculate the other fields a bid', ->
+    book = new Book
+      bidCurrency: 'BTC'
+      offerCurrency: 'EUR'
     account = new Account
       id: 'Peter'
     expect ->
@@ -166,12 +232,14 @@ describe 'Order', ->
         sequence: 0
         timestamp: 1371737390976
         account: account
-        bidBalance: account.getBalance 'BTC'
-        offerBalance: account.getBalance 'EUR'
+        book: book
         bidPrice: amount100
     .to.throw 'Must specify either bid amount and price or offer amount and price'
 
   it 'should throw an error if only an offer price is given as it is not enough information to calculate the other fields a bid', ->
+    book = new Book
+      bidCurrency: 'BTC'
+      offerCurrency: 'EUR'
     account = new Account
       id: 'Peter'
     expect ->
@@ -179,12 +247,14 @@ describe 'Order', ->
         sequence: 0
         timestamp: 1371737390976
         account: account
-        bidBalance: account.getBalance 'BTC'
-        offerBalance: account.getBalance 'EUR'
+        book: book
         offerPrice: amount100
     .to.throw 'Must specify either bid amount and price or offer amount and price'
 
   it 'should throw an error if only a bid amount is given as it is not enough information to calculate the other fields a bid', ->
+    book = new Book
+      bidCurrency: 'BTC'
+      offerCurrency: 'EUR'
     account = new Account
       id: 'Peter'
     expect ->
@@ -192,12 +262,14 @@ describe 'Order', ->
         sequence: 0
         timestamp: 1371737390976
         account: account
-        bidBalance: account.getBalance 'BTC'
-        offerBalance: account.getBalance 'EUR'
+        book: book
         bidAmount: amount100
     .to.throw 'Must specify either bid amount and price or offer amount and price'
 
   it 'should throw an error if only a offer amount is given as it is not enough information to calculate the other fields a bid', ->
+    book = new Book
+      bidCurrency: 'BTC'
+      offerCurrency: 'EUR'
     account = new Account
       id: 'Peter'
     expect ->
@@ -205,12 +277,14 @@ describe 'Order', ->
         sequence: 0
         timestamp: 1371737390976
         account: account
-        bidBalance: account.getBalance 'BTC'
-        offerBalance: account.getBalance 'EUR'
+        book: book
         offerAmount: amount100
     .to.throw 'Must specify either bid amount and price or offer amount and price'
 
   it 'should throw an error if both the bid price, bid amount and offer price are given as we do not want to trust the calculations of others', ->
+    book = new Book
+      bidCurrency: 'BTC'
+      offerCurrency: 'EUR'
     account = new Account
       id: 'Peter'
     expect ->
@@ -218,14 +292,16 @@ describe 'Order', ->
         sequence: 0
         timestamp: 1371737390976
         account: account
-        bidBalance: account.getBalance 'BTC'
-        offerBalance: account.getBalance 'EUR'
+        book: book
         bidPrice: amount100
         offerPrice: amount50
         bidAmount: amount50
     .to.throw 'Must specify either bid amount and price or offer amount and price'
 
   it 'should throw an error if both the offer price, offer amount and bid price are given as we do not want to trust the calculations of others', ->
+    book = new Book
+      bidCurrency: 'BTC'
+      offerCurrency: 'EUR'
     account = new Account
       id: 'Peter'
     expect ->
@@ -233,14 +309,16 @@ describe 'Order', ->
         sequence: 0
         timestamp: 1371737390976
         account: account
-        bidBalance: account.getBalance 'BTC'
-        offerBalance: account.getBalance 'EUR'
+        book: book
         bidPrice: amount100
         offerPrice: amount50
         offerAmount: amount50
     .to.throw 'Must specify either bid amount and price or offer amount and price'
 
   it 'should throw an error if the bid price, offer amount and bid amount are given as we do not want to trust the calculations of others', ->
+    book = new Book
+      bidCurrency: 'BTC'
+      offerCurrency: 'EUR'
     account = new Account
       id: 'Peter'
     expect ->
@@ -248,14 +326,16 @@ describe 'Order', ->
         sequence: 0
         timestamp: 1371737390976
         account: account
-        bidBalance: account.getBalance 'BTC'
-        offerBalance: account.getBalance 'EUR'
+        book: book
         bidPrice: amount100
         offerAmount: amount60
         bidAmount: amount50
     .to.throw 'Must specify either bid amount and price or offer amount and price'
 
   it 'should throw an error if the offer price, offer amount and bid amount are given as we do not want to trust the calculations of others', ->
+    book = new Book
+      bidCurrency: 'BTC'
+      offerCurrency: 'EUR'
     account = new Account
       id: 'Peter'
     expect ->
@@ -263,14 +343,16 @@ describe 'Order', ->
         sequence: 0
         timestamp: 1371737390976
         account: account
-        bidBalance: account.getBalance 'BTC'
-        offerBalance: account.getBalance 'EUR'
+        book: book
         offerPrice: amount100
         offerAmount: amount60
         bidAmount: amount50
     .to.throw 'Must specify either bid amount and price or offer amount and price'
 
   it 'should throw an error if only amounts are specified as we need to know which amount to satisfy if the order is excuted at a better price', ->
+    book = new Book
+      bidCurrency: 'BTC'
+      offerCurrency: 'EUR'
     account = new Account
       id: 'Peter'
     expect ->
@@ -278,13 +360,15 @@ describe 'Order', ->
         sequence: 0
         timestamp: 1371737390976
         account: account
-        bidBalance: account.getBalance 'BTC'
-        offerBalance: account.getBalance 'EUR'
+        book: book
         bidAmount: amount100
         offerAmount: amount50
     .to.throw 'Must specify either bid amount and price or offer amount and price'
 
   it 'should throw an error if a bid amount and offer price are specified as we need to know which amount to satisfy if the order is excuted at a better price', ->
+    book = new Book
+      bidCurrency: 'BTC'
+      offerCurrency: 'EUR'
     account = new Account
       id: 'Peter'
     expect ->
@@ -292,13 +376,15 @@ describe 'Order', ->
         sequence: 0
         timestamp: 1371737390976
         account: account
-        bidBalance: account.getBalance 'BTC'
-        offerBalance: account.getBalance 'EUR'
+        book: book
         bidAmount: amount100
         offerPrice: amount50
     .to.throw 'Must specify either bid amount and price or offer amount and price'
 
   it 'should throw an error if an offer amount and bid price are specified as we need to know which amount to satisfy if the order is excuted at a better price', ->
+    book = new Book
+      bidCurrency: 'BTC'
+      offerCurrency: 'EUR'
     account = new Account
       id: 'Peter'
     expect ->
@@ -306,218 +392,95 @@ describe 'Order', ->
         sequence: 0
         timestamp: 1371737390976
         account: account
-        bidBalance: account.getBalance 'BTC'
-        offerBalance: account.getBalance 'EUR'
+        book: book
         offerAmount: amount100
         bidPrice: amount50
     .to.throw 'Must specify either bid amount and price or offer amount and price'
 
   it 'should throw an error if the bid amount is negative', ->
-    account = new Account
-      id: 'Peter'
-    expect ->
-      order = new Order
-        sequence: 0
-        timestamp: 1371737390976
-        account: account
-        bidBalance: account.getBalance 'BTC'
-        offerBalance: account.getBalance 'EUR'
-        bidPrice: amount100
-        bidAmount: amountMinus50
+    expect =>
+      @peterBidBTC
+        price: amount100
+        amount: amountMinus50
     .to.throw 'bid amount cannot be negative'
 
   it 'should throw an error if the bid price is negative', ->
-    account = new Account
-      id: 'Peter'
-    expect ->
-      order = new Order
-        sequence: 0
-        timestamp: 1371737390976
-        account: account
-        bidBalance: account.getBalance 'BTC'
-        offerBalance: account.getBalance 'EUR'
-        bidPrice: amountMinus100
-        bidAmount: amount50
+    expect =>
+      @peterBidBTC
+        price: amountMinus100
+        amount: amount50
     .to.throw 'bid price cannot be negative'
 
   it 'should throw an error if the offer amount is negative', ->
-    account = new Account
-      id: 'Peter'
-    expect ->
-      order = new Order
-        sequence: 0
-        timestamp: 1371737390976
-        account: account
-        bidBalance: account.getBalance 'BTC'
-        offerBalance: account.getBalance 'EUR'
-        offerPrice: amount100
-        offerAmount: amountMinus50
+    expect =>
+      @peterOfferEUR
+        price: amount100
+        amount: amountMinus50
     .to.throw 'offer amount cannot be negative'
 
   it 'should throw an error if the offer price is negative', ->
-    account = new Account
-      id: 'Peter'
-    expect ->
-      order = new Order
-        sequence: 0
-        timestamp: 1371737390976
-        account: account
-        bidBalance: account.getBalance 'BTC'
-        offerBalance: account.getBalance 'EUR'
-        offerPrice: amountMinus100
-        offerAmount: amount50
+    expect =>
+      @peterOfferEUR
+        price: amountMinus100
+        amount: amount50
     .to.throw 'offer price cannot be negative'
 
-  it 'should error if there are not enough funds available to satisfy the order', ->
-    account = new Account
-      id: 'Peter'
-    bidBalance = account.getBalance 'BTC'
-    offerBalance = account.getBalance 'EUR'
-    expect ->
-      order = new Order
-        sequence: 0
-        timestamp: 1371737390976
-        account: account
-        bidBalance: bidBalance
-        offerBalance: offerBalance
-        bidPrice: amount100
-        bidAmount: amount50
-    .to.throw 'Cannot lock funds that are not available'
-
-  it 'should record the sequence, timestamp, account name, bid balance and offer balance and lock the correct amount of funds in offer balance', ->
-    account = new Account
-      id: 'Peter'
-    bidBalance = account.getBalance 'BTC'
-    offerBalance = account.getBalance 'EUR'
-    offerBalance.deposit amount5000
-    order = new Order
-      sequence: 0
-      timestamp: 1371737390976
-      account: account
-      bidBalance: bidBalance
-      offerBalance: offerBalance
-      bidPrice: amount100
-      bidAmount: amount50
+  it 'should record the sequence, timestamp, account, book, price and amounts and set an undefined parent, lower and higher orders', ->
+    order = @peterBidBTC
+      price: amount100
+      amount: amount50
     order.sequence.should.equal 0
     order.timestamp.should.equal 1371737390976
-    order.account.should.equal account
-    order.bidBalance.should.equal bidBalance
-    order.offerBalance.should.equal offerBalance
-    offerBalance.lockedFunds.compareTo(amount5000).should.equal 0
-
-  it 'should instantiate with an undefined parent, lower and higher orders, bid price and bid amount calculating the offer amount', ->
-    account = new Account
-      id: 'Peter'
-    bidBalance = account.getBalance 'BTC'
-    offerBalance = account.getBalance 'EUR'
-    offerBalance.deposit amount5000
-    order = new Order
-      sequence: 0
-      timestamp: 1371737390976
-      account: account
-      bidBalance: bidBalance
-      offerBalance: offerBalance
-      bidPrice: amount100
-      bidAmount: amount50
+    order.account.should.equal @accountPeter
+    order.book.should.equal @bookBTCEUR
     order.bidPrice.compareTo(amount100).should.equal 0
     order.bidAmount.compareTo(amount50).should.equal 0
     order.offerAmount.compareTo(amount5000).should.equal 0
     expect(order.parent).to.not.be.ok
     expect(order.lower).to.not.be.ok
     expect(order.higher).to.not.be.ok
-
-  it 'should instantiate with an undefined parent, lower and higher orders, offer price and offer amount calculating the bid amount', ->
-    account = new Account
-      id: 'Peter'
-    bidBalance = account.getBalance 'BTC'
-    offerBalance = account.getBalance 'EUR'
-    offerBalance.deposit amount5000
-    order = new Order
-      sequence: 0
-      timestamp: 1371737390976
-      account: account
-      bidBalance: bidBalance
-      offerBalance: offerBalance
-      offerPrice: amount100
-      offerAmount: amount50
-    order.offerPrice.compareTo(amount100).should.equal 0
-    order.bidAmount.compareTo(amount5000).should.equal 0
-    order.offerAmount.compareTo(amount50).should.equal 0
-    expect(order.parent).to.not.be.ok
-    expect(order.lower).to.not.be.ok
-    expect(order.higher).to.not.be.ok
+    order = @peterOfferEUR
+      price: amountPoint01
+      amount: amount5000
+    order.sequence.should.equal 1
+    order.timestamp.should.equal 1371737390977
+    order.account.should.equal @accountPeter
+    order.book.should.equal @bookBTCEUR
+    order.offerPrice.compareTo(amountPoint01).should.equal 0
+    order.offerAmount.compareTo(amount5000).should.equal 0
+    order.bidAmount.compareTo(amount50).should.equal 0
 
   describe '#match', ->
-    beforeEach ->
-      @commissionAccount = new Account
-        id: 'commission'
-      @accountPeter = new Account
-        id: 'Peter'
-        commission:
-          account: @commissionAccount
-          calculate: (params) =>
-            commission = 
-              amount: amount1
-              reference: 'Peter commission level'
-      @bidBalancePeter = @accountPeter.getBalance 'BTC'
-      @offerBalancePeter = @accountPeter.getBalance 'EUR'
-      @offerBalancePeter.deposit amount1000
-      @accountPaul = new Account
-        id: 'Paul'
-        commission:
-          account: @commissionAccount
-          calculate: (params) =>
-            commission = 
-              amount: amount5
-              reference: 'Paul commission level'
-      @bidBalancePaul = @accountPaul.getBalance 'EUR'
-      @offerBalancePaul = @accountPaul.getBalance 'BTC'
-      @offerBalancePaul.deposit amount375
-
     describe 'where the existing (right) order is an offer', ->
       beforeEach ->
-        @order = new Order
-          sequence: 0
-          timestamp: 1371737390976
-          account: @accountPeter
-          bidBalance: @bidBalancePeter
-          offerBalance: @offerBalancePeter
-          offerPrice: amountPoint2   # 5
-          offerAmount: amount1000 # 200
-        @doneSpy = sinon.spy()
-        @order.on 'done', @doneSpy
-        @tradeSpy = sinon.spy()
-        @order.on 'trade', @tradeSpy
+        @order = @peterOfferEUR
+          price: amountPoint2   # 5
+          amount: amount1000 # 200
 
       describe 'and the new (left) price is same', ->
         describe 'and the left order is a bid', ->
           describe 'and the right order is offering exactly the amount the left order is bidding', ->
             it 'should trade the amount the right order is offering, emit a trade event and return false to indicate that no higher trades can be filled by the left order', ->
-              order = new Order
-                sequence: 1
-                timestamp: 1371737390977
-                account: @accountPaul
-                bidBalance: @bidBalancePaul
-                offerBalance: @offerBalancePaul
-                bidPrice: amountPoint2
-                bidAmount: amount1000
-              doneSpy = sinon.spy()
-              order.on 'done', doneSpy
-              tradeSpy = sinon.spy()
-              order.on 'trade', tradeSpy
+              order = @paulBidEUR
+                price: amountPoint2
+                amount: amount1000
 
-              order.match(@order).should.be.false
+              result = order.match @order
+              result.complete.should.be.true
 
-              doneSpy.should.have.been.calledOnce
-              @doneSpy.should.have.been.calledOnce
+              expect(@bookBTCEUR.next()).to.not.be.ok
+              expect(@accountPeter.orders[0]).to.not.be.ok
 
-              @offerBalancePaul.funds.compareTo(amount175).should.equal 0
-              @bidBalancePaul.funds.compareTo(amount995).should.equal 0
-              @commissionAccount.getBalance('EUR').funds.compareTo(amount5).should.equal 0
+              expect(@bookEURBTC.next()).to.not.be.ok
+              expect(@accountPaul.orders[1]).to.not.be.ok
 
-              @offerBalancePeter.funds.compareTo(Amount.ZERO).should.equal 0
-              @bidBalancePeter.funds.compareTo(amount199).should.equal 0
-              @commissionAccount.getBalance('BTC').funds.compareTo(amount1).should.equal 0
+              @balancePaulBTC.funds.compareTo(amount19800).should.equal 0
+              @balancePaulEUR.funds.compareTo(amount995).should.equal 0
+              @balanceCommissionEUR.funds.compareTo(amount5).should.equal 0
+
+              @balancePeterEUR.funds.compareTo(amount99000).should.equal 0
+              @balancePeterBTC.funds.compareTo(amount199).should.equal 0
+              @balanceCommissionBTC.funds.compareTo(amount1).should.equal 0
 
               order.offerAmount.compareTo(Amount.ZERO).should.equal 0
               order.bidAmount.compareTo(Amount.ZERO).should.equal 0
@@ -525,51 +488,44 @@ describe 'Order', ->
               @order.bidAmount.compareTo(Amount.ZERO).should.equal 0
               @order.offerAmount.compareTo(Amount.ZERO).should.equal 0
 
-              tradeSpy.should.not.have.been.called
-              @tradeSpy.should.have.been.calledOnce
-              @tradeSpy.firstCall.args[0].timestamp.should.equal order.timestamp
-              @tradeSpy.firstCall.args[0].left.sequence.should.equal order.sequence
-              @tradeSpy.firstCall.args[0].left.newBidAmount.compareTo(order.bidAmount).should.equal 0
-              @tradeSpy.firstCall.args[0].left.balanceDeltas.debit.amount.compareTo(amount200).should.equal 0
-              @tradeSpy.firstCall.args[0].left.balanceDeltas.credit.amount.compareTo(amount995).should.equal 0
-              @tradeSpy.firstCall.args[0].left.balanceDeltas.credit.commission.amount.compareTo(amount5).should.equal 0
-              @tradeSpy.firstCall.args[0].left.balanceDeltas.credit.commission.reference.should.equal 'Paul commission level'
-              @tradeSpy.firstCall.args[0].right.sequence.should.equal @order.sequence
-              @tradeSpy.firstCall.args[0].right.newOfferAmount.compareTo(@order.offerAmount).should.equal 0
-              @tradeSpy.firstCall.args[0].right.balanceDeltas.debit.amount.compareTo(amount1000).should.equal 0
-              @tradeSpy.firstCall.args[0].right.balanceDeltas.credit.amount.compareTo(amount199).should.equal 0
-              @tradeSpy.firstCall.args[0].right.balanceDeltas.credit.commission.amount.compareTo(amount1).should.equal 0
-              @tradeSpy.firstCall.args[0].right.balanceDeltas.credit.commission.reference.should.equal 'Peter commission level'
-              @tradeSpy.firstCall.args[0].price.compareTo(@order.offerPrice).should.equal 0
-              @tradeSpy.firstCall.args[0].amount.compareTo(amount1000).should.equal 0
+              result.trade.timestamp.should.equal order.timestamp
+              result.trade.left.sequence.should.equal order.sequence
+              result.trade.left.newBidAmount.compareTo(order.bidAmount).should.equal 0
+              result.trade.left.balanceDeltas.debit.amount.compareTo(amount200).should.equal 0
+              result.trade.left.balanceDeltas.credit.amount.compareTo(amount995).should.equal 0
+              result.trade.left.balanceDeltas.credit.commission.amount.compareTo(amount5).should.equal 0
+              result.trade.left.balanceDeltas.credit.commission.reference.should.equal 'Paul commission level'
+              result.trade.right.sequence.should.equal @order.sequence
+              result.trade.right.newOfferAmount.compareTo(@order.offerAmount).should.equal 0
+              result.trade.right.balanceDeltas.debit.amount.compareTo(amount1000).should.equal 0
+              result.trade.right.balanceDeltas.credit.amount.compareTo(amount199).should.equal 0
+              result.trade.right.balanceDeltas.credit.commission.amount.compareTo(amount1).should.equal 0
+              result.trade.right.balanceDeltas.credit.commission.reference.should.equal 'Peter commission level'
+              result.trade.price.compareTo(@order.offerPrice).should.equal 0
+              result.trade.amount.compareTo(amount1000).should.equal 0
 
           describe 'and the right order is offering more than the left order is bidding', ->
             it 'should trade the amount the left order is offering, emit fill events and a trade event and return false to indicate that higher trades may still be filled by the left order', ->
-              order = new Order
-                sequence: 1
-                timestamp: 1371737390977
-                account: @accountPaul
-                bidBalance: @bidBalancePaul
-                offerBalance: @offerBalancePaul
-                bidPrice: amountPoint2
-                bidAmount: amount500
-              doneSpy = sinon.spy()
-              order.on 'done', doneSpy
-              tradeSpy = sinon.spy()
-              order.on 'trade', tradeSpy
-              
-              order.match(@order).should.be.false
+              order = @paulBidEUR
+                price: amountPoint2
+                amount: amount500
 
-              doneSpy.should.have.been.calledOnce
-              @doneSpy.should.not.have.been.called
+              result = order.match @order
+              result.complete.should.be.true
 
-              @offerBalancePaul.funds.compareTo(amount275).should.equal 0
-              @bidBalancePaul.funds.compareTo(amount495).should.equal 0
-              @commissionAccount.getBalance('EUR').funds.compareTo(amount5).should.equal 0
+              @bookBTCEUR.next().should.equal @order
+              @accountPeter.orders[0].should.equal @order
 
-              @offerBalancePeter.funds.compareTo(amount500).should.equal 0
-              @bidBalancePeter.funds.compareTo(amount99).should.equal 0
-              @commissionAccount.getBalance('BTC').funds.compareTo(amount1).should.equal 0
+              expect(@bookEURBTC.next()).to.not.be.ok
+              expect(@accountPaul.orders[1]).to.not.be.ok
+
+              @balancePaulBTC.funds.compareTo(amount19900).should.equal 0
+              @balancePaulEUR.funds.compareTo(amount495).should.equal 0
+              @balanceCommissionEUR.funds.compareTo(amount5).should.equal 0
+
+              @balancePeterEUR.funds.compareTo(amount99500).should.equal 0
+              @balancePeterBTC.funds.compareTo(amount99).should.equal 0
+              @balanceCommissionBTC.funds.compareTo(amount1).should.equal 0
 
               order.offerAmount.compareTo(Amount.ZERO).should.equal 0
               order.bidAmount.compareTo(Amount.ZERO).should.equal 0
@@ -577,463 +533,408 @@ describe 'Order', ->
               @order.bidAmount.compareTo(amount100).should.equal 0
               @order.offerAmount.compareTo(amount500).should.equal 0
 
-              tradeSpy.should.not.have.been.called
-              @tradeSpy.should.have.been.calledOnce
-              @tradeSpy.firstCall.args[0].timestamp.should.equal order.timestamp
-              @tradeSpy.firstCall.args[0].left.sequence.should.equal order.sequence
-              @tradeSpy.firstCall.args[0].left.newBidAmount.compareTo(order.bidAmount).should.equal 0
-              @tradeSpy.firstCall.args[0].left.balanceDeltas.debit.amount.compareTo(amount100).should.equal 0
-              @tradeSpy.firstCall.args[0].left.balanceDeltas.credit.amount.compareTo(amount495).should.equal 0
-              @tradeSpy.firstCall.args[0].left.balanceDeltas.credit.commission.amount.compareTo(amount5).should.equal 0
-              @tradeSpy.firstCall.args[0].left.balanceDeltas.credit.commission.reference.should.equal 'Paul commission level'
-              @tradeSpy.firstCall.args[0].right.sequence.should.equal @order.sequence
-              @tradeSpy.firstCall.args[0].right.newOfferAmount.compareTo(@order.offerAmount).should.equal 0
-              @tradeSpy.firstCall.args[0].right.balanceDeltas.debit.amount.compareTo(amount500).should.equal 0
-              @tradeSpy.firstCall.args[0].right.balanceDeltas.credit.amount.compareTo(amount99).should.equal 0
-              @tradeSpy.firstCall.args[0].right.balanceDeltas.credit.commission.amount.compareTo(amount1).should.equal 0
-              @tradeSpy.firstCall.args[0].right.balanceDeltas.credit.commission.reference.should.equal 'Peter commission level'
-              @tradeSpy.firstCall.args[0].price.compareTo(@order.offerPrice).should.equal 0
-              @tradeSpy.firstCall.args[0].amount.compareTo(amount500).should.equal 0
+              result.trade.timestamp.should.equal order.timestamp
+              result.trade.left.sequence.should.equal order.sequence
+              result.trade.left.newBidAmount.compareTo(order.bidAmount).should.equal 0
+              result.trade.left.balanceDeltas.debit.amount.compareTo(amount100).should.equal 0
+              result.trade.left.balanceDeltas.credit.amount.compareTo(amount495).should.equal 0
+              result.trade.left.balanceDeltas.credit.commission.amount.compareTo(amount5).should.equal 0
+              result.trade.left.balanceDeltas.credit.commission.reference.should.equal 'Paul commission level'
+              result.trade.right.sequence.should.equal @order.sequence
+              result.trade.right.newOfferAmount.compareTo(@order.offerAmount).should.equal 0
+              result.trade.right.balanceDeltas.debit.amount.compareTo(amount500).should.equal 0
+              result.trade.right.balanceDeltas.credit.amount.compareTo(amount99).should.equal 0
+              result.trade.right.balanceDeltas.credit.commission.amount.compareTo(amount1).should.equal 0
+              result.trade.right.balanceDeltas.credit.commission.reference.should.equal 'Peter commission level'
+              result.trade.price.compareTo(@order.offerPrice).should.equal 0
+              result.trade.amount.compareTo(amount500).should.equal 0
 
           describe 'and the right order is offering less than the left order is bidding', ->
             it 'should trade the amount the right order is offering, emit fill events and a trade event and return true', ->
-              order = new Order
-                sequence: 1
-                timestamp: 1371737390977
-                account: @accountPaul
-                bidBalance: @bidBalancePaul
-                offerBalance: @offerBalancePaul
-                bidPrice: amountPoint2
-                bidAmount: amount1500
-              doneSpy = sinon.spy()
-              order.on 'done', doneSpy
-              tradeSpy = sinon.spy()
-              order.on 'trade', tradeSpy
-              
-              order.match(@order).should.be.true
+              order = @paulBidEUR
+                price: amountPoint2
+                amount: amount1500
 
-              doneSpy.should.not.have.been.called
-              @doneSpy.should.have.been.calledOnce
+              result = order.match @order
+              result.complete.should.be.false
 
-              @offerBalancePaul.funds.compareTo(amount175).should.equal 0
-              @bidBalancePaul.funds.compareTo(amount995).should.equal 0
-              @commissionAccount.getBalance('EUR').funds.compareTo(amount5).should.equal 0
+              expect(@bookBTCEUR.next()).to.not.be.ok
+              expect(@accountPeter.orders[0]).to.not.be.ok
 
-              @offerBalancePeter.funds.compareTo(Amount.ZERO).should.equal 0
-              @bidBalancePeter.funds.compareTo(amount199).should.equal 0
-              @commissionAccount.getBalance('BTC').funds.compareTo(amount1).should.equal 0
+              @bookEURBTC.next().should.equal order
+              @accountPaul.orders[1].should.equal order
+
+              @balancePaulBTC.funds.compareTo(amount19800).should.equal 0
+              @balancePaulEUR.funds.compareTo(amount995).should.equal 0
+              @balanceCommissionEUR.funds.compareTo(amount5).should.equal 0
+
+              @balancePeterEUR.funds.compareTo(amount99000).should.equal 0
+              @balancePeterBTC.funds.compareTo(amount199).should.equal 0
+              @balanceCommissionBTC.funds.compareTo(amount1).should.equal 0
 
               order.offerAmount.compareTo(amount100).should.equal 0
               order.bidAmount.compareTo(amount500).should.equal 0
+
               @order.bidAmount.compareTo(Amount.ZERO).should.equal 0
               @order.offerAmount.compareTo(Amount.ZERO).should.equal 0
 
-              tradeSpy.should.not.have.been.called
-              @tradeSpy.should.have.been.calledOnce
-              @tradeSpy.firstCall.args[0].timestamp.should.equal order.timestamp
-              @tradeSpy.firstCall.args[0].left.sequence.should.equal order.sequence
-              @tradeSpy.firstCall.args[0].left.newBidAmount.compareTo(order.bidAmount).should.equal 0
-              @tradeSpy.firstCall.args[0].left.balanceDeltas.debit.amount.compareTo(amount200).should.equal 0
-              @tradeSpy.firstCall.args[0].left.balanceDeltas.credit.amount.compareTo(amount995).should.equal 0
-              @tradeSpy.firstCall.args[0].left.balanceDeltas.credit.commission.amount.compareTo(amount5).should.equal 0
-              @tradeSpy.firstCall.args[0].left.balanceDeltas.credit.commission.reference.should.equal 'Paul commission level'
-              @tradeSpy.firstCall.args[0].right.sequence.should.equal @order.sequence
-              @tradeSpy.firstCall.args[0].right.newOfferAmount.compareTo(@order.offerAmount).should.equal 0
-              @tradeSpy.firstCall.args[0].right.balanceDeltas.debit.amount.compareTo(amount1000).should.equal 0
-              @tradeSpy.firstCall.args[0].right.balanceDeltas.credit.amount.compareTo(amount199).should.equal 0
-              @tradeSpy.firstCall.args[0].right.balanceDeltas.credit.commission.amount.compareTo(amount1).should.equal 0
-              @tradeSpy.firstCall.args[0].right.balanceDeltas.credit.commission.reference.should.equal 'Peter commission level'
-              @tradeSpy.firstCall.args[0].price.compareTo(@order.offerPrice).should.equal 0
-              @tradeSpy.firstCall.args[0].amount.compareTo(amount1000).should.equal 0
+              result.trade.timestamp.should.equal order.timestamp
+              result.trade.left.sequence.should.equal order.sequence
+              result.trade.left.newBidAmount.compareTo(order.bidAmount).should.equal 0
+              result.trade.left.balanceDeltas.debit.amount.compareTo(amount200).should.equal 0
+              result.trade.left.balanceDeltas.credit.amount.compareTo(amount995).should.equal 0
+              result.trade.left.balanceDeltas.credit.commission.amount.compareTo(amount5).should.equal 0
+              result.trade.left.balanceDeltas.credit.commission.reference.should.equal 'Paul commission level'
+              result.trade.right.sequence.should.equal @order.sequence
+              result.trade.right.newOfferAmount.compareTo(@order.offerAmount).should.equal 0
+              result.trade.right.balanceDeltas.debit.amount.compareTo(amount1000).should.equal 0
+              result.trade.right.balanceDeltas.credit.amount.compareTo(amount199).should.equal 0
+              result.trade.right.balanceDeltas.credit.commission.amount.compareTo(amount1).should.equal 0
+              result.trade.right.balanceDeltas.credit.commission.reference.should.equal 'Peter commission level'
+              result.trade.price.compareTo(@order.offerPrice).should.equal 0
+              result.trade.amount.compareTo(amount1000).should.equal 0
 
         describe 'and the left order is an offer', ->
           describe 'and the right order is offering exactly the amount the left order is offering', ->
             it 'should trade the amount the right order is offering, emit a fill events and a trade event and return false', ->
-              order = new Order
-                sequence: 1
-                timestamp: 1371737390977
-                account: @accountPaul
-                bidBalance: @bidBalancePaul
-                offerBalance: @offerBalancePaul
-                offerPrice: amount5
-                offerAmount: amount200
-              doneSpy = sinon.spy()
-              order.on 'done', doneSpy
-              tradeSpy = sinon.spy()
-              order.on 'trade', tradeSpy
-              
-              order.match(@order).should.be.false
+              order = @paulOfferBTC
+                price: amount5
+                amount: amount200
 
-              doneSpy.should.have.been.calledOnce
-              @doneSpy.should.have.been.calledOnce
+              result = order.match @order
+              result.complete.should.be.true
 
-              @offerBalancePaul.funds.compareTo(amount175).should.equal 0
-              @bidBalancePaul.funds.compareTo(amount995).should.equal 0
-              @commissionAccount.getBalance('EUR').funds.compareTo(amount5).should.equal 0
+              expect(@bookBTCEUR.next()).to.not.be.ok
+              expect(@accountPeter.orders[0]).to.not.be.ok
 
-              @offerBalancePeter.funds.compareTo(Amount.ZERO).should.equal 0
-              @bidBalancePeter.funds.compareTo(amount199).should.equal 0
-              @commissionAccount.getBalance('BTC').funds.compareTo(amount1).should.equal 0
+              expect(@bookEURBTC.next()).to.not.be.ok
+              expect(@accountPaul.orders[1]).to.not.be.ok
+
+              @balancePaulBTC.funds.compareTo(amount19800).should.equal 0
+              @balancePaulEUR.funds.compareTo(amount995).should.equal 0
+              @balanceCommissionEUR.funds.compareTo(amount5).should.equal 0
+
+              @balancePeterEUR.funds.compareTo(amount99000).should.equal 0
+              @balancePeterBTC.funds.compareTo(amount199).should.equal 0
+              @balanceCommissionBTC.funds.compareTo(amount1).should.equal 0
 
               order.offerAmount.compareTo(Amount.ZERO).should.equal 0
               order.bidAmount.compareTo(Amount.ZERO).should.equal 0
+
               @order.bidAmount.compareTo(Amount.ZERO).should.equal 0
               @order.offerAmount.compareTo(Amount.ZERO).should.equal 0
 
-              tradeSpy.should.not.have.been.called
-              @tradeSpy.should.have.been.calledOnce
-              @tradeSpy.firstCall.args[0].timestamp.should.equal order.timestamp
-              @tradeSpy.firstCall.args[0].left.sequence.should.equal order.sequence
-              @tradeSpy.firstCall.args[0].left.newOfferAmount.compareTo(order.offerAmount).should.equal 0
-              @tradeSpy.firstCall.args[0].left.balanceDeltas.debit.amount.compareTo(amount200).should.equal 0
-              @tradeSpy.firstCall.args[0].left.balanceDeltas.credit.amount.compareTo(amount995).should.equal 0
-              @tradeSpy.firstCall.args[0].left.balanceDeltas.credit.commission.amount.compareTo(amount5).should.equal 0
-              @tradeSpy.firstCall.args[0].left.balanceDeltas.credit.commission.reference.should.equal 'Paul commission level'
-              @tradeSpy.firstCall.args[0].right.sequence.should.equal @order.sequence
-              @tradeSpy.firstCall.args[0].right.newOfferAmount.compareTo(@order.offerAmount).should.equal 0
-              @tradeSpy.firstCall.args[0].right.balanceDeltas.debit.amount.compareTo(amount1000).should.equal 0
-              @tradeSpy.firstCall.args[0].right.balanceDeltas.credit.amount.compareTo(amount199).should.equal 0
-              @tradeSpy.firstCall.args[0].right.balanceDeltas.credit.commission.amount.compareTo(amount1).should.equal 0
-              @tradeSpy.firstCall.args[0].right.balanceDeltas.credit.commission.reference.should.equal 'Peter commission level'
-              @tradeSpy.firstCall.args[0].price.compareTo(@order.offerPrice).should.equal 0
-              @tradeSpy.firstCall.args[0].amount.compareTo(amount1000).should.equal 0
+              result.trade.timestamp.should.equal order.timestamp
+              result.trade.left.sequence.should.equal order.sequence
+              result.trade.left.newOfferAmount.compareTo(order.offerAmount).should.equal 0
+              result.trade.left.balanceDeltas.debit.amount.compareTo(amount200).should.equal 0
+              result.trade.left.balanceDeltas.credit.amount.compareTo(amount995).should.equal 0
+              result.trade.left.balanceDeltas.credit.commission.amount.compareTo(amount5).should.equal 0
+              result.trade.left.balanceDeltas.credit.commission.reference.should.equal 'Paul commission level'
+              result.trade.right.sequence.should.equal @order.sequence
+              result.trade.right.newOfferAmount.compareTo(@order.offerAmount).should.equal 0
+              result.trade.right.balanceDeltas.debit.amount.compareTo(amount1000).should.equal 0
+              result.trade.right.balanceDeltas.credit.amount.compareTo(amount199).should.equal 0
+              result.trade.right.balanceDeltas.credit.commission.amount.compareTo(amount1).should.equal 0
+              result.trade.right.balanceDeltas.credit.commission.reference.should.equal 'Peter commission level'
+              result.trade.price.compareTo(@order.offerPrice).should.equal 0
+              result.trade.amount.compareTo(amount1000).should.equal 0
 
           describe 'and the right order is offering more than the left order is offering', ->
             it 'should trade the amount the left order is offering, emit a fill events and a trade event and return false', ->
-              order = new Order
-                sequence: 1
-                timestamp: 1371737390977
-                account: @accountPaul
-                bidBalance: @bidBalancePaul
-                offerBalance: @offerBalancePaul
-                offerPrice: amount5
-                offerAmount: amount100
-              doneSpy = sinon.spy()
-              order.on 'done', doneSpy
-              tradeSpy = sinon.spy()
-              order.on 'trade', tradeSpy
-              
-              order.match(@order).should.be.false
+              order = @paulOfferBTC
+                price: amount5
+                amount: amount100
 
-              doneSpy.should.have.been.calledOnce
-              @doneSpy.should.not.have.been.called
+              result = order.match @order
+              result.complete.should.be.true
 
-              @offerBalancePaul.funds.compareTo(amount275).should.equal 0
-              @bidBalancePaul.funds.compareTo(amount495).should.equal 0
-              @commissionAccount.getBalance('EUR').funds.compareTo(amount5).should.equal 0
+              @bookBTCEUR.next().should.equal @order
+              @accountPeter.orders[0].should.equal @order
 
-              @offerBalancePeter.funds.compareTo(amount500).should.equal 0
-              @bidBalancePeter.funds.compareTo(amount99).should.equal 0
-              @commissionAccount.getBalance('BTC').funds.compareTo(amount1).should.equal 0
+              expect(@bookEURBTC.next()).to.not.be.ok
+              expect(@accountPaul.orders[1]).to.not.be.ok
+
+              @balancePaulBTC.funds.compareTo(amount19900).should.equal 0
+              @balancePaulEUR.funds.compareTo(amount495).should.equal 0
+              @balanceCommissionEUR.funds.compareTo(amount5).should.equal 0
+
+              @balancePeterEUR.funds.compareTo(amount99500).should.equal 0
+              @balancePeterBTC.funds.compareTo(amount99).should.equal 0
+              @balanceCommissionBTC.funds.compareTo(amount1).should.equal 0
 
               order.offerAmount.compareTo(Amount.ZERO).should.equal 0
               order.bidAmount.compareTo(Amount.ZERO).should.equal 0
+
               @order.bidAmount.compareTo(amount100).should.equal 0
               @order.offerAmount.compareTo(amount500).should.equal 0
 
-              tradeSpy.should.not.have.been.called
-              @tradeSpy.should.have.been.calledOnce
-              @tradeSpy.firstCall.args[0].timestamp.should.equal order.timestamp
-              @tradeSpy.firstCall.args[0].left.sequence.should.equal order.sequence
-              @tradeSpy.firstCall.args[0].left.newOfferAmount.compareTo(order.offerAmount).should.equal 0
-              @tradeSpy.firstCall.args[0].left.balanceDeltas.debit.amount.compareTo(amount100).should.equal 0
-              @tradeSpy.firstCall.args[0].left.balanceDeltas.credit.amount.compareTo(amount495).should.equal 0
-              @tradeSpy.firstCall.args[0].left.balanceDeltas.credit.commission.amount.compareTo(amount5).should.equal 0
-              @tradeSpy.firstCall.args[0].left.balanceDeltas.credit.commission.reference.should.equal 'Paul commission level'
-              @tradeSpy.firstCall.args[0].right.sequence.should.equal @order.sequence
-              @tradeSpy.firstCall.args[0].right.newOfferAmount.compareTo(@order.offerAmount).should.equal 0
-              @tradeSpy.firstCall.args[0].right.balanceDeltas.debit.amount.compareTo(amount500).should.equal 0
-              @tradeSpy.firstCall.args[0].right.balanceDeltas.credit.amount.compareTo(amount99).should.equal 0
-              @tradeSpy.firstCall.args[0].right.balanceDeltas.credit.commission.amount.compareTo(amount1).should.equal 0
-              @tradeSpy.firstCall.args[0].right.balanceDeltas.credit.commission.reference.should.equal 'Peter commission level'
-              @tradeSpy.firstCall.args[0].price.compareTo(@order.offerPrice).should.equal 0
-              @tradeSpy.firstCall.args[0].amount.compareTo(amount500).should.equal 0                
+              result.trade.timestamp.should.equal order.timestamp
+              result.trade.left.sequence.should.equal order.sequence
+              result.trade.left.newOfferAmount.compareTo(order.offerAmount).should.equal 0
+              result.trade.left.balanceDeltas.debit.amount.compareTo(amount100).should.equal 0
+              result.trade.left.balanceDeltas.credit.amount.compareTo(amount495).should.equal 0
+              result.trade.left.balanceDeltas.credit.commission.amount.compareTo(amount5).should.equal 0
+              result.trade.left.balanceDeltas.credit.commission.reference.should.equal 'Paul commission level'
+              result.trade.right.sequence.should.equal @order.sequence
+              result.trade.right.newOfferAmount.compareTo(@order.offerAmount).should.equal 0
+              result.trade.right.balanceDeltas.debit.amount.compareTo(amount500).should.equal 0
+              result.trade.right.balanceDeltas.credit.amount.compareTo(amount99).should.equal 0
+              result.trade.right.balanceDeltas.credit.commission.amount.compareTo(amount1).should.equal 0
+              result.trade.right.balanceDeltas.credit.commission.reference.should.equal 'Peter commission level'
+              result.trade.price.compareTo(@order.offerPrice).should.equal 0
+              result.trade.amount.compareTo(amount500).should.equal 0                
 
           describe 'and the right order is offering less than the left order is offering', ->
             it 'should trade the amount the right order is offering, emit fill events and a trade event and return true', ->
-              order = new Order
-                sequence: 1
-                timestamp: 1371737390977
-                account: @accountPaul
-                bidBalance: @bidBalancePaul
-                offerBalance: @offerBalancePaul
-                offerPrice: amount5
-                offerAmount: amount300
-              doneSpy = sinon.spy()
-              order.on 'done', doneSpy
-              tradeSpy = sinon.spy()
-              order.on 'trade', tradeSpy
-              
-              order.match(@order).should.be.true
+              order = @paulOfferBTC
+                price: amount5
+                amount: amount300
 
-              doneSpy.should.not.have.been.called
-              @doneSpy.should.have.been.calledOnce
+              result = order.match @order
+              result.complete.should.be.false
 
-              @offerBalancePaul.funds.compareTo(amount175).should.equal 0
-              @bidBalancePaul.funds.compareTo(amount995).should.equal 0
-              @commissionAccount.getBalance('EUR').funds.compareTo(amount5).should.equal 0
+              expect(@bookBTCEUR.next()).to.not.be.ok
+              expect(@accountPeter.orders[0]).to.not.be.ok
 
-              @offerBalancePeter.funds.compareTo(Amount.ZERO).should.equal 0
-              @bidBalancePeter.funds.compareTo(amount199).should.equal 0
-              @commissionAccount.getBalance('BTC').funds.compareTo(amount1).should.equal 0
+              @bookEURBTC.next().should.equal order
+              @accountPaul.orders[1].should.equal order
+
+              @balancePaulBTC.funds.compareTo(amount19800).should.equal 0
+              @balancePaulEUR.funds.compareTo(amount995).should.equal 0
+              @balanceCommissionEUR.funds.compareTo(amount5).should.equal 0
+
+              @balancePeterEUR.funds.compareTo(amount99000).should.equal 0
+              @balancePeterBTC.funds.compareTo(amount199).should.equal 0
+              @balanceCommissionBTC.funds.compareTo(amount1).should.equal 0
 
               order.offerAmount.compareTo(amount100).should.equal 0
               order.bidAmount.compareTo(amount500).should.equal 0
+
               @order.bidAmount.compareTo(Amount.ZERO).should.equal 0
               @order.offerAmount.compareTo(Amount.ZERO).should.equal 0
 
-              tradeSpy.should.not.have.been.called
-              @tradeSpy.should.have.been.calledOnce
-              @tradeSpy.firstCall.args[0].timestamp.should.equal order.timestamp
-              @tradeSpy.firstCall.args[0].left.sequence.should.equal order.sequence
-              @tradeSpy.firstCall.args[0].left.newOfferAmount.compareTo(order.offerAmount).should.equal 0
-              @tradeSpy.firstCall.args[0].left.balanceDeltas.debit.amount.compareTo(amount200).should.equal 0
-              @tradeSpy.firstCall.args[0].left.balanceDeltas.credit.amount.compareTo(amount995).should.equal 0
-              @tradeSpy.firstCall.args[0].left.balanceDeltas.credit.commission.amount.compareTo(amount5).should.equal 0
-              @tradeSpy.firstCall.args[0].left.balanceDeltas.credit.commission.reference.should.equal 'Paul commission level'
-              @tradeSpy.firstCall.args[0].right.sequence.should.equal @order.sequence
-              @tradeSpy.firstCall.args[0].right.newOfferAmount.compareTo(@order.offerAmount).should.equal 0
-              @tradeSpy.firstCall.args[0].right.balanceDeltas.debit.amount.compareTo(amount1000).should.equal 0
-              @tradeSpy.firstCall.args[0].right.balanceDeltas.credit.amount.compareTo(amount199).should.equal 0
-              @tradeSpy.firstCall.args[0].right.balanceDeltas.credit.commission.amount.compareTo(amount1).should.equal 0
-              @tradeSpy.firstCall.args[0].right.balanceDeltas.credit.commission.reference.should.equal 'Peter commission level'
-              @tradeSpy.firstCall.args[0].price.compareTo(@order.offerPrice).should.equal 0
-              @tradeSpy.firstCall.args[0].amount.compareTo(amount1000).should.equal 0                
+              result.trade.timestamp.should.equal order.timestamp
+              result.trade.left.sequence.should.equal order.sequence
+              result.trade.left.newOfferAmount.compareTo(order.offerAmount).should.equal 0
+              result.trade.left.balanceDeltas.debit.amount.compareTo(amount200).should.equal 0
+              result.trade.left.balanceDeltas.credit.amount.compareTo(amount995).should.equal 0
+              result.trade.left.balanceDeltas.credit.commission.amount.compareTo(amount5).should.equal 0
+              result.trade.left.balanceDeltas.credit.commission.reference.should.equal 'Paul commission level'
+              result.trade.right.sequence.should.equal @order.sequence
+              result.trade.right.newOfferAmount.compareTo(@order.offerAmount).should.equal 0
+              result.trade.right.balanceDeltas.debit.amount.compareTo(amount1000).should.equal 0
+              result.trade.right.balanceDeltas.credit.amount.compareTo(amount199).should.equal 0
+              result.trade.right.balanceDeltas.credit.commission.amount.compareTo(amount1).should.equal 0
+              result.trade.right.balanceDeltas.credit.commission.reference.should.equal 'Peter commission level'
+              result.trade.price.compareTo(@order.offerPrice).should.equal 0
+              result.trade.amount.compareTo(amount1000).should.equal 0                
 
       describe 'and the new (left) price is the better', ->
         describe 'and the left order is an offer', ->              
           describe 'and the right order is offering exactly the amount that the left order is offering multiplied by the right order price', ->
             it 'should trade the amount the right order is offering at the right order price, emit fill events and a trade event and return false', ->
-              order = new Order
-                sequence: 1
-                timestamp: 1371737390977
-                account: @accountPaul
-                bidBalance: @bidBalancePaul
-                offerBalance: @offerBalancePaul
-                offerPrice: amount4
-                offerAmount: amount200
-              doneSpy = sinon.spy()
-              order.on 'done', doneSpy
-              tradeSpy = sinon.spy()
-              order.on 'trade', tradeSpy
-              
-              order.match(@order).should.be.false
+              order = @paulOfferBTC
+                price: amount4
+                amount: amount200
 
-              doneSpy.should.have.been.calledOnce
-              @doneSpy.should.have.been.calledOnce
+              result = order.match @order
+              result.complete.should.be.true
 
-              @offerBalancePaul.funds.compareTo(amount175).should.equal 0
-              @bidBalancePaul.funds.compareTo(amount995).should.equal 0
-              @commissionAccount.getBalance('EUR').funds.compareTo(amount5).should.equal 0
+              expect(@bookBTCEUR.next()).to.not.be.ok
+              expect(@accountPeter.orders[0]).to.not.be.ok
 
-              @offerBalancePeter.funds.compareTo(Amount.ZERO).should.equal 0
-              @bidBalancePeter.funds.compareTo(amount199).should.equal 0
-              @commissionAccount.getBalance('BTC').funds.compareTo(amount1).should.equal 0
+              expect(@bookEURBTC.next()).to.not.be.ok
+              expect(@accountPaul.orders[1]).to.not.be.ok
+
+              @balancePaulBTC.funds.compareTo(amount19800).should.equal 0
+              @balancePaulEUR.funds.compareTo(amount995).should.equal 0
+              @balanceCommissionEUR.funds.compareTo(amount5).should.equal 0
+
+              @balancePeterEUR.funds.compareTo(amount99000).should.equal 0
+              @balancePeterBTC.funds.compareTo(amount199).should.equal 0
+              @balanceCommissionBTC.funds.compareTo(amount1).should.equal 0
 
               order.offerAmount.compareTo(Amount.ZERO).should.equal 0
               order.bidAmount.compareTo(Amount.ZERO).should.equal 0
+
               @order.bidAmount.compareTo(Amount.ZERO).should.equal 0
               @order.offerAmount.compareTo(Amount.ZERO).should.equal 0
 
-              tradeSpy.should.not.have.been.called
-              @tradeSpy.should.have.been.calledOnce
-              @tradeSpy.firstCall.args[0].timestamp.should.equal order.timestamp
-              @tradeSpy.firstCall.args[0].left.sequence.should.equal order.sequence
-              @tradeSpy.firstCall.args[0].left.newOfferAmount.compareTo(order.offerAmount).should.equal 0
-              @tradeSpy.firstCall.args[0].left.balanceDeltas.debit.amount.compareTo(amount200).should.equal 0
-              @tradeSpy.firstCall.args[0].left.balanceDeltas.credit.amount.compareTo(amount995).should.equal 0
-              @tradeSpy.firstCall.args[0].left.balanceDeltas.credit.commission.amount.compareTo(amount5).should.equal 0
-              @tradeSpy.firstCall.args[0].left.balanceDeltas.credit.commission.reference.should.equal 'Paul commission level'
-              @tradeSpy.firstCall.args[0].right.sequence.should.equal @order.sequence
-              @tradeSpy.firstCall.args[0].right.newOfferAmount.compareTo(@order.offerAmount).should.equal 0
-              @tradeSpy.firstCall.args[0].right.balanceDeltas.debit.amount.compareTo(amount1000).should.equal 0
-              @tradeSpy.firstCall.args[0].right.balanceDeltas.credit.amount.compareTo(amount199).should.equal 0
-              @tradeSpy.firstCall.args[0].right.balanceDeltas.credit.commission.amount.compareTo(amount1).should.equal 0
-              @tradeSpy.firstCall.args[0].right.balanceDeltas.credit.commission.reference.should.equal 'Peter commission level'
-              @tradeSpy.firstCall.args[0].price.compareTo(@order.offerPrice).should.equal 0
-              @tradeSpy.firstCall.args[0].amount.compareTo(amount1000).should.equal 0                
+              result.trade.timestamp.should.equal order.timestamp
+              result.trade.left.sequence.should.equal order.sequence
+              result.trade.left.newOfferAmount.compareTo(order.offerAmount).should.equal 0
+              result.trade.left.balanceDeltas.debit.amount.compareTo(amount200).should.equal 0
+              result.trade.left.balanceDeltas.credit.amount.compareTo(amount995).should.equal 0
+              result.trade.left.balanceDeltas.credit.commission.amount.compareTo(amount5).should.equal 0
+              result.trade.left.balanceDeltas.credit.commission.reference.should.equal 'Paul commission level'
+              result.trade.right.sequence.should.equal @order.sequence
+              result.trade.right.newOfferAmount.compareTo(@order.offerAmount).should.equal 0
+              result.trade.right.balanceDeltas.debit.amount.compareTo(amount1000).should.equal 0
+              result.trade.right.balanceDeltas.credit.amount.compareTo(amount199).should.equal 0
+              result.trade.right.balanceDeltas.credit.commission.amount.compareTo(amount1).should.equal 0
+              result.trade.right.balanceDeltas.credit.commission.reference.should.equal 'Peter commission level'
+              result.trade.price.compareTo(@order.offerPrice).should.equal 0
+              result.trade.amount.compareTo(amount1000).should.equal 0                
 
           describe 'and the right order is offering more than the left order is offering multiplied by the right order price', ->
             it 'should trade the amount the left order is offering at the right order price, emit fill events and a trade event and return false', ->
-              order = new Order
-                sequence: 1
-                timestamp: 1371737390977
-                account: @accountPaul
-                bidBalance: @bidBalancePaul
-                offerBalance: @offerBalancePaul
-                offerPrice: amount4
-                offerAmount: amount100
-              doneSpy = sinon.spy()
-              order.on 'done', doneSpy
-              tradeSpy = sinon.spy()
-              order.on 'trade', tradeSpy
-              
-              order.match(@order).should.be.false
+              order = @paulOfferBTC
+                price: amount4
+                amount: amount100
 
-              doneSpy.should.have.been.calledOnce
-              @doneSpy.should.not.have.been.called
+              result = order.match @order
+              result.complete.should.be.true
 
-              @offerBalancePaul.funds.compareTo(amount275).should.equal 0
-              @bidBalancePaul.funds.compareTo(amount495).should.equal 0
-              @commissionAccount.getBalance('EUR').funds.compareTo(amount5).should.equal 0
+              @bookBTCEUR.next().should.equal @order
+              @accountPeter.orders[0].should.equal @order
 
-              @offerBalancePeter.funds.compareTo(amount500).should.equal 0
-              @bidBalancePeter.funds.compareTo(amount99).should.equal 0
-              @commissionAccount.getBalance('BTC').funds.compareTo(amount1).should.equal 0
+              expect(@bookEURBTC.next()).to.not.be.ok
+              expect(@accountPaul.orders[1]).to.not.be.ok
+
+              @balancePaulBTC.funds.compareTo(amount19900).should.equal 0
+              @balancePaulEUR.funds.compareTo(amount495).should.equal 0
+              @balanceCommissionEUR.funds.compareTo(amount5).should.equal 0
+
+              @balancePeterEUR.funds.compareTo(amount99500).should.equal 0
+              @balancePeterBTC.funds.compareTo(amount99).should.equal 0
+              @balanceCommissionBTC.funds.compareTo(amount1).should.equal 0
 
               order.offerAmount.compareTo(Amount.ZERO).should.equal 0
               order.bidAmount.compareTo(Amount.ZERO).should.equal 0
+
               @order.bidAmount.compareTo(amount100).should.equal 0
               @order.offerAmount.compareTo(amount500).should.equal 0
 
-              tradeSpy.should.not.have.been.called
-              @tradeSpy.should.have.been.calledOnce
-              @tradeSpy.firstCall.args[0].timestamp.should.equal order.timestamp
-              @tradeSpy.firstCall.args[0].left.sequence.should.equal order.sequence
-              @tradeSpy.firstCall.args[0].left.newOfferAmount.compareTo(order.offerAmount).should.equal 0
-              @tradeSpy.firstCall.args[0].left.balanceDeltas.debit.amount.compareTo(amount100).should.equal 0
-              @tradeSpy.firstCall.args[0].left.balanceDeltas.credit.amount.compareTo(amount495).should.equal 0
-              @tradeSpy.firstCall.args[0].left.balanceDeltas.credit.commission.amount.compareTo(amount5).should.equal 0
-              @tradeSpy.firstCall.args[0].left.balanceDeltas.credit.commission.reference.should.equal 'Paul commission level'
-              @tradeSpy.firstCall.args[0].right.sequence.should.equal @order.sequence
-              @tradeSpy.firstCall.args[0].right.newOfferAmount.compareTo(@order.offerAmount).should.equal 0
-              @tradeSpy.firstCall.args[0].right.balanceDeltas.debit.amount.compareTo(amount500).should.equal 0
-              @tradeSpy.firstCall.args[0].right.balanceDeltas.credit.amount.compareTo(amount99).should.equal 0
-              @tradeSpy.firstCall.args[0].right.balanceDeltas.credit.commission.amount.compareTo(amount1).should.equal 0
-              @tradeSpy.firstCall.args[0].right.balanceDeltas.credit.commission.reference.should.equal 'Peter commission level'
-              @tradeSpy.firstCall.args[0].price.compareTo(@order.offerPrice).should.equal 0
-              @tradeSpy.firstCall.args[0].amount.compareTo(amount500).should.equal 0                
+              result.trade.timestamp.should.equal order.timestamp
+              result.trade.left.sequence.should.equal order.sequence
+              result.trade.left.newOfferAmount.compareTo(order.offerAmount).should.equal 0
+              result.trade.left.balanceDeltas.debit.amount.compareTo(amount100).should.equal 0
+              result.trade.left.balanceDeltas.credit.amount.compareTo(amount495).should.equal 0
+              result.trade.left.balanceDeltas.credit.commission.amount.compareTo(amount5).should.equal 0
+              result.trade.left.balanceDeltas.credit.commission.reference.should.equal 'Paul commission level'
+              result.trade.right.sequence.should.equal @order.sequence
+              result.trade.right.newOfferAmount.compareTo(@order.offerAmount).should.equal 0
+              result.trade.right.balanceDeltas.debit.amount.compareTo(amount500).should.equal 0
+              result.trade.right.balanceDeltas.credit.amount.compareTo(amount99).should.equal 0
+              result.trade.right.balanceDeltas.credit.commission.amount.compareTo(amount1).should.equal 0
+              result.trade.right.balanceDeltas.credit.commission.reference.should.equal 'Peter commission level'
+              result.trade.price.compareTo(@order.offerPrice).should.equal 0
+              result.trade.amount.compareTo(amount500).should.equal 0                
 
           describe 'and the right order is offering less than the left order is offering multiplied by the right order price', ->
             it 'should trade the amount the right order is offering at the right order price, emit fill events and a trade event and return true', ->
-              order = new Order
-                sequence: 1
-                timestamp: 1371737390977
-                account: @accountPaul
-                bidBalance: @bidBalancePaul
-                offerBalance: @offerBalancePaul
-                offerPrice: amount4
-                offerAmount: amount300
-              doneSpy = sinon.spy()
-              order.on 'done', doneSpy
-              tradeSpy = sinon.spy()
-              order.on 'trade', tradeSpy
-              
-              order.match(@order).should.be.true
+              order = @paulOfferBTC
+                price: amount4
+                amount: amount300
 
-              doneSpy.should.not.have.been.called
-              @doneSpy.should.have.been.calledOnce
+              result = order.match @order
+              result.complete.should.be.false
 
-              @offerBalancePaul.funds.compareTo(amount175).should.equal 0
-              @bidBalancePaul.funds.compareTo(amount995).should.equal 0
-              @commissionAccount.getBalance('EUR').funds.compareTo(amount5).should.equal 0
+              expect(@bookBTCEUR.next()).to.not.be.ok
+              expect(@accountPeter.orders[0]).to.not.be.ok
 
-              @offerBalancePeter.funds.compareTo(Amount.ZERO).should.equal 0
-              @bidBalancePeter.funds.compareTo(amount199).should.equal 0
-              @commissionAccount.getBalance('BTC').funds.compareTo(amount1).should.equal 0
+              @bookEURBTC.next().should.equal order
+              @accountPaul.orders[1].should.equal order
+
+              @balancePaulBTC.funds.compareTo(amount19800).should.equal 0
+              @balancePaulEUR.funds.compareTo(amount995).should.equal 0
+              @balanceCommissionEUR.funds.compareTo(amount5).should.equal 0
+
+              @balancePeterEUR.funds.compareTo(amount99000).should.equal 0
+              @balancePeterBTC.funds.compareTo(amount199).should.equal 0
+              @balanceCommissionBTC.funds.compareTo(amount1).should.equal 0
 
               order.offerAmount.compareTo(amount100).should.equal 0
               order.bidAmount.compareTo(amount400).should.equal 0
+
               @order.bidAmount.compareTo(Amount.ZERO).should.equal 0
               @order.offerAmount.compareTo(Amount.ZERO).should.equal 0
 
-              tradeSpy.should.not.have.been.called
-              @tradeSpy.should.have.been.calledOnce
-              @tradeSpy.firstCall.args[0].timestamp.should.equal order.timestamp
-              @tradeSpy.firstCall.args[0].left.sequence.should.equal order.sequence
-              @tradeSpy.firstCall.args[0].left.newOfferAmount.compareTo(order.offerAmount).should.equal 0
-              @tradeSpy.firstCall.args[0].left.balanceDeltas.debit.amount.compareTo(amount200).should.equal 0
-              @tradeSpy.firstCall.args[0].left.balanceDeltas.credit.amount.compareTo(amount995).should.equal 0
-              @tradeSpy.firstCall.args[0].left.balanceDeltas.credit.commission.amount.compareTo(amount5).should.equal 0
-              @tradeSpy.firstCall.args[0].left.balanceDeltas.credit.commission.reference.should.equal 'Paul commission level'
-              @tradeSpy.firstCall.args[0].right.sequence.should.equal @order.sequence
-              @tradeSpy.firstCall.args[0].right.newOfferAmount.compareTo(@order.offerAmount).should.equal 0
-              @tradeSpy.firstCall.args[0].right.balanceDeltas.debit.amount.compareTo(amount1000).should.equal 0
-              @tradeSpy.firstCall.args[0].right.balanceDeltas.credit.amount.compareTo(amount199).should.equal 0
-              @tradeSpy.firstCall.args[0].right.balanceDeltas.credit.commission.amount.compareTo(amount1).should.equal 0
-              @tradeSpy.firstCall.args[0].right.balanceDeltas.credit.commission.reference.should.equal 'Peter commission level'
-              @tradeSpy.firstCall.args[0].price.compareTo(@order.offerPrice).should.equal 0
-              @tradeSpy.firstCall.args[0].amount.compareTo(amount1000).should.equal 0                
+              result.trade.timestamp.should.equal order.timestamp
+              result.trade.left.sequence.should.equal order.sequence
+              result.trade.left.newOfferAmount.compareTo(order.offerAmount).should.equal 0
+              result.trade.left.balanceDeltas.debit.amount.compareTo(amount200).should.equal 0
+              result.trade.left.balanceDeltas.credit.amount.compareTo(amount995).should.equal 0
+              result.trade.left.balanceDeltas.credit.commission.amount.compareTo(amount5).should.equal 0
+              result.trade.left.balanceDeltas.credit.commission.reference.should.equal 'Paul commission level'
+              result.trade.right.sequence.should.equal @order.sequence
+              result.trade.right.newOfferAmount.compareTo(@order.offerAmount).should.equal 0
+              result.trade.right.balanceDeltas.debit.amount.compareTo(amount1000).should.equal 0
+              result.trade.right.balanceDeltas.credit.amount.compareTo(amount199).should.equal 0
+              result.trade.right.balanceDeltas.credit.commission.amount.compareTo(amount1).should.equal 0
+              result.trade.right.balanceDeltas.credit.commission.reference.should.equal 'Peter commission level'
+              result.trade.price.compareTo(@order.offerPrice).should.equal 0
+              result.trade.amount.compareTo(amount1000).should.equal 0                
 
         describe 'and the left order is a bid', ->
           describe 'and the right order is offering exactly the amount that the left order is bidding', ->
             it 'should trade the amount the right order is offering at the right order price, emit fill events and a trade event and retrun false', ->
-              order = new Order
-                sequence: 1
-                timestamp: 1371737390977
-                account: @accountPaul
-                bidBalance: @bidBalancePaul
-                offerBalance: @offerBalancePaul
-                bidPrice: amountPoint25
-                bidAmount: amount1000
-              doneSpy = sinon.spy()
-              order.on 'done', doneSpy
-              tradeSpy = sinon.spy()
-              order.on 'trade', tradeSpy
-              
-              order.match(@order).should.be.false
+              order = @paulBidEUR
+                price: amountPoint25
+                amount: amount1000
 
-              doneSpy.should.have.been.calledOnce
-              @doneSpy.should.have.been.calledOnce
+              result = order.match @order
+              result.complete.should.be.true
 
-              @offerBalancePaul.funds.compareTo(amount175).should.equal 0
-              @bidBalancePaul.funds.compareTo(amount995).should.equal 0
-              @commissionAccount.getBalance('EUR').funds.compareTo(amount5).should.equal 0
+              expect(@bookBTCEUR.next()).to.not.be.ok
+              expect(@accountPeter.orders[0]).to.not.be.ok
 
-              @offerBalancePeter.funds.compareTo(Amount.ZERO).should.equal 0
-              @bidBalancePeter.funds.compareTo(amount199).should.equal 0
-              @commissionAccount.getBalance('BTC').funds.compareTo(amount1).should.equal 0
+              expect(@bookEURBTC.next()).to.not.be.ok
+              expect(@accountPaul.orders[1]).to.not.be.ok
+
+              @balancePaulBTC.funds.compareTo(amount19800).should.equal 0
+              @balancePaulEUR.funds.compareTo(amount995).should.equal 0
+              @balanceCommissionEUR.funds.compareTo(amount5).should.equal 0
+
+              @balancePeterEUR.funds.compareTo(amount99000).should.equal 0
+              @balancePeterBTC.funds.compareTo(amount199).should.equal 0
+              @balanceCommissionBTC.funds.compareTo(amount1).should.equal 0
 
               order.offerAmount.compareTo(Amount.ZERO).should.equal 0
               order.bidAmount.compareTo(Amount.ZERO).should.equal 0
+
               @order.bidAmount.compareTo(Amount.ZERO).should.equal 0
               @order.offerAmount.compareTo(Amount.ZERO).should.equal 0
 
-              tradeSpy.should.not.have.been.called
-              @tradeSpy.should.have.been.calledOnce
-              @tradeSpy.firstCall.args[0].timestamp.should.equal order.timestamp
-              @tradeSpy.firstCall.args[0].left.sequence.should.equal order.sequence
-              @tradeSpy.firstCall.args[0].left.newBidAmount.compareTo(order.bidAmount).should.equal 0
-              @tradeSpy.firstCall.args[0].left.balanceDeltas.debit.amount.compareTo(amount200).should.equal 0
-              @tradeSpy.firstCall.args[0].left.balanceDeltas.credit.amount.compareTo(amount995).should.equal 0
-              @tradeSpy.firstCall.args[0].left.balanceDeltas.credit.commission.amount.compareTo(amount5).should.equal 0
-              @tradeSpy.firstCall.args[0].left.balanceDeltas.credit.commission.reference.should.equal 'Paul commission level'
-              @tradeSpy.firstCall.args[0].right.sequence.should.equal @order.sequence
-              @tradeSpy.firstCall.args[0].right.newOfferAmount.compareTo(@order.offerAmount).should.equal 0
-              @tradeSpy.firstCall.args[0].right.balanceDeltas.debit.amount.compareTo(amount1000).should.equal 0
-              @tradeSpy.firstCall.args[0].right.balanceDeltas.credit.amount.compareTo(amount199).should.equal 0
-              @tradeSpy.firstCall.args[0].right.balanceDeltas.credit.commission.amount.compareTo(amount1).should.equal 0
-              @tradeSpy.firstCall.args[0].right.balanceDeltas.credit.commission.reference.should.equal 'Peter commission level'
-              @tradeSpy.firstCall.args[0].price.compareTo(@order.offerPrice).should.equal 0
-              @tradeSpy.firstCall.args[0].amount.compareTo(amount1000).should.equal 0                
+              result.trade.timestamp.should.equal order.timestamp
+              result.trade.left.sequence.should.equal order.sequence
+              result.trade.left.newBidAmount.compareTo(order.bidAmount).should.equal 0
+              result.trade.left.balanceDeltas.debit.amount.compareTo(amount200).should.equal 0
+              result.trade.left.balanceDeltas.credit.amount.compareTo(amount995).should.equal 0
+              result.trade.left.balanceDeltas.credit.commission.amount.compareTo(amount5).should.equal 0
+              result.trade.left.balanceDeltas.credit.commission.reference.should.equal 'Paul commission level'
+              result.trade.right.sequence.should.equal @order.sequence
+              result.trade.right.newOfferAmount.compareTo(@order.offerAmount).should.equal 0
+              result.trade.right.balanceDeltas.debit.amount.compareTo(amount1000).should.equal 0
+              result.trade.right.balanceDeltas.credit.amount.compareTo(amount199).should.equal 0
+              result.trade.right.balanceDeltas.credit.commission.amount.compareTo(amount1).should.equal 0
+              result.trade.right.balanceDeltas.credit.commission.reference.should.equal 'Peter commission level'
+              result.trade.price.compareTo(@order.offerPrice).should.equal 0
+              result.trade.amount.compareTo(amount1000).should.equal 0                
               
           describe 'and the right order is offering more than the left order is bidding', ->
             it 'should trade the amount the left order is bidding at the right order price, emit fill events and a trade event and return false', ->
-              order = new Order
-                sequence: 1
-                timestamp: 1371737390977
-                account: @accountPaul
-                bidBalance: @bidBalancePaul
-                offerBalance: @offerBalancePaul
-                bidPrice: amountPoint25
-                bidAmount: amount500
-              doneSpy = sinon.spy()
-              order.on 'done', doneSpy
-              tradeSpy = sinon.spy()
-              order.on 'trade', tradeSpy
-              
-              order.match(@order).should.be.false
+              order = @paulBidEUR
+                price: amountPoint25
+                amount: amount500
 
-              doneSpy.should.have.been.calledOnce
-              @doneSpy.should.not.have.been.called
+              result = order.match @order
+              result.complete.should.be.true
 
-              @offerBalancePaul.funds.compareTo(amount275).should.equal 0
-              @bidBalancePaul.funds.compareTo(amount495).should.equal 0
-              @commissionAccount.getBalance('EUR').funds.compareTo(amount5).should.equal 0
+              @bookBTCEUR.next().should.equal @order
+              @accountPeter.orders[0].should.equal @order
 
-              @offerBalancePeter.funds.compareTo(amount500).should.equal 0
-              @bidBalancePeter.funds.compareTo(amount99).should.equal 0
-              @commissionAccount.getBalance('BTC').funds.compareTo(amount1).should.equal 0
+              expect(@bookEURBTC.next()).to.not.be.ok
+              expect(@accountPaul.orders[1]).to.not.be.ok
+
+              @balancePaulBTC.funds.compareTo(amount19900).should.equal 0
+              @balancePaulEUR.funds.compareTo(amount495).should.equal 0
+              @balanceCommissionEUR.funds.compareTo(amount5).should.equal 0
+
+              @balancePeterEUR.funds.compareTo(amount99500).should.equal 0
+              @balancePeterBTC.funds.compareTo(amount99).should.equal 0
+              @balanceCommissionBTC.funds.compareTo(amount1).should.equal 0
 
               order.offerAmount.compareTo(Amount.ZERO).should.equal 0
               order.bidAmount.compareTo(Amount.ZERO).should.equal 0
@@ -1041,417 +942,393 @@ describe 'Order', ->
               @order.bidAmount.compareTo(amount100).should.equal 0
               @order.offerAmount.compareTo(amount500).should.equal 0
 
-              tradeSpy.should.not.have.been.called
-              @tradeSpy.should.have.been.calledOnce
-              @tradeSpy.firstCall.args[0].timestamp.should.equal order.timestamp
-              @tradeSpy.firstCall.args[0].left.sequence.should.equal order.sequence
-              @tradeSpy.firstCall.args[0].left.newBidAmount.compareTo(order.bidAmount).should.equal 0
-              @tradeSpy.firstCall.args[0].left.balanceDeltas.debit.amount.compareTo(amount100).should.equal 0
-              @tradeSpy.firstCall.args[0].left.balanceDeltas.credit.amount.compareTo(amount495).should.equal 0
-              @tradeSpy.firstCall.args[0].left.balanceDeltas.credit.commission.amount.compareTo(amount5).should.equal 0
-              @tradeSpy.firstCall.args[0].left.balanceDeltas.credit.commission.reference.should.equal 'Paul commission level'
-              @tradeSpy.firstCall.args[0].right.sequence.should.equal @order.sequence
-              @tradeSpy.firstCall.args[0].right.newOfferAmount.compareTo(@order.offerAmount).should.equal 0
-              @tradeSpy.firstCall.args[0].right.balanceDeltas.debit.amount.compareTo(amount500).should.equal 0
-              @tradeSpy.firstCall.args[0].right.balanceDeltas.credit.amount.compareTo(amount99).should.equal 0
-              @tradeSpy.firstCall.args[0].right.balanceDeltas.credit.commission.amount.compareTo(amount1).should.equal 0
-              @tradeSpy.firstCall.args[0].right.balanceDeltas.credit.commission.reference.should.equal 'Peter commission level'
-              @tradeSpy.firstCall.args[0].price.compareTo(@order.offerPrice).should.equal 0
-              @tradeSpy.firstCall.args[0].amount.compareTo(amount500).should.equal 0                
+              result.trade.timestamp.should.equal order.timestamp
+              result.trade.left.sequence.should.equal order.sequence
+              result.trade.left.newBidAmount.compareTo(order.bidAmount).should.equal 0
+              result.trade.left.balanceDeltas.debit.amount.compareTo(amount100).should.equal 0
+              result.trade.left.balanceDeltas.credit.amount.compareTo(amount495).should.equal 0
+              result.trade.left.balanceDeltas.credit.commission.amount.compareTo(amount5).should.equal 0
+              result.trade.left.balanceDeltas.credit.commission.reference.should.equal 'Paul commission level'
+              result.trade.right.sequence.should.equal @order.sequence
+              result.trade.right.newOfferAmount.compareTo(@order.offerAmount).should.equal 0
+              result.trade.right.balanceDeltas.debit.amount.compareTo(amount500).should.equal 0
+              result.trade.right.balanceDeltas.credit.amount.compareTo(amount99).should.equal 0
+              result.trade.right.balanceDeltas.credit.commission.amount.compareTo(amount1).should.equal 0
+              result.trade.right.balanceDeltas.credit.commission.reference.should.equal 'Peter commission level'
+              result.trade.price.compareTo(@order.offerPrice).should.equal 0
+              result.trade.amount.compareTo(amount500).should.equal 0                
 
           describe 'and the right order is offering less than the left order is bidding', ->
             it 'should trade the amount the right order is offering at the right order price, emit fill events and a trade event and return true', ->
-              order = new Order
-                sequence: 1
-                timestamp: 1371737390977
-                account: @accountPaul
-                bidBalance: @bidBalancePaul
-                offerBalance: @offerBalancePaul
-                bidPrice: amountPoint25
-                bidAmount: amount1500
-              doneSpy = sinon.spy()
-              order.on 'done', doneSpy
-              tradeSpy = sinon.spy()
-              order.on 'trade', tradeSpy
-              
-              order.match(@order).should.be.true
+              order = @paulBidEUR
+                price: amountPoint25
+                amount: amount1500
 
-              doneSpy.should.not.have.been.called
-              @doneSpy.should.have.been.calledOnce
+              result = order.match @order
+              result.complete.should.be.false
 
-              @offerBalancePaul.funds.compareTo(amount175).should.equal 0
-              @bidBalancePaul.funds.compareTo(amount995).should.equal 0
-              @commissionAccount.getBalance('EUR').funds.compareTo(amount5).should.equal 0
+              expect(@bookBTCEUR.next()).to.not.be.ok
+              expect(@accountPeter.orders[0]).to.not.be.ok
 
-              @offerBalancePeter.funds.compareTo(Amount.ZERO).should.equal 0
-              @bidBalancePeter.funds.compareTo(amount199).should.equal 0
-              @commissionAccount.getBalance('BTC').funds.compareTo(amount1).should.equal 0
+              @bookEURBTC.next().should.equal order
+              @accountPaul.orders[1].should.equal order
+
+              @balancePaulBTC.funds.compareTo(amount19800).should.equal 0
+              @balancePaulEUR.funds.compareTo(amount995).should.equal 0
+              @balanceCommissionEUR.funds.compareTo(amount5).should.equal 0
+
+              @balancePeterEUR.funds.compareTo(amount99000).should.equal 0
+              @balancePeterBTC.funds.compareTo(amount199).should.equal 0
+              @balanceCommissionBTC.funds.compareTo(amount1).should.equal 0
 
               order.offerAmount.compareTo(amount125).should.equal 0
               order.bidAmount.compareTo(amount500).should.equal 0
+
               @order.bidAmount.compareTo(Amount.ZERO).should.equal 0
               @order.offerAmount.compareTo(Amount.ZERO).should.equal 0
 
-              tradeSpy.should.not.have.been.called
-              @tradeSpy.should.have.been.calledOnce
-              @tradeSpy.firstCall.args[0].timestamp.should.equal order.timestamp
-              @tradeSpy.firstCall.args[0].left.sequence.should.equal order.sequence
-              @tradeSpy.firstCall.args[0].left.newBidAmount.compareTo(order.bidAmount).should.equal 0
-              @tradeSpy.firstCall.args[0].left.balanceDeltas.debit.amount.compareTo(amount200).should.equal 0
-              @tradeSpy.firstCall.args[0].left.balanceDeltas.credit.amount.compareTo(amount995).should.equal 0
-              @tradeSpy.firstCall.args[0].left.balanceDeltas.credit.commission.amount.compareTo(amount5).should.equal 0
-              @tradeSpy.firstCall.args[0].left.balanceDeltas.credit.commission.reference.should.equal 'Paul commission level'
-              @tradeSpy.firstCall.args[0].right.sequence.should.equal @order.sequence
-              @tradeSpy.firstCall.args[0].right.newOfferAmount.compareTo(@order.offerAmount).should.equal 0
-              @tradeSpy.firstCall.args[0].right.balanceDeltas.debit.amount.compareTo(amount1000).should.equal 0
-              @tradeSpy.firstCall.args[0].right.balanceDeltas.credit.amount.compareTo(amount199).should.equal 0
-              @tradeSpy.firstCall.args[0].right.balanceDeltas.credit.commission.amount.compareTo(amount1).should.equal 0
-              @tradeSpy.firstCall.args[0].right.balanceDeltas.credit.commission.reference.should.equal 'Peter commission level'
-              @tradeSpy.firstCall.args[0].price.compareTo(@order.offerPrice).should.equal 0
-              @tradeSpy.firstCall.args[0].amount.compareTo(amount1000).should.equal 0                
+              result.trade.timestamp.should.equal order.timestamp
+              result.trade.left.sequence.should.equal order.sequence
+              result.trade.left.newBidAmount.compareTo(order.bidAmount).should.equal 0
+              result.trade.left.balanceDeltas.debit.amount.compareTo(amount200).should.equal 0
+              result.trade.left.balanceDeltas.credit.amount.compareTo(amount995).should.equal 0
+              result.trade.left.balanceDeltas.credit.commission.amount.compareTo(amount5).should.equal 0
+              result.trade.left.balanceDeltas.credit.commission.reference.should.equal 'Paul commission level'
+              result.trade.right.sequence.should.equal @order.sequence
+              result.trade.right.newOfferAmount.compareTo(@order.offerAmount).should.equal 0
+              result.trade.right.balanceDeltas.debit.amount.compareTo(amount1000).should.equal 0
+              result.trade.right.balanceDeltas.credit.amount.compareTo(amount199).should.equal 0
+              result.trade.right.balanceDeltas.credit.commission.amount.compareTo(amount1).should.equal 0
+              result.trade.right.balanceDeltas.credit.commission.reference.should.equal 'Peter commission level'
+              result.trade.price.compareTo(@order.offerPrice).should.equal 0
+              result.trade.amount.compareTo(amount1000).should.equal 0                
             
     describe 'where the existing (right) order is a bid', ->
       beforeEach ->
-        @order = new Order
-          sequence: 0
-          timestamp: 1371737390976
-          account: @accountPeter
-          bidBalance: @bidBalancePeter
-          offerBalance: @offerBalancePeter
-          bidPrice: amount5     # 0.2
-          bidAmount: amount200  # 1000
-        @doneSpy = sinon.spy()
-        @order.on 'done', @doneSpy
-        @tradeSpy = sinon.spy()
-        @order.on 'trade', @tradeSpy
+        @order = @peterBidBTC
+          price: amount5   # 0.2
+          amount: amount200 # 1000
 
       describe 'and the new (left) price is better', ->
         describe 'and the left order is an offer', ->
           describe 'and the right order is bidding exactly the amount that the left order is offering', ->
             it 'should trade the amount the right order is bidding at the right order price, emit fill events and a trade event and return false', ->
-              order = new Order
-                sequence: 1
-                timestamp: 1371737390977
-                account: @accountPaul
-                bidBalance: @bidBalancePaul
-                offerBalance: @offerBalancePaul
-                offerPrice: amount4
-                offerAmount: amount200
-              doneSpy = sinon.spy()
-              order.on 'done', doneSpy
-              tradeSpy = sinon.spy()
-              order.on 'trade', tradeSpy
-              
-              order.match(@order).should.be.false
+              order = @paulOfferBTC
+                price: amount4
+                amount: amount200
 
-              doneSpy.should.have.been.calledOnce
-              @doneSpy.should.have.been.calledOnce
+              result = order.match @order
+              result.complete.should.be.true
 
-              @offerBalancePaul.funds.compareTo(amount175).should.equal 0
-              @bidBalancePaul.funds.compareTo(amount995).should.equal 0
-              @commissionAccount.getBalance('EUR').funds.compareTo(amount5).should.equal 0
+              expect(@bookBTCEUR.next()).to.not.be.ok
+              expect(@accountPeter.orders[0]).to.not.be.ok
 
-              @offerBalancePeter.funds.compareTo(Amount.ZERO).should.equal 0
-              @bidBalancePeter.funds.compareTo(amount199).should.equal 0
-              @commissionAccount.getBalance('BTC').funds.compareTo(amount1).should.equal 0
+              expect(@bookEURBTC.next()).to.not.be.ok
+              expect(@accountPaul.orders[1]).to.not.be.ok
+
+              @balancePaulBTC.funds.compareTo(amount19800).should.equal 0
+              @balancePaulEUR.funds.compareTo(amount995).should.equal 0
+              @balanceCommissionEUR.funds.compareTo(amount5).should.equal 0
+
+              @balancePeterEUR.funds.compareTo(amount99000).should.equal 0
+              @balancePeterBTC.funds.compareTo(amount199).should.equal 0
+              @balanceCommissionBTC.funds.compareTo(amount1).should.equal 0
 
               order.offerAmount.compareTo(Amount.ZERO).should.equal 0
               order.bidAmount.compareTo(Amount.ZERO).should.equal 0
               @order.bidAmount.compareTo(Amount.ZERO).should.equal 0
               @order.offerAmount.compareTo(Amount.ZERO).should.equal 0
 
-              tradeSpy.should.not.have.been.called
-              @tradeSpy.should.have.been.calledOnce
-              @tradeSpy.firstCall.args[0].timestamp.should.equal order.timestamp
-              @tradeSpy.firstCall.args[0].left.sequence.should.equal order.sequence
-              @tradeSpy.firstCall.args[0].left.newOfferAmount.compareTo(order.offerAmount).should.equal 0
-              @tradeSpy.firstCall.args[0].left.balanceDeltas.debit.amount.compareTo(amount200).should.equal 0
-              @tradeSpy.firstCall.args[0].left.balanceDeltas.credit.amount.compareTo(amount995).should.equal 0
-              @tradeSpy.firstCall.args[0].left.balanceDeltas.credit.commission.amount.compareTo(amount5).should.equal 0
-              @tradeSpy.firstCall.args[0].left.balanceDeltas.credit.commission.reference.should.equal 'Paul commission level'
-              @tradeSpy.firstCall.args[0].right.sequence.should.equal @order.sequence
-              @tradeSpy.firstCall.args[0].right.newBidAmount.compareTo(@order.bidAmount).should.equal 0
-              @tradeSpy.firstCall.args[0].right.balanceDeltas.debit.amount.compareTo(amount1000).should.equal 0
-              @tradeSpy.firstCall.args[0].right.balanceDeltas.credit.amount.compareTo(amount199).should.equal 0
-              @tradeSpy.firstCall.args[0].right.balanceDeltas.credit.commission.amount.compareTo(amount1).should.equal 0
-              @tradeSpy.firstCall.args[0].right.balanceDeltas.credit.commission.reference.should.equal 'Peter commission level'
-              @tradeSpy.firstCall.args[0].price.compareTo(@order.bidPrice).should.equal 0
-              @tradeSpy.firstCall.args[0].amount.compareTo(amount200).should.equal 0                
+              result.trade.timestamp.should.equal order.timestamp
+              result.trade.left.sequence.should.equal order.sequence
+              result.trade.left.newOfferAmount.compareTo(order.offerAmount).should.equal 0
+              result.trade.left.balanceDeltas.debit.amount.compareTo(amount200).should.equal 0
+              result.trade.left.balanceDeltas.credit.amount.compareTo(amount995).should.equal 0
+              result.trade.left.balanceDeltas.credit.commission.amount.compareTo(amount5).should.equal 0
+              result.trade.left.balanceDeltas.credit.commission.reference.should.equal 'Paul commission level'
+              result.trade.right.sequence.should.equal @order.sequence
+              result.trade.right.newBidAmount.compareTo(@order.bidAmount).should.equal 0
+              result.trade.right.balanceDeltas.debit.amount.compareTo(amount1000).should.equal 0
+              result.trade.right.balanceDeltas.credit.amount.compareTo(amount199).should.equal 0
+              result.trade.right.balanceDeltas.credit.commission.amount.compareTo(amount1).should.equal 0
+              result.trade.right.balanceDeltas.credit.commission.reference.should.equal 'Peter commission level'
+              result.trade.price.compareTo(@order.bidPrice).should.equal 0
+              result.trade.amount.compareTo(amount200).should.equal 0                
 
           describe 'and the right order is bidding more than the left order is offering', ->
             it 'should trade the amount the left order is offering at the right order price, emit fill events and a trade event and return false', ->
-              order = new Order
-                sequence: 1
-                timestamp: 1371737390977
-                account: @accountPaul
-                bidBalance: @bidBalancePaul
-                offerBalance: @offerBalancePaul
-                offerPrice: amount4
-                offerAmount: amount100
-              doneSpy = sinon.spy()
-              order.on 'done', doneSpy
-              tradeSpy = sinon.spy()
-              order.on 'trade', tradeSpy
-              
-              order.match(@order).should.be.false
+              order = @paulOfferBTC
+                price: amount4
+                amount: amount100
 
-              doneSpy.should.have.been.calledOnce
-              @doneSpy.should.not.have.been.called
+              result = order.match @order
+              result.complete.should.be.true
 
-              @offerBalancePaul.funds.compareTo(amount275).should.equal 0
-              @bidBalancePaul.funds.compareTo(amount495).should.equal 0
-              @commissionAccount.getBalance('EUR').funds.compareTo(amount5).should.equal 0
+              @bookBTCEUR.next().should.equal @order
+              @accountPeter.orders[0].should.equal @order
 
-              @offerBalancePeter.funds.compareTo(amount500).should.equal 0
-              @bidBalancePeter.funds.compareTo(amount99).should.equal 0
-              @commissionAccount.getBalance('BTC').funds.compareTo(amount1).should.equal 0
+              expect(@bookEURBTC.next()).to.not.be.ok
+              expect(@accountPaul.orders[1]).to.not.be.ok
+
+              @balancePaulBTC.funds.compareTo(amount19900).should.equal 0
+              @balancePaulEUR.funds.compareTo(amount495).should.equal 0
+              @balanceCommissionEUR.funds.compareTo(amount5).should.equal 0
+
+              @balancePeterEUR.funds.compareTo(amount99500).should.equal 0
+              @balancePeterBTC.funds.compareTo(amount99).should.equal 0
+              @balanceCommissionBTC.funds.compareTo(amount1).should.equal 0
 
               order.offerAmount.compareTo(Amount.ZERO).should.equal 0
               order.bidAmount.compareTo(Amount.ZERO).should.equal 0
+
               @order.bidAmount.compareTo(amount100).should.equal 0
               @order.offerAmount.compareTo(amount500).should.equal 0
 
-              tradeSpy.should.not.have.been.called
-              @tradeSpy.should.have.been.calledOnce
-              @tradeSpy.firstCall.args[0].timestamp.should.equal order.timestamp
-              @tradeSpy.firstCall.args[0].left.sequence.should.equal order.sequence
-              @tradeSpy.firstCall.args[0].left.newOfferAmount.compareTo(order.offerAmount).should.equal 0
-              @tradeSpy.firstCall.args[0].left.balanceDeltas.debit.amount.compareTo(amount100).should.equal 0
-              @tradeSpy.firstCall.args[0].left.balanceDeltas.credit.amount.compareTo(amount495).should.equal 0
-              @tradeSpy.firstCall.args[0].left.balanceDeltas.credit.commission.amount.compareTo(amount5).should.equal 0
-              @tradeSpy.firstCall.args[0].left.balanceDeltas.credit.commission.reference.should.equal 'Paul commission level'
-              @tradeSpy.firstCall.args[0].right.sequence.should.equal @order.sequence
-              @tradeSpy.firstCall.args[0].right.newBidAmount.compareTo(@order.bidAmount).should.equal 0
-              @tradeSpy.firstCall.args[0].right.balanceDeltas.debit.amount.compareTo(amount500).should.equal 0
-              @tradeSpy.firstCall.args[0].right.balanceDeltas.credit.amount.compareTo(amount99).should.equal 0
-              @tradeSpy.firstCall.args[0].right.balanceDeltas.credit.commission.amount.compareTo(amount1).should.equal 0
-              @tradeSpy.firstCall.args[0].right.balanceDeltas.credit.commission.reference.should.equal 'Peter commission level'
-              @tradeSpy.firstCall.args[0].price.compareTo(@order.bidPrice).should.equal 0
-              @tradeSpy.firstCall.args[0].amount.compareTo(amount100).should.equal 0                
+              result.trade.timestamp.should.equal order.timestamp
+              result.trade.left.sequence.should.equal order.sequence
+              result.trade.left.newOfferAmount.compareTo(order.offerAmount).should.equal 0
+              result.trade.left.balanceDeltas.debit.amount.compareTo(amount100).should.equal 0
+              result.trade.left.balanceDeltas.credit.amount.compareTo(amount495).should.equal 0
+              result.trade.left.balanceDeltas.credit.commission.amount.compareTo(amount5).should.equal 0
+              result.trade.left.balanceDeltas.credit.commission.reference.should.equal 'Paul commission level'
+              result.trade.right.sequence.should.equal @order.sequence
+              result.trade.right.newBidAmount.compareTo(@order.bidAmount).should.equal 0
+              result.trade.right.balanceDeltas.debit.amount.compareTo(amount500).should.equal 0
+              result.trade.right.balanceDeltas.credit.amount.compareTo(amount99).should.equal 0
+              result.trade.right.balanceDeltas.credit.commission.amount.compareTo(amount1).should.equal 0
+              result.trade.right.balanceDeltas.credit.commission.reference.should.equal 'Peter commission level'
+              result.trade.price.compareTo(@order.bidPrice).should.equal 0
+              result.trade.amount.compareTo(amount100).should.equal 0                
 
           describe 'and the right order is bidding less than the left order is offering', ->
             it 'should trade the amount the right order is bidding at the right order price, emit fill events and a trade event and return true', ->
-              order = new Order
-                sequence: 1
-                timestamp: 1371737390977
-                account: @accountPaul
-                bidBalance: @bidBalancePaul
-                offerBalance: @offerBalancePaul
-                offerPrice: amount4
-                offerAmount: amount300
-              doneSpy = sinon.spy()
-              order.on 'done', doneSpy
-              tradeSpy = sinon.spy()
-              order.on 'trade', tradeSpy
-              
-              order.match(@order).should.be.true
+              order = @paulOfferBTC
+                price: amount4
+                amount: amount300
 
-              doneSpy.should.not.have.been.called
-              @doneSpy.should.have.been.calledOnce
+              result = order.match @order
+              result.complete.should.be.false
 
-              @offerBalancePaul.funds.compareTo(amount175).should.equal 0
-              @bidBalancePaul.funds.compareTo(amount995).should.equal 0
-              @commissionAccount.getBalance('EUR').funds.compareTo(amount5).should.equal 0
+              expect(@bookBTCEUR.next()).to.not.be.ok
+              expect(@accountPeter.orders[0]).to.not.be.ok
 
-              @offerBalancePeter.funds.compareTo(Amount.ZERO).should.equal 0
-              @bidBalancePeter.funds.compareTo(amount199).should.equal 0
-              @commissionAccount.getBalance('BTC').funds.compareTo(amount1).should.equal 0
+              @bookEURBTC.next().should.equal order
+              @accountPaul.orders[1].should.equal order
+
+              @balancePaulBTC.funds.compareTo(amount19800).should.equal 0
+              @balancePaulEUR.funds.compareTo(amount995).should.equal 0
+              @balanceCommissionEUR.funds.compareTo(amount5).should.equal 0
+
+              @balancePeterEUR.funds.compareTo(amount99000).should.equal 0
+              @balancePeterBTC.funds.compareTo(amount199).should.equal 0
+              @balanceCommissionBTC.funds.compareTo(amount1).should.equal 0
 
               order.offerAmount.compareTo(amount100).should.equal 0
               order.bidAmount.compareTo(amount400).should.equal 0
+
               @order.bidAmount.compareTo(Amount.ZERO).should.equal 0
               @order.offerAmount.compareTo(Amount.ZERO).should.equal 0
 
-              tradeSpy.should.not.have.been.called
-              @tradeSpy.should.have.been.calledOnce
-              @tradeSpy.firstCall.args[0].timestamp.should.equal order.timestamp
-              @tradeSpy.firstCall.args[0].left.sequence.should.equal order.sequence
-              @tradeSpy.firstCall.args[0].left.newOfferAmount.compareTo(order.offerAmount).should.equal 0
-              @tradeSpy.firstCall.args[0].left.balanceDeltas.debit.amount.compareTo(amount200).should.equal 0
-              @tradeSpy.firstCall.args[0].left.balanceDeltas.credit.amount.compareTo(amount995).should.equal 0
-              @tradeSpy.firstCall.args[0].left.balanceDeltas.credit.commission.amount.compareTo(amount5).should.equal 0
-              @tradeSpy.firstCall.args[0].left.balanceDeltas.credit.commission.reference.should.equal 'Paul commission level'
-              @tradeSpy.firstCall.args[0].right.sequence.should.equal @order.sequence
-              @tradeSpy.firstCall.args[0].right.newBidAmount.compareTo(@order.bidAmount).should.equal 0
-              @tradeSpy.firstCall.args[0].right.balanceDeltas.debit.amount.compareTo(amount1000).should.equal 0
-              @tradeSpy.firstCall.args[0].right.balanceDeltas.credit.amount.compareTo(amount199).should.equal 0
-              @tradeSpy.firstCall.args[0].right.balanceDeltas.credit.commission.amount.compareTo(amount1).should.equal 0
-              @tradeSpy.firstCall.args[0].right.balanceDeltas.credit.commission.reference.should.equal 'Peter commission level'
-              @tradeSpy.firstCall.args[0].price.compareTo(@order.bidPrice).should.equal 0
-              @tradeSpy.firstCall.args[0].amount.compareTo(amount200).should.equal 0                
+              result.trade.timestamp.should.equal order.timestamp
+              result.trade.left.sequence.should.equal order.sequence
+              result.trade.left.newOfferAmount.compareTo(order.offerAmount).should.equal 0
+              result.trade.left.balanceDeltas.debit.amount.compareTo(amount200).should.equal 0
+              result.trade.left.balanceDeltas.credit.amount.compareTo(amount995).should.equal 0
+              result.trade.left.balanceDeltas.credit.commission.amount.compareTo(amount5).should.equal 0
+              result.trade.left.balanceDeltas.credit.commission.reference.should.equal 'Paul commission level'
+              result.trade.right.sequence.should.equal @order.sequence
+              result.trade.right.newBidAmount.compareTo(@order.bidAmount).should.equal 0
+              result.trade.right.balanceDeltas.debit.amount.compareTo(amount1000).should.equal 0
+              result.trade.right.balanceDeltas.credit.amount.compareTo(amount199).should.equal 0
+              result.trade.right.balanceDeltas.credit.commission.amount.compareTo(amount1).should.equal 0
+              result.trade.right.balanceDeltas.credit.commission.reference.should.equal 'Peter commission level'
+              result.trade.price.compareTo(@order.bidPrice).should.equal 0
+              result.trade.amount.compareTo(amount200).should.equal 0                
 
         describe 'and the left order is a bid', ->
           describe 'and the right order is bidding exactly the amount that the left order is bidding multiplied by the right order price', ->
             it 'should trade the amount the right order is bidding at the right order price, emit fill events and a trade event and return false', ->
-              order = new Order
-                sequence: 1
-                timestamp: 1371737390977
-                account: @accountPaul
-                bidBalance: @bidBalancePaul
-                offerBalance: @offerBalancePaul
-                bidPrice: amountPoint25
-                bidAmount: amount1000
-              doneSpy = sinon.spy()
-              order.on 'done', doneSpy
-              tradeSpy = sinon.spy()
-              order.on 'trade', tradeSpy
-              
-              order.match(@order).should.be.false
+              order = @paulBidEUR
+                price: amountPoint25
+                amount: amount1000
 
-              doneSpy.should.have.been.calledOnce
-              @doneSpy.should.have.been.calledOnce
+              result = order.match @order
+              result.complete.should.be.true
 
-              @offerBalancePaul.funds.compareTo(amount175).should.equal 0
-              @bidBalancePaul.funds.compareTo(amount995).should.equal 0
-              @commissionAccount.getBalance('EUR').funds.compareTo(amount5).should.equal 0
+              expect(@bookBTCEUR.next()).to.not.be.ok
+              expect(@accountPeter.orders[0]).to.not.be.ok
 
-              @offerBalancePeter.funds.compareTo(Amount.ZERO).should.equal 0
-              @bidBalancePeter.funds.compareTo(amount199).should.equal 0
-              @commissionAccount.getBalance('BTC').funds.compareTo(amount1).should.equal 0
+              expect(@bookEURBTC.next()).to.not.be.ok
+              expect(@accountPaul.orders[1]).to.not.be.ok
+
+              @balancePaulBTC.funds.compareTo(amount19800).should.equal 0
+              @balancePaulEUR.funds.compareTo(amount995).should.equal 0
+              @balanceCommissionEUR.funds.compareTo(amount5).should.equal 0
+
+              @balancePeterEUR.funds.compareTo(amount99000).should.equal 0
+              @balancePeterBTC.funds.compareTo(amount199).should.equal 0
+              @balanceCommissionBTC.funds.compareTo(amount1).should.equal 0
 
               order.offerAmount.compareTo(Amount.ZERO).should.equal 0
               order.bidAmount.compareTo(Amount.ZERO).should.equal 0
+
               @order.bidAmount.compareTo(Amount.ZERO).should.equal 0
               @order.offerAmount.compareTo(Amount.ZERO).should.equal 0
 
-              tradeSpy.should.not.have.been.called
-              @tradeSpy.should.have.been.calledOnce
-              @tradeSpy.firstCall.args[0].timestamp.should.equal order.timestamp
-              @tradeSpy.firstCall.args[0].left.sequence.should.equal order.sequence
-              @tradeSpy.firstCall.args[0].left.newBidAmount.compareTo(order.bidAmount).should.equal 0
-              @tradeSpy.firstCall.args[0].left.balanceDeltas.debit.amount.compareTo(amount200).should.equal 0
-              @tradeSpy.firstCall.args[0].left.balanceDeltas.credit.amount.compareTo(amount995).should.equal 0
-              @tradeSpy.firstCall.args[0].left.balanceDeltas.credit.commission.amount.compareTo(amount5).should.equal 0
-              @tradeSpy.firstCall.args[0].left.balanceDeltas.credit.commission.reference.should.equal 'Paul commission level'
-              @tradeSpy.firstCall.args[0].right.sequence.should.equal @order.sequence
-              @tradeSpy.firstCall.args[0].right.newBidAmount.compareTo(@order.bidAmount).should.equal 0
-              @tradeSpy.firstCall.args[0].right.balanceDeltas.debit.amount.compareTo(amount1000).should.equal 0
-              @tradeSpy.firstCall.args[0].right.balanceDeltas.credit.amount.compareTo(amount199).should.equal 0
-              @tradeSpy.firstCall.args[0].right.balanceDeltas.credit.commission.amount.compareTo(amount1).should.equal 0
-              @tradeSpy.firstCall.args[0].right.balanceDeltas.credit.commission.reference.should.equal 'Peter commission level'
-              @tradeSpy.firstCall.args[0].price.compareTo(@order.bidPrice).should.equal 0
-              @tradeSpy.firstCall.args[0].amount.compareTo(amount200).should.equal 0                
+              result.trade.timestamp.should.equal order.timestamp
+              result.trade.left.sequence.should.equal order.sequence
+              result.trade.left.newBidAmount.compareTo(order.bidAmount).should.equal 0
+              result.trade.left.balanceDeltas.debit.amount.compareTo(amount200).should.equal 0
+              result.trade.left.balanceDeltas.credit.amount.compareTo(amount995).should.equal 0
+              result.trade.left.balanceDeltas.credit.commission.amount.compareTo(amount5).should.equal 0
+              result.trade.left.balanceDeltas.credit.commission.reference.should.equal 'Paul commission level'
+              result.trade.right.sequence.should.equal @order.sequence
+              result.trade.right.newBidAmount.compareTo(@order.bidAmount).should.equal 0
+              result.trade.right.balanceDeltas.debit.amount.compareTo(amount1000).should.equal 0
+              result.trade.right.balanceDeltas.credit.amount.compareTo(amount199).should.equal 0
+              result.trade.right.balanceDeltas.credit.commission.amount.compareTo(amount1).should.equal 0
+              result.trade.right.balanceDeltas.credit.commission.reference.should.equal 'Peter commission level'
+              result.trade.price.compareTo(@order.bidPrice).should.equal 0
+              result.trade.amount.compareTo(amount200).should.equal 0                
 
           describe 'and the right order is bidding more than the left order is bidding multiplied by the right order price', ->
             it 'should trade the amount the left order is bidding at the right order price, emit fill events and a trade event and return false', ->
-              order = new Order
-                sequence: 1
-                timestamp: 1371737390977
-                account: @accountPaul
-                bidBalance: @bidBalancePaul
-                offerBalance: @offerBalancePaul
-                bidPrice: amountPoint25
-                bidAmount: amount500
-              doneSpy = sinon.spy()
-              order.on 'done', doneSpy
-              tradeSpy = sinon.spy()
-              order.on 'trade', tradeSpy
-              
-              order.match(@order).should.be.false
+              order = @paulBidEUR
+                price: amountPoint25
+                amount: amount500
 
-              doneSpy.should.have.been.calledOnce
-              @doneSpy.should.not.have.been.called
+              result = order.match @order
+              result.complete.should.be.true
 
-              @offerBalancePaul.funds.compareTo(amount275).should.equal 0
-              @bidBalancePaul.funds.compareTo(amount495).should.equal 0
-              @commissionAccount.getBalance('EUR').funds.compareTo(amount5).should.equal 0
+              @bookBTCEUR.next().should.equal @order
+              @accountPeter.orders[0].should.equal @order
 
-              @offerBalancePeter.funds.compareTo(amount500).should.equal 0
-              @bidBalancePeter.funds.compareTo(amount99).should.equal 0
-              @commissionAccount.getBalance('BTC').funds.compareTo(amount1).should.equal 0
+              expect(@bookEURBTC.next()).to.not.be.ok
+              expect(@accountPaul.orders[1]).to.not.be.ok
+
+              @balancePaulBTC.funds.compareTo(amount19900).should.equal 0
+              @balancePaulEUR.funds.compareTo(amount495).should.equal 0
+              @balanceCommissionEUR.funds.compareTo(amount5).should.equal 0
+
+              @balancePeterEUR.funds.compareTo(amount99500).should.equal 0
+              @balancePeterBTC.funds.compareTo(amount99).should.equal 0
+              @balanceCommissionBTC.funds.compareTo(amount1).should.equal 0
 
               order.offerAmount.compareTo(Amount.ZERO).should.equal 0
               order.bidAmount.compareTo(Amount.ZERO).should.equal 0
+
               @order.bidAmount.compareTo(amount100).should.equal 0
               @order.offerAmount.compareTo(amount500).should.equal 0
 
-              tradeSpy.should.not.have.been.called
-              @tradeSpy.should.have.been.calledOnce
-              @tradeSpy.firstCall.args[0].timestamp.should.equal order.timestamp
-              @tradeSpy.firstCall.args[0].left.sequence.should.equal order.sequence
-              @tradeSpy.firstCall.args[0].left.newBidAmount.compareTo(order.bidAmount).should.equal 0
-              @tradeSpy.firstCall.args[0].left.balanceDeltas.debit.amount.compareTo(amount100).should.equal 0
-              @tradeSpy.firstCall.args[0].left.balanceDeltas.credit.amount.compareTo(amount495).should.equal 0
-              @tradeSpy.firstCall.args[0].left.balanceDeltas.credit.commission.amount.compareTo(amount5).should.equal 0
-              @tradeSpy.firstCall.args[0].left.balanceDeltas.credit.commission.reference.should.equal 'Paul commission level'
-              @tradeSpy.firstCall.args[0].right.sequence.should.equal @order.sequence
-              @tradeSpy.firstCall.args[0].right.newBidAmount.compareTo(@order.bidAmount).should.equal 0
-              @tradeSpy.firstCall.args[0].right.balanceDeltas.debit.amount.compareTo(amount500).should.equal 0
-              @tradeSpy.firstCall.args[0].right.balanceDeltas.credit.amount.compareTo(amount99).should.equal 0
-              @tradeSpy.firstCall.args[0].right.balanceDeltas.credit.commission.amount.compareTo(amount1).should.equal 0
-              @tradeSpy.firstCall.args[0].right.balanceDeltas.credit.commission.reference.should.equal 'Peter commission level'
-              @tradeSpy.firstCall.args[0].price.compareTo(@order.bidPrice).should.equal 0
-              @tradeSpy.firstCall.args[0].amount.compareTo(amount100).should.equal 0                
+              result.trade.timestamp.should.equal order.timestamp
+              result.trade.left.sequence.should.equal order.sequence
+              result.trade.left.newBidAmount.compareTo(order.bidAmount).should.equal 0
+              result.trade.left.balanceDeltas.debit.amount.compareTo(amount100).should.equal 0
+              result.trade.left.balanceDeltas.credit.amount.compareTo(amount495).should.equal 0
+              result.trade.left.balanceDeltas.credit.commission.amount.compareTo(amount5).should.equal 0
+              result.trade.left.balanceDeltas.credit.commission.reference.should.equal 'Paul commission level'
+              result.trade.right.sequence.should.equal @order.sequence
+              result.trade.right.newBidAmount.compareTo(@order.bidAmount).should.equal 0
+              result.trade.right.balanceDeltas.debit.amount.compareTo(amount500).should.equal 0
+              result.trade.right.balanceDeltas.credit.amount.compareTo(amount99).should.equal 0
+              result.trade.right.balanceDeltas.credit.commission.amount.compareTo(amount1).should.equal 0
+              result.trade.right.balanceDeltas.credit.commission.reference.should.equal 'Peter commission level'
+              result.trade.price.compareTo(@order.bidPrice).should.equal 0
+              result.trade.amount.compareTo(amount100).should.equal 0                
               
           describe 'and the right order is bidding less than the left order is bidding multiplied by the right order price', ->
             it 'should trade the amount the right order is bidding at the right order price, emit fill events and a trade event and return true', ->
-              order = new Order
-                sequence: 1
-                timestamp: 1371737390977
-                account: @accountPaul
-                bidBalance: @bidBalancePaul
-                offerBalance: @offerBalancePaul
-                bidPrice: amountPoint25
-                bidAmount: amount1500
-              doneSpy = sinon.spy()
-              order.on 'done', doneSpy
-              tradeSpy = sinon.spy()
-              order.on 'trade', tradeSpy
-              
-              order.match(@order).should.be.true
+              order = @paulBidEUR
+                price: amountPoint25
+                amount: amount1500
 
-              doneSpy.should.not.have.been.called
-              @doneSpy.should.have.been.calledOnce
+              result = order.match @order
+              result.complete.should.be.false
 
-              @offerBalancePaul.funds.compareTo(amount175).should.equal 0
-              @bidBalancePaul.funds.compareTo(amount995).should.equal 0
-              @commissionAccount.getBalance('EUR').funds.compareTo(amount5).should.equal 0
+              expect(@bookBTCEUR.next()).to.not.be.ok
+              expect(@accountPeter.orders[0]).to.not.be.ok
 
-              @offerBalancePeter.funds.compareTo(Amount.ZERO).should.equal 0
-              @bidBalancePeter.funds.compareTo(amount199).should.equal 0
-              @commissionAccount.getBalance('BTC').funds.compareTo(amount1).should.equal 0
+              @bookEURBTC.next().should.equal order
+              @accountPaul.orders[1].should.equal order
+
+              @balancePaulBTC.funds.compareTo(amount19800).should.equal 0
+              @balancePaulEUR.funds.compareTo(amount995).should.equal 0
+              @balanceCommissionEUR.funds.compareTo(amount5).should.equal 0
+
+              @balancePeterEUR.funds.compareTo(amount99000).should.equal 0
+              @balancePeterBTC.funds.compareTo(amount199).should.equal 0
+              @balanceCommissionBTC.funds.compareTo(amount1).should.equal 0
 
               order.offerAmount.compareTo(amount125).should.equal 0
               order.bidAmount.compareTo(amount500).should.equal 0
               @order.bidAmount.compareTo(Amount.ZERO).should.equal 0
               @order.offerAmount.compareTo(Amount.ZERO).should.equal 0
 
-              tradeSpy.should.not.have.been.called
-              @tradeSpy.should.have.been.calledOnce
-              @tradeSpy.firstCall.args[0].timestamp.should.equal order.timestamp
-              @tradeSpy.firstCall.args[0].left.sequence.should.equal order.sequence
-              @tradeSpy.firstCall.args[0].left.newBidAmount.compareTo(order.bidAmount).should.equal 0
-              @tradeSpy.firstCall.args[0].left.balanceDeltas.debit.amount.compareTo(amount200).should.equal 0
-              @tradeSpy.firstCall.args[0].left.balanceDeltas.credit.amount.compareTo(amount995).should.equal 0
-              @tradeSpy.firstCall.args[0].left.balanceDeltas.credit.commission.amount.compareTo(amount5).should.equal 0
-              @tradeSpy.firstCall.args[0].left.balanceDeltas.credit.commission.reference.should.equal 'Paul commission level'
-              @tradeSpy.firstCall.args[0].right.sequence.should.equal @order.sequence
-              @tradeSpy.firstCall.args[0].right.newBidAmount.compareTo(@order.bidAmount).should.equal 0
-              @tradeSpy.firstCall.args[0].right.balanceDeltas.debit.amount.compareTo(amount1000).should.equal 0
-              @tradeSpy.firstCall.args[0].right.balanceDeltas.credit.amount.compareTo(amount199).should.equal 0
-              @tradeSpy.firstCall.args[0].right.balanceDeltas.credit.commission.amount.compareTo(amount1).should.equal 0
-              @tradeSpy.firstCall.args[0].right.balanceDeltas.credit.commission.reference.should.equal 'Peter commission level'
-              @tradeSpy.firstCall.args[0].price.compareTo(@order.bidPrice).should.equal 0
-              @tradeSpy.firstCall.args[0].amount.compareTo(amount200).should.equal 0                
+              result.trade.timestamp.should.equal order.timestamp
+              result.trade.left.sequence.should.equal order.sequence
+              result.trade.left.newBidAmount.compareTo(order.bidAmount).should.equal 0
+              result.trade.left.balanceDeltas.debit.amount.compareTo(amount200).should.equal 0
+              result.trade.left.balanceDeltas.credit.amount.compareTo(amount995).should.equal 0
+              result.trade.left.balanceDeltas.credit.commission.amount.compareTo(amount5).should.equal 0
+              result.trade.left.balanceDeltas.credit.commission.reference.should.equal 'Paul commission level'
+              result.trade.right.sequence.should.equal @order.sequence
+              result.trade.right.newBidAmount.compareTo(@order.bidAmount).should.equal 0
+              result.trade.right.balanceDeltas.debit.amount.compareTo(amount1000).should.equal 0
+              result.trade.right.balanceDeltas.credit.amount.compareTo(amount199).should.equal 0
+              result.trade.right.balanceDeltas.credit.commission.amount.compareTo(amount1).should.equal 0
+              result.trade.right.balanceDeltas.credit.commission.reference.should.equal 'Peter commission level'
+              result.trade.price.compareTo(@order.bidPrice).should.equal 0
+              result.trade.amount.compareTo(amount200).should.equal 0                
 
   describe '#add', ->
     beforeEach ->
-      @bidOrder = newBidOrder amountPoint2
-      @higherBidOrder = newBidOrder amount1
-      @evenHigherBidOrder = newBidOrder amount2
-      @equalBidOrder = newBidOrder amountPoint2
-      @secondEqualBidOrder = newBidOrder amountPoint2
-      @offerOrder = newOfferOrder amount5
-      @higherOfferOrder = newOfferOrder amount1
-      @evenHigherOfferOrder = newOfferOrder amountPoint5
-      @equalOfferOrder = newOfferOrder amount5
-      @secondEqualOfferOrder = newOfferOrder amount5
+      @bidOrder = @paulBidEUR
+        skipSubmit: true
+        amount: amount100
+        price: amountPoint2
+      @higherBidOrder = @paulBidEUR
+        skipSubmit: true
+        amount: amount100
+        price: amount1
+      @evenHigherBidOrder = @paulBidEUR
+        skipSubmit: true
+        amount: amount100
+        price: amount2
+      @equalBidOrder = @paulBidEUR
+        skipSubmit: true
+        amount: amount100
+        price: amountPoint2
+      @secondEqualBidOrder = @paulBidEUR
+        skipSubmit: true
+        amount: amount100
+        price: amountPoint2
+      @offerOrder = @paulOfferBTC
+        skipSubmit: true
+        amount: amount100
+        price: amount5
+      @higherOfferOrder = @paulOfferBTC
+        skipSubmit: true
+        amount: amount100
+        price: amount1
+      @evenHigherOfferOrder = @paulOfferBTC
+        skipSubmit: true
+        amount: amount100
+        price: amountPoint5
+      @equalOfferOrder = @paulOfferBTC
+        skipSubmit: true
+        amount: amount100
+        price: amount5
+      @secondEqualOfferOrder = @paulOfferBTC
+        skipSubmit: true
+        amount: amount100
+        price: amount5
 
     describe 'only bids', ->
       describe 'on a book entry with no lower or higher orders', ->
         describe 'an entry with a higher bid price', ->
-          it 'should set the higher entry to the Order being added and set the parent on the added Order', ->
-            @bidOrder.add @higherBidOrder
+          it 'should set the higher entry to the Order being added, set the parent on the added Order and return the next higher order or undefined if there is none', ->
+            nextHigher = @bidOrder.add @higherBidOrder
+            expect(nextHigher).to.not.be.ok
             expect(@bidOrder.parent).to.not.be.ok
             expect(@bidOrder.lower).to.not.be.ok
             @bidOrder.higher.should.equal @higherBidOrder
@@ -1460,8 +1337,9 @@ describe 'Order', ->
             expect(@higherBidOrder.higher).to.not.be.ok
 
         describe 'an entry with the same or lower bid price', ->
-          it 'should set the lower entry to the Order being added and set the parent on the added Order', ->
-            @bidOrder.add @equalBidOrder
+          it 'should set the lower entry to the Order being added, set the parent on the added Order and return the next higher order or undefined if there is none', ->
+            nextHigher = @bidOrder.add @equalBidOrder
+            nextHigher.should.equal @bidOrder
             expect(@bidOrder.parent).to.not.be.ok
             @bidOrder.lower.should.equal @equalBidOrder
             expect(@bidOrder.higher).to.not.be.ok
@@ -1474,28 +1352,31 @@ describe 'Order', ->
           @bidOrder.add @equalBidOrder
           @bidOrder.add @higherBidOrder
           # override the book entry add methods so we can check if they get called
-          @lowerAddSpy = sinon.spy()
-          @higherAddSpy = sinon.spy()
+          @lowerAddSpy = sinon.spy @equalBidOrder.add.bind @equalBidOrder
+          @higherAddSpy = sinon.spy @higherBidOrder.add.bind @higherBidOrder
           @equalBidOrder.add = @lowerAddSpy
           @higherBidOrder.add = @higherAddSpy
 
         describe 'an entry with a higher bid price', ->
-          it 'should call the add method of the higher Order', ->
-            @bidOrder.add @evenHigherBidOrder
+          it 'should call the add method of the higher Order and return the next higher order or undefined if there is none', ->
+            nextHigher = @bidOrder.add @evenHigherBidOrder
+            expect(nextHigher).to.not.be.ok
             @lowerAddSpy.should.not.have.been.called
             @higherAddSpy.should.have.been.calledWith @evenHigherBidOrder
 
         describe 'an entry with the same or lower bid price', ->
-          it 'should call the add method of the lower Order', ->
-            @bidOrder.add @secondEqualBidOrder
+          it 'should call the add method of the lower Order and return the next higher order or undefined if there is none', ->
+            nextHigher = @bidOrder.add @secondEqualBidOrder
+            nextHigher.should.equal @equalBidOrder
             @lowerAddSpy.should.have.been.calledWith @secondEqualBidOrder
             @higherAddSpy.should.not.have.been.called
 
     describe 'only offers', ->
       describe 'on a book entry with no lower or higher orders', ->
         describe 'an entry with a higher bid price', ->
-          it 'should set the higher entry to the Order being added and set the parent on the added Order', ->
-            @offerOrder.add @higherOfferOrder
+          it 'should set the higher entry to the Order being added, set the parent on the added Order and return the next higher order or undefined if there is none', ->
+            nextHigher = @offerOrder.add @higherOfferOrder
+            expect(nextHigher).to.not.be.ok
             expect(@offerOrder.parent).to.not.be.ok
             expect(@offerOrder.lower).to.not.be.ok
             @offerOrder.higher.should.equal @higherOfferOrder
@@ -1504,8 +1385,9 @@ describe 'Order', ->
             expect(@higherOfferOrder.higher).to.not.be.ok
 
         describe 'an entry with the same or lower bid price', ->
-          it 'should set the lower entry to the Order being added and set the parent on the added Order', ->
-            @offerOrder.add @equalOfferOrder
+          it 'should set the lower entry to the Order being added, set the parent on the added Order and return the next higher order or undefined if there is none', ->
+            nextHigher = @offerOrder.add @equalOfferOrder
+            nextHigher.should.equal @offerOrder
             expect(@offerOrder.parent).to.not.be.ok
             @offerOrder.lower.should.equal @equalOfferOrder
             expect(@offerOrder.higher).to.not.be.ok
@@ -1518,28 +1400,31 @@ describe 'Order', ->
           @offerOrder.add @equalOfferOrder
           @offerOrder.add @higherOfferOrder
           # override the book entry add methods so we can check if they get called
-          @lowerAddSpy = sinon.spy()
-          @higherAddSpy = sinon.spy()
+          @lowerAddSpy = sinon.spy @equalOfferOrder.add.bind @equalOfferOrder
+          @higherAddSpy = sinon.spy @higherOfferOrder.add.bind @higherOfferOrder
           @equalOfferOrder.add = @lowerAddSpy
           @higherOfferOrder.add = @higherAddSpy
 
         describe 'an entry with a higher bid price', ->
-          it 'should call the add method of the higher Order', ->
-            @offerOrder.add @evenHigherOfferOrder
+          it 'should call the add method of the higher Order and return the next higher order or undefined if there is none', ->
+            nextHigher = @offerOrder.add @evenHigherOfferOrder
+            expect(nextHigher).to.not.be.ok
             @lowerAddSpy.should.not.have.been.called
             @higherAddSpy.should.have.been.calledWith @evenHigherOfferOrder
 
         describe 'an entry with the same or lower bid price', ->
-          it 'should call the add method of the lower Order', ->
-            @offerOrder.add @secondEqualOfferOrder
+          it 'should call the add method of the lower Order and return the next higher order or undefined if there is none', ->
+            nextHigher = @offerOrder.add @secondEqualOfferOrder
+            nextHigher.should.equal @equalOfferOrder
             @lowerAddSpy.should.have.been.calledWith @secondEqualOfferOrder
             @higherAddSpy.should.not.have.been.called
 
     describe 'an offer to bids', ->
       describe 'on a book entry with no lower or higher orders', ->
         describe 'an entry with a higher bid price', ->
-          it 'should set the higher entry to the Order being added and set the parent on the added Order', ->
-            @bidOrder.add @higherOfferOrder
+          it 'should set the higher entry to the Order being added, set the parent on the added Order and return the next higher order or undefined if there is none', ->
+            nextHigher = @bidOrder.add @higherOfferOrder
+            expect(nextHigher).to.not.be.ok
             expect(@bidOrder.parent).to.not.be.ok
             expect(@bidOrder.lower).to.not.be.ok
             @bidOrder.higher.should.equal @higherOfferOrder
@@ -1548,8 +1433,9 @@ describe 'Order', ->
             expect(@higherOfferOrder.higher).to.not.be.ok
 
         describe 'an entry with the same or lower bid price', ->
-          it 'should set the lower entry to the Order being added and set the parent on the added Order', ->
-            @bidOrder.add @equalOfferOrder
+          it 'should set the lower entry to the Order being added, set the parent on the added Order and return the next higher order or undefined if there is none', ->
+            nextHigher = @bidOrder.add @equalOfferOrder
+            nextHigher.should.equal @bidOrder
             expect(@bidOrder.parent).to.not.be.ok
             @bidOrder.lower.should.equal @equalOfferOrder
             expect(@bidOrder.higher).to.not.be.ok
@@ -1562,28 +1448,31 @@ describe 'Order', ->
           @bidOrder.add @equalBidOrder
           @bidOrder.add @higherBidOrder
           # override the book entry add methods so we can check if they get called
-          @lowerAddSpy = sinon.spy()
-          @higherAddSpy = sinon.spy()
+          @lowerAddSpy = sinon.spy @equalBidOrder.add.bind @equalBidOrder
+          @higherAddSpy = sinon.spy @higherBidOrder.add.bind @higherBidOrder
           @equalBidOrder.add = @lowerAddSpy
           @higherBidOrder.add = @higherAddSpy
 
         describe 'an entry with a higher bid price', ->
-          it 'should call the add method of the higher Order', ->
-            @bidOrder.add @evenHigherOfferOrder
+          it 'should call the add method of the higher Order and return the next higher order or undefined if there is none', ->
+            nextHigher = @bidOrder.add @evenHigherOfferOrder
+            expect(nextHigher).to.not.be.ok
             @lowerAddSpy.should.not.have.been.called
             @higherAddSpy.should.have.been.calledWith @evenHigherOfferOrder
 
         describe 'an entry with the same or lower bid price', ->
-          it 'should call the add method of the lower Order', ->
-            @bidOrder.add @secondEqualOfferOrder
+          it 'should call the add method of the lower Order and return the next higher order or undefined if there is none', ->
+            nextHigher = @bidOrder.add @secondEqualOfferOrder
+            nextHigher.should.equal @equalBidOrder
             @lowerAddSpy.should.have.been.calledWith @secondEqualOfferOrder
             @higherAddSpy.should.not.have.been.called
 
     describe 'a bid to offers', ->
       describe 'on a book entry with no lower or higher orders', ->
         describe 'an entry with a higher bid price', ->
-          it 'should set the higher entry to the Order being added and set the parent on the added Order', ->
-            @offerOrder.add @higherBidOrder
+          it 'should set the higher entry to the Order being added, set the parent on the added Order and return the next higher order or undefined if there is none', ->
+            nextHigher = @offerOrder.add @higherBidOrder
+            expect(nextHigher).to.not.be.ok
             expect(@offerOrder.parent).to.not.be.ok
             expect(@offerOrder.lower).to.not.be.ok
             @offerOrder.higher.should.equal @higherBidOrder
@@ -1592,8 +1481,9 @@ describe 'Order', ->
             expect(@higherBidOrder.higher).to.not.be.ok
 
         describe 'an entry with the same or lower bid price', ->
-          it 'should set the lower entry to the Order being added and set the parent on the added Order', ->
-            @offerOrder.add @equalBidOrder
+          it 'should set the lower entry to the Order being added, set the parent on the added Order and return the next higher order or undefined if there is none', ->
+            nextHigher = @offerOrder.add @equalBidOrder
+            nextHigher.should.equal @offerOrder
             expect(@offerOrder.parent).to.not.be.ok
             @offerOrder.lower.should.equal @equalBidOrder
             expect(@offerOrder.higher).to.not.be.ok
@@ -1606,53 +1496,59 @@ describe 'Order', ->
           @offerOrder.add @equalOfferOrder
           @offerOrder.add @higherOfferOrder
           # override the book entry add methods so we can check if they get called
-          @lowerAddSpy = sinon.spy()
-          @higherAddSpy = sinon.spy()
+          @lowerAddSpy = sinon.spy @equalOfferOrder.add.bind @equalOfferOrder
+          @higherAddSpy = sinon.spy @higherOfferOrder.add.bind @higherOfferOrder
           @equalOfferOrder.add = @lowerAddSpy
           @higherOfferOrder.add = @higherAddSpy
 
         describe 'an entry with a higher bid price', ->
-          it 'should call the add method of the higher Order', ->
-            @offerOrder.add @evenHigherBidOrder
+          it 'should call the add method of the higher Order and return the next higher order or undefined if there is none', ->
+            nextHigher = @offerOrder.add @evenHigherBidOrder
+            expect(nextHigher).to.not.be.ok
             @lowerAddSpy.should.not.have.been.called
             @higherAddSpy.should.have.been.calledWith @evenHigherBidOrder
 
         describe 'an entry with the same or lower bid price', ->
-          it 'should call the add method of the lower Order', ->
-            @offerOrder.add @secondEqualBidOrder
+          it 'should call the add method of the lower Order and return the next higher order or undefined if there is none', ->
+            nextHigher = @offerOrder.add @secondEqualBidOrder
+            nextHigher.should.equal @equalOfferOrder
             @lowerAddSpy.should.have.been.calledWith @secondEqualBidOrder
             @higherAddSpy.should.not.have.been.called
 
-  describe '#addLowest', ->
-    describe 'with no lower Order', ->
-      it 'should set the lower Order to the given Order regardless of the bidPrice', ->
-        order1 = newBidOrder amount1
-        order2 = newBidOrder amount2
-        order1.addLowest order2
-        order1.lower.should.equal order2
-        order2.parent.should.equal order1
-
-    describe 'with a lower Order', ->
-      it 'should call addLowest with the given Order regardless of the bidPrice', ->
-        order1 = newBidOrder amount1
-        order2 = newBidOrder amount2
-        order3 = newBidOrder amount3
-        order2.add order1
-        addLowestSpy = sinon.spy()
-        order1.addLowest = addLowestSpy
-        order2.addLowest order3
-        addLowestSpy.should.have.been.calledWith(order3)
-
   describe '#delete', ->
     beforeEach ->
-      @bidOrder1 = newBidOrder amount1
-      @bidOrder2 = newBidOrder amount2
-      @bidOrder3 = newBidOrder amount3
-      @bidOrder4 = newBidOrder amount4
-      @bidOrder5 = newBidOrder amount5
-      @bidOrder6 = newBidOrder amount6
-      @bidOrder7 = newBidOrder amount7
-      @bidOrder8 = newBidOrder amount8
+      @bidOrder1 = @paulBidEUR
+        skipSubmit: true
+        amount: amount100
+        price: amount1
+      @bidOrder2 = @paulBidEUR
+        skipSubmit: true
+        amount: amount100
+        price: amount2
+      @bidOrder3 = @paulBidEUR
+        skipSubmit: true
+        amount: amount100
+        price: amount3
+      @bidOrder4 = @paulBidEUR
+        skipSubmit: true
+        amount: amount100
+        price: amount4
+      @bidOrder5 = @paulBidEUR
+        skipSubmit: true
+        amount: amount100
+        price: amount5
+      @bidOrder6 = @paulBidEUR
+        skipSubmit: true
+        amount: amount100
+        price: amount6
+      @bidOrder7 = @paulBidEUR
+        skipSubmit: true
+        amount: amount100
+        price: amount7
+      @bidOrder8 = @paulBidEUR
+        skipSubmit: true
+        amount: amount100
+        price: amount8
 
     describe 'an Order with a lower parent but no lower or higher', ->
       it 'should delete the parent higher Order', ->
@@ -1772,59 +1668,54 @@ describe 'Order', ->
   describe '#getHighest', ->
     describe 'with no higher Order', ->
       it 'should return itself', ->
-        order = newBidOrder amount1
+        order = @paulBidEUR
+          skipSubmit: true
+          amount: amount100
+          price: amount1
         order.getHighest().should.equal order
 
     describe 'with a higher Order', ->
       it 'should call getHighest on the higher entry and return the result', ->
-        order1 = newBidOrder amount1
-        order2 = newBidOrder amount2
+        order1 = @paulBidEUR
+          skipSubmit: true
+          amount: amount100
+          price: amount1
+        order2 = @paulBidEUR
+          skipSubmit: true
+          amount: amount100
+          price: amount2
         order1.add order2
         order2.getHighest = sinon.stub().returns 'stub'
         order1.getHighest().should.equal 'stub'
 
   describe '#export', ->
     it 'should return a JSON stringifiable object containing a snapshot of the order', ->
-      account = new Account
-        id: 'Peter'
-      balanceEUR = account.getBalance 'EUR'
-      balanceBTC = account.getBalance 'BTC'
-      balanceEUR.deposit amount5000
-      balanceBTC.deposit amount50
-      order = new Order
-        sequence: 0
-        timestamp: 1371737390976
-        account: account
-        bidBalance: balanceBTC
-        offerBalance: balanceEUR
-        bidPrice: amount100
-        bidAmount: amount50
+      order = @paulBidEUR
+        skipSubmit: true
+        price: amount100
+        amount: amount50
       json = JSON.stringify order.export()
       object = JSON.parse json
       order.sequence.should.equal object.sequence
       order.timestamp.should.equal object.timestamp
       order.account.id.should.equal object.account
-      order.bidBalance.currency.should.equal object.bidCurrency
-      order.offerBalance.currency.should.equal object.offerCurrency
+      order.book.bidCurrency.should.equal object.bidCurrency
+      order.book.offerCurrency.should.equal object.offerCurrency
       order.bidPrice.compareTo(new Amount object.bidPrice).should.equal 0
       order.bidAmount.compareTo(new Amount object.bidAmount).should.equal 0
       expect(object.offerPrice).to.not.be.ok
       expect(object.offerAmount).to.not.be.ok
-      order = new Order
-        sequence: 1
-        timestamp: 1371737390976
-        account: account
-        bidBalance: balanceEUR
-        offerBalance: balanceBTC
-        offerPrice: amount100
-        offerAmount: amount50
+      order = @paulOfferBTC
+        skipSubmit: true
+        price: amount100
+        amount: amount50
       json = JSON.stringify order.export()
       object = JSON.parse json
       order.sequence.should.equal object.sequence
       order.timestamp.should.equal object.timestamp
       order.account.id.should.equal object.account
-      order.bidBalance.currency.should.equal object.bidCurrency
-      order.offerBalance.currency.should.equal object.offerCurrency
+      order.book.bidCurrency.should.equal object.bidCurrency
+      order.book.offerCurrency.should.equal object.offerCurrency
       order.offerPrice.compareTo(new Amount object.offerPrice).should.equal 0
       order.offerAmount.compareTo(new Amount object.offerAmount).should.equal 0
       expect(object.bidPrice).to.not.be.ok
@@ -1846,34 +1737,79 @@ describe 'Order', ->
       #             / \   / \   / \   / \
       #            8   9 10 11 12 13 14 15
       #
-      order1 = newBidOrder amount50
-      order2 = newBidOrder amount51
+      order1 = @paulBidEUR
+        skipSubmit: true
+        amount: amount100
+        price: amount50
+      order2 = @paulBidEUR
+        skipSubmit: true
+        amount: amount100
+        price: amount51
       order1.add order2
-      order3 = newBidOrder amount49
+      order3 = @paulBidEUR
+        skipSubmit: true
+        amount: amount100
+        price: amount49
       order1.add order3
-      order4 = newBidOrder amount52
+      order4 = @paulBidEUR
+        skipSubmit: true
+        amount: amount100
+        price: amount52
       order1.add order4
-      order5 = newBidOrder amount50Point5
+      order5 = @paulBidEUR
+        skipSubmit: true
+        amount: amount100
+        price: amount50Point5
       order1.add order5
-      order6 = newBidOrder amount49Point5
+      order6 = @paulBidEUR
+        skipSubmit: true
+        amount: amount100
+        price: amount49Point5
       order1.add order6
-      order7 = newBidOrder amount48Point5
+      order7 = @paulBidEUR
+        skipSubmit: true
+        amount: amount100
+        price: amount48Point5
       order1.add order7
-      order8 = newBidOrder amount48Point5 # is equal to but should be placed lower than order 7
+      order8 = @paulBidEUR
+        skipSubmit: true
+        amount: amount100
+        price: amount48Point5 # is equal to but should be placed lower than order 7
       order1.add order8
-      order9 = newBidOrder amount48Point75
+      order9 = @paulBidEUR
+        skipSubmit: true
+        amount: amount100
+        price: amount48Point75
       order1.add order9
-      order10 = newBidOrder amount49Point5 # is equal to but should be placed lower than order 6
+      order10 = @paulBidEUR
+        skipSubmit: true
+        amount: amount100
+        price: amount49Point5 # is equal to but should be placed lower than order 6
       order1.add order10
-      order11 = newBidOrder amount49Point75
+      order11 = @paulBidEUR
+        skipSubmit: true
+        amount: amount100
+        price: amount49Point75
       order1.add order11
-      order12 = newBidOrder amount50Point5 # is equal to but should be placed lower than order 5
+      order12 = @paulBidEUR
+        skipSubmit: true
+        amount: amount100
+        price: amount50Point5 # is equal to but should be placed lower than order 5
       order1.add order12
-      order13 = newBidOrder amount50Point75
+      order13 = @paulBidEUR
+        skipSubmit: true
+        amount: amount100
+        price: amount50Point75
       order1.add order13
-      order14 = newBidOrder amount52 # is equal to but should be placed lower than order 4
+      order14 = @paulBidEUR
+        skipSubmit: true
+        amount: amount100
+        price: amount52 # is equal to but should be placed lower than order 4
       order1.add order14
-      order15 = newBidOrder amount53
+      order15 = @paulBidEUR
+        skipSubmit: true
+        amount: amount100
+        price: amount53
       order1.add order15
 
       order15.next().should.equal order4

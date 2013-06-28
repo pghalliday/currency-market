@@ -30,7 +30,9 @@ module.exports = class Engine extends EventEmitter
       @books[bidCurrency] = books = Object.create null
     book = books[offerCurrency]
     if !book
-      books[offerCurrency] = book = new Book()
+      books[offerCurrency] = book = new Book
+        bidCurrency: bidCurrency
+        offerCurrency: offerCurrency
     return book
 
   apply: (operation) =>
@@ -52,30 +54,28 @@ module.exports = class Engine extends EventEmitter
             @emit 'delta', delta
           else if operation.submit
             submit = operation.submit
-            order = account.submit
+            leftBook = @getBook submit.bidCurrency, submit.offerCurrency
+            order = new Order
               sequence: operation.sequence
               timestamp: operation.timestamp
-              bidCurrency: submit.bidCurrency
-              offerCurrency: submit.offerCurrency
+              account: account
+              book: leftBook
               bidPrice: submit.bidPrice
               bidAmount: submit.bidAmount
               offerPrice: submit.offerPrice
               offerAmount: submit.offerAmount
-            leftBook = @getBook submit.bidCurrency, submit.offerCurrency
-            leftBook.submit order
-            # forward trade events from the order
-            order.on 'trade', (trade) =>
-              delta =
-                sequence: @nextDeltaSequence
-                trade: trade
-              @nextDeltaSequence++
-              @emit 'delta', delta
+            account.submit order
+            nextHigher = leftBook.submit order
+            if nextHigher
+              delta.nextHigherOrderSequence = nextHigher.sequence
+            else
+              delta.nextHigherOrderSequence = -1
             # emit an order added event
             @nextDeltaSequence++
             @emit 'delta', delta
             # check the books to see if any orders can be executed
             rightBook = @getBook submit.offerCurrency, submit.bidCurrency
-            execute leftBook, rightBook
+            @execute leftBook, rightBook
           else if operation.cancel
             order = account.cancel operation.cancel.sequence
             @getBook(order.bidBalance.currency, order.offerBalance.currency).cancel order
@@ -90,16 +90,23 @@ module.exports = class Engine extends EventEmitter
     else
       throw new Error 'Must supply a sequence number'
 
-  execute = (leftBook, rightBook) ->
+  # Private method used by apply
+  execute: (leftBook, rightBook) =>
     leftOrder = leftBook.next()
     rightOrder = rightBook.next()
     if leftOrder && rightOrder
-        # just added an order to the left book so the left order must be
-        # the most recent addition if we get here. This means that we should
-        # take the price from the right order
-        tryAgain = leftOrder.match rightOrder
-        if tryAgain
-          execute leftBook, rightBook
+      # just added an order to the left book so the left order must be
+      # the most recent addition if we get here. This means that we should
+      # take the price from the right order
+      result = leftOrder.match rightOrder
+      if result.trade
+        delta =
+          sequence: @nextDeltaSequence
+          trade: result.trade
+        @nextDeltaSequence++
+        @emit 'delta', delta
+      if !result.complete
+        @execute leftBook, rightBook
 
   export: =>
     object = Object.create null

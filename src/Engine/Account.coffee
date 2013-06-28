@@ -37,21 +37,12 @@ module.exports = class Account
     else
       throw new Error 'Must supply a currency'
 
-  submit: (params) =>
-    order = new Order
-      sequence: params.sequence
-      timestamp: params.timestamp
-      account: @
-      bidBalance: @getBalance params.bidCurrency
-      offerBalance: @getBalance params.offerCurrency
-      bidPrice: params.bidPrice
-      bidAmount: params.bidAmount
-      offerPrice: params.offerPrice
-      offerAmount: params.offerAmount
+  submit: (order) =>
+    @getBalance(order.book.offerCurrency).lock order.offerAmount
     @orders[order.sequence] = order
-    order.on 'done', =>
-      delete @orders[order.sequence]
-    return order
+
+  complete: (order) =>
+    delete @orders[order.sequence]    
 
   cancel: (sequence) =>
     order = @orders[sequence]
