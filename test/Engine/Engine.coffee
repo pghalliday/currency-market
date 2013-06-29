@@ -132,11 +132,9 @@ describe 'Engine', ->
               currency: 'EUR'
         .to.throw 'Must supply an amount'
 
-      it 'should credit the correct account and currency and emit a delta event', ->
-        deltaSpy = sinon.spy()
-        @engine.on 'delta', deltaSpy
+      it 'should credit the correct account and currency and return the delta sequence number', ->
         account = @engine.getAccount('Peter')
-        operation = 
+        result = @engine.apply
           reference: '550e8400-e29b-41d4-a716-446655440000'
           account: 'Peter'
           sequence: 0
@@ -144,12 +142,9 @@ describe 'Engine', ->
           deposit:
             currency: 'EUR'
             amount: amount5000
-        @engine.apply operation
         account.getBalance('EUR').funds.compareTo(amount5000).should.equal 0
-        deltaSpy.should.have.been.calledOnce
-        deltaSpy.firstCall.args[0].sequence.should.equal 0
-        deltaSpy.firstCall.args[0].operation.should.equal operation
-        operation = 
+        result.sequence.should.equal 0
+        result = @engine.apply
           reference: '550e8400-e29b-41d4-a716-446655440000'
           account: 'Peter'
           sequence: 1
@@ -157,11 +152,8 @@ describe 'Engine', ->
           deposit:
             currency: 'BTC'
             amount: amount50
-        @engine.apply operation
         account.getBalance('BTC').funds.compareTo(amount50).should.equal 0
-        deltaSpy.should.have.been.calledTwice
-        deltaSpy.secondCall.args[0].sequence.should.equal 1
-        deltaSpy.secondCall.args[0].operation.should.equal operation
+        result.sequence.should.equal 1
 
     describe 'withdraw', ->
       it 'should throw an error if no currency is supplied', ->
@@ -186,9 +178,7 @@ describe 'Engine', ->
               currency: 'EUR'
         .to.throw 'Must supply an amount'
 
-      it 'should debit the correct account and currency and emit a delta event unless the requested funds are not available', ->
-        deltaSpy = sinon.spy()
-        @engine.on 'delta', deltaSpy
+      it 'should debit the correct account and currency and return the delta sequence number unless the requested funds are not available', ->
         account = @engine.getAccount('Peter')
         @engine.apply
           reference: '550e8400-e29b-41d4-a716-446655440000'
@@ -198,7 +188,7 @@ describe 'Engine', ->
           deposit:
             currency: 'BTC'
             amount: amount200
-        operation = 
+        result = @engine.apply
           reference: '550e8400-e29b-41d4-a716-446655440000'
           account: 'Peter'
           sequence: 1
@@ -206,12 +196,9 @@ describe 'Engine', ->
           withdraw:
             currency: 'BTC'
             amount: amount50
-        @engine.apply operation
         account.getBalance('BTC').funds.compareTo(amount150).should.equal 0
-        deltaSpy.should.have.been.calledTwice
-        deltaSpy.secondCall.args[0].sequence.should.equal 1
-        deltaSpy.secondCall.args[0].operation.should.equal operation
-        operation = 
+        result.sequence.should.equal 1
+        result = @engine.apply
           reference: '550e8400-e29b-41d4-a716-446655440000'
           account: 'Peter'
           sequence: 2
@@ -219,21 +206,17 @@ describe 'Engine', ->
           withdraw:
             currency: 'BTC'
             amount: amount75
-        @engine.apply operation
         account.getBalance('BTC').funds.compareTo(amount75).should.equal 0
-        deltaSpy.should.have.been.calledThrice
-        deltaSpy.thirdCall.args[0].sequence.should.equal 2
-        deltaSpy.thirdCall.args[0].operation.should.equal operation
-        operation = 
-          reference: '550e8400-e29b-41d4-a716-446655440000'
-          account: 'Peter'
-          sequence: 3
-          timestamp: 1371737390976
-          withdraw:
-            currency: 'BTC'
-            amount: amount100
+        result.sequence.should.equal 2
         expect =>            
-          @engine.apply operation
+          @engine.apply
+            reference: '550e8400-e29b-41d4-a716-446655440000'
+            account: 'Peter'
+            sequence: 3
+            timestamp: 1371737390976
+            withdraw:
+              currency: 'BTC'
+              amount: amount100
         .to.throw 'Cannot withdraw funds that are not available'
 
     describe 'submit', ->
@@ -269,7 +252,7 @@ describe 'Engine', ->
             offerAmount: amount100
         account.getBalance('EUR').lockedFunds.compareTo(amount150).should.equal 0
 
-      it 'should record an order, submit it to the correct book and emit a delta event', ->
+      it 'should record an order, submit it to the correct book and return the delta sequence number', ->
         @engine.apply
           reference: '550e8400-e29b-41d4-a716-446655440000'
           account: 'Peter'
@@ -286,9 +269,7 @@ describe 'Engine', ->
           deposit:
             currency: 'BTC'
             amount: amount4950
-        deltaSpy = sinon.spy()
-        @engine.on 'delta', deltaSpy
-        operation1 =
+        result = @engine.apply
           reference: '550e8400-e29b-41d4-a716-446655440000'
           account: 'Peter'
           sequence: 2
@@ -298,13 +279,10 @@ describe 'Engine', ->
             offerCurrency: 'EUR'
             offerPrice: amount100
             offerAmount: amount50
-        @engine.apply operation1
         @engine.getBook('BTC', 'EUR').next().sequence.should.equal 2
-        deltaSpy.should.have.been.calledOnce
-        deltaSpy.firstCall.args[0].sequence.should.equal 2
-        deltaSpy.firstCall.args[0].operation.should.equal operation1
-        deltaSpy.firstCall.args[0].nextHigherOrderSequence.should.equal -1
-        operation2 =
+        result.sequence.should.equal 2
+        result.nextHigherOrderSequence.should.equal -1
+        result = @engine.apply
           reference: '550e8400-e29b-41d4-a716-446655440000'
           account: 'Paul'
           sequence: 3
@@ -314,12 +292,9 @@ describe 'Engine', ->
             offerCurrency: 'BTC'
             bidPrice: amount99
             bidAmount: amount50
-        @engine.apply operation2
         @engine.getBook('EUR', 'BTC').next().sequence.should.equal 3
-        deltaSpy.should.have.been.calledTwice
-        deltaSpy.secondCall.args[0].sequence.should.equal 3
-        deltaSpy.secondCall.args[0].operation.should.equal operation2
-        deltaSpy.secondCall.args[0].nextHigherOrderSequence.should.equal -1
+        result.sequence.should.equal 3
+        result.nextHigherOrderSequence.should.equal -1
 
       it 'should trade matching orders', ->
         @engine.apply
@@ -351,9 +326,6 @@ describe 'Engine', ->
             offerAmount: amount1000
         @engine.apply operation1
 
-        deltaSpy = sinon.spy()
-        @engine.on 'delta', deltaSpy
-
         operation2 =
           reference: '550e8400-e29b-41d4-a716-446655440000'
           account: 'Paul'
@@ -364,7 +336,7 @@ describe 'Engine', ->
             offerCurrency: 'BTC'
             bidPrice: amountPoint2
             bidAmount: amount1000
-        @engine.apply operation2
+        result = @engine.apply operation2
 
         @calculateCommission.should.have.been.calledTwice
         @calculateCommission.firstCall.args[0].amount.compareTo(amount200).should.equal 0
@@ -378,23 +350,19 @@ describe 'Engine', ->
         @calculateCommission.secondCall.args[0].currency.should.equal operation2.submit.bidCurrency
         @engine.getAccount('commission').getBalance(operation2.submit.bidCurrency).funds.compareTo(Amount.ONE).should.equal 0
 
-        deltaSpy.should.have.been.calledTwice
-        deltaSpy.secondCall.args[0].sequence.should.equal 4
-        deltaSpy.secondCall.args[0].trade.timestamp.should.equal operation2.timestamp
-        deltaSpy.secondCall.args[0].trade.left.sequence.should.equal operation2.sequence
-        deltaSpy.secondCall.args[0].trade.left.newBidAmount.compareTo(Amount.ZERO).should.equal 0
-        deltaSpy.secondCall.args[0].trade.left.balanceDeltas.debit.amount.compareTo(amount200).should.equal 0
-        deltaSpy.secondCall.args[0].trade.left.balanceDeltas.credit.amount.compareTo(amount999).should.equal 0
-        deltaSpy.secondCall.args[0].trade.left.balanceDeltas.credit.commission.amount.compareTo(Amount.ONE).should.equal 0
-        deltaSpy.secondCall.args[0].trade.left.balanceDeltas.credit.commission.reference.should.equal 'Flat 1'
-        deltaSpy.secondCall.args[0].trade.right.sequence.should.equal operation1.sequence
-        deltaSpy.secondCall.args[0].trade.right.newOfferAmount.compareTo(Amount.ZERO).should.equal 0
-        deltaSpy.secondCall.args[0].trade.right.balanceDeltas.debit.amount.compareTo(amount1000).should.equal 0
-        deltaSpy.secondCall.args[0].trade.right.balanceDeltas.credit.amount.compareTo(amount199).should.equal 0
-        deltaSpy.secondCall.args[0].trade.right.balanceDeltas.credit.commission.amount.compareTo(Amount.ONE).should.equal 0
-        deltaSpy.secondCall.args[0].trade.right.balanceDeltas.credit.commission.reference.should.equal 'Flat 1'
-        deltaSpy.secondCall.args[0].trade.price.compareTo(operation1.submit.offerPrice).should.equal 0
-        deltaSpy.secondCall.args[0].trade.amount.compareTo(amount1000).should.equal 0
+        result.sequence.should.equal 3
+        result.trades[0].left.newBidAmount.compareTo(Amount.ZERO).should.equal 0
+        result.trades[0].left.newOfferAmount.compareTo(Amount.ZERO).should.equal 0
+        result.trades[0].left.transaction.debit.amount.compareTo(amount200).should.equal 0
+        result.trades[0].left.transaction.credit.amount.compareTo(amount999).should.equal 0
+        result.trades[0].left.transaction.credit.commission.amount.compareTo(Amount.ONE).should.equal 0
+        result.trades[0].left.transaction.credit.commission.reference.should.equal 'Flat 1'
+        result.trades[0].right.newBidAmount.compareTo(Amount.ZERO).should.equal 0
+        result.trades[0].right.newOfferAmount.compareTo(Amount.ZERO).should.equal 0
+        result.trades[0].right.transaction.debit.amount.compareTo(amount1000).should.equal 0
+        result.trades[0].right.transaction.credit.amount.compareTo(amount199).should.equal 0
+        result.trades[0].right.transaction.credit.commission.amount.compareTo(Amount.ONE).should.equal 0
+        result.trades[0].right.transaction.credit.commission.reference.should.equal 'Flat 1'
 
         expect(@engine.getAccount('Peter').orders[1]).to.not.be.ok
         expect(@engine.getAccount('Paul').orders[2]).to.not.be.ok
@@ -469,10 +437,7 @@ describe 'Engine', ->
           @engine.apply @operation4
 
         describe 'and the last order can be completely satisfied', ->
-          it 'should correctly execute as many orders as it can and emit delta events', ->
-            deltaSpy = sinon.spy()
-            @engine.on 'delta', deltaSpy
-
+          it 'should correctly execute as many orders as it can and return the delta information including transactions processed', ->
             operation =
               reference: '550e8400-e29b-41d4-a716-446655440000'
               account: 'Paul'
@@ -483,7 +448,7 @@ describe 'Engine', ->
                 offerCurrency: 'BTC'
                 bidPrice: amountPoint5
                 bidAmount: amount1250
-            @engine.apply operation
+            result = @engine.apply operation
 
             @calculateCommission.callCount.should.equal 6
             @calculateCommission.getCall(0).args[0].amount.compareTo(amount100).should.equal 0
@@ -513,31 +478,14 @@ describe 'Engine', ->
             @engine.getAccount('commission').getBalance('BTC').funds.compareTo(amount3).should.equal 0
             @engine.getAccount('commission').getBalance('EUR').funds.compareTo(amount3).should.equal 0
 
-            deltaSpy.callCount.should.equal 4
-            deltaSpy.getCall(1).args[0].sequence.should.equal 7
-            deltaSpy.getCall(1).args[0].trade.timestamp.should.equal operation.timestamp
-            deltaSpy.getCall(1).args[0].trade.left.sequence.should.equal operation.sequence
-            deltaSpy.getCall(1).args[0].trade.left.newBidAmount.compareTo(amount750).should.equal 0
-            deltaSpy.getCall(1).args[0].trade.right.sequence.should.equal @operation1.sequence
-            deltaSpy.getCall(1).args[0].trade.right.newOfferAmount.compareTo(Amount.ZERO).should.equal 0
-            deltaSpy.getCall(1).args[0].trade.price.compareTo(@operation1.submit.offerPrice).should.equal 0
-            deltaSpy.getCall(1).args[0].trade.amount.compareTo(amount500).should.equal 0
-            deltaSpy.getCall(2).args[0].sequence.should.equal 8
-            deltaSpy.getCall(2).args[0].trade.timestamp.should.equal operation.timestamp
-            deltaSpy.getCall(2).args[0].trade.left.sequence.should.equal operation.sequence
-            deltaSpy.getCall(2).args[0].trade.left.newBidAmount.compareTo(amount250).should.equal 0
-            deltaSpy.getCall(2).args[0].trade.right.sequence.should.equal @operation2.sequence
-            deltaSpy.getCall(2).args[0].trade.right.newOfferAmount.compareTo(Amount.ZERO).should.equal 0
-            deltaSpy.getCall(2).args[0].trade.price.compareTo(@operation2.submit.offerPrice).should.equal 0
-            deltaSpy.getCall(2).args[0].trade.amount.compareTo(amount500).should.equal 0
-            deltaSpy.getCall(3).args[0].sequence.should.equal 9
-            deltaSpy.getCall(3).args[0].trade.timestamp.should.equal operation.timestamp
-            deltaSpy.getCall(3).args[0].trade.left.sequence.should.equal operation.sequence
-            deltaSpy.getCall(3).args[0].trade.left.newBidAmount.compareTo(Amount.ZERO).should.equal 0
-            deltaSpy.getCall(3).args[0].trade.right.sequence.should.equal @operation3.sequence
-            deltaSpy.getCall(3).args[0].trade.right.newOfferAmount.compareTo(amount250).should.equal 0
-            deltaSpy.getCall(3).args[0].trade.price.compareTo(@operation3.submit.offerPrice).should.equal 0
-            deltaSpy.getCall(3).args[0].trade.amount.compareTo(amount250).should.equal 0
+            result.sequence.should.equal 6
+            console.log result.trades
+            result.trades[0].left.newBidAmount.compareTo(amount750).should.equal 0
+            result.trades[0].right.newOfferAmount.compareTo(Amount.ZERO).should.equal 0
+            result.trades[1].left.newBidAmount.compareTo(amount250).should.equal 0
+            result.trades[1].right.newOfferAmount.compareTo(Amount.ZERO).should.equal 0
+            result.trades[2].left.newBidAmount.compareTo(Amount.ZERO).should.equal 0
+            result.trades[2].right.newOfferAmount.compareTo(amount250).should.equal 0
 
             expect(@engine.getAccount('Peter').orders[2]).to.not.be.ok
             expect(@engine.getAccount('Peter').orders[3]).to.not.be.ok
@@ -552,10 +500,7 @@ describe 'Engine', ->
             @engine.getAccount('Paul').getBalance('BTC').lockedFunds.compareTo(Amount.ZERO).should.equal 0
 
         describe 'and the last order cannot be completely satisfied', ->    
-          it 'should correctly execute as many orders as it can and emit delta events', ->
-            deltaSpy = sinon.spy()
-            @engine.on 'delta', deltaSpy
-
+          it 'should correctly execute as many orders as it can and return the delta information including transactions processed', ->
             operation =
               reference: '550e8400-e29b-41d4-a716-446655440000'
               account: 'Paul'
@@ -566,9 +511,8 @@ describe 'Engine', ->
                 offerCurrency: 'BTC'
                 bidPrice: amountPoint5
                 bidAmount: amount1750
-            @engine.apply operation
+            result = @engine.apply operation
 
-            @calculateCommission.callCount.should.equal 6
             @calculateCommission.callCount.should.equal 6
             @calculateCommission.getCall(0).args[0].amount.compareTo(amount100).should.equal 0
             @calculateCommission.getCall(0).args[0].timestamp.should.equal operation.timestamp
@@ -597,31 +541,13 @@ describe 'Engine', ->
             @engine.getAccount('commission').getBalance('BTC').funds.compareTo(amount3).should.equal 0
             @engine.getAccount('commission').getBalance('EUR').funds.compareTo(amount3).should.equal 0
 
-            deltaSpy.callCount.should.equal 4
-            deltaSpy.getCall(1).args[0].sequence.should.equal 7
-            deltaSpy.getCall(1).args[0].trade.timestamp.should.equal operation.timestamp
-            deltaSpy.getCall(1).args[0].trade.left.sequence.should.equal operation.sequence
-            deltaSpy.getCall(1).args[0].trade.left.newBidAmount.compareTo(amount1250).should.equal 0
-            deltaSpy.getCall(1).args[0].trade.right.sequence.should.equal @operation1.sequence
-            deltaSpy.getCall(1).args[0].trade.right.newOfferAmount.compareTo(Amount.ZERO).should.equal 0
-            deltaSpy.getCall(1).args[0].trade.price.compareTo(@operation1.submit.offerPrice).should.equal 0
-            deltaSpy.getCall(1).args[0].trade.amount.compareTo(amount500).should.equal 0
-            deltaSpy.getCall(2).args[0].sequence.should.equal 8
-            deltaSpy.getCall(2).args[0].trade.timestamp.should.equal operation.timestamp
-            deltaSpy.getCall(2).args[0].trade.left.sequence.should.equal operation.sequence
-            deltaSpy.getCall(2).args[0].trade.left.newBidAmount.compareTo(amount750).should.equal 0
-            deltaSpy.getCall(2).args[0].trade.right.sequence.should.equal @operation2.sequence
-            deltaSpy.getCall(2).args[0].trade.right.newOfferAmount.compareTo(Amount.ZERO).should.equal 0
-            deltaSpy.getCall(2).args[0].trade.price.compareTo(@operation2.submit.offerPrice).should.equal 0
-            deltaSpy.getCall(2).args[0].trade.amount.compareTo(amount500).should.equal 0
-            deltaSpy.getCall(3).args[0].sequence.should.equal 9
-            deltaSpy.getCall(3).args[0].trade.timestamp.should.equal operation.timestamp
-            deltaSpy.getCall(3).args[0].trade.left.sequence.should.equal operation.sequence
-            deltaSpy.getCall(3).args[0].trade.left.newBidAmount.compareTo(amount250).should.equal 0
-            deltaSpy.getCall(3).args[0].trade.right.sequence.should.equal @operation3.sequence
-            deltaSpy.getCall(3).args[0].trade.right.newOfferAmount.compareTo(Amount.ZERO).should.equal 0
-            deltaSpy.getCall(3).args[0].trade.price.compareTo(@operation3.submit.offerPrice).should.equal 0
-            deltaSpy.getCall(3).args[0].trade.amount.compareTo(amount500).should.equal 0
+            result.sequence.should.equal 6
+            result.trades[0].left.newBidAmount.compareTo(amount1250).should.equal 0
+            result.trades[0].right.newOfferAmount.compareTo(Amount.ZERO).should.equal 0
+            result.trades[1].left.newBidAmount.compareTo(amount750).should.equal 0
+            result.trades[1].right.newOfferAmount.compareTo(Amount.ZERO).should.equal 0
+            result.trades[2].left.newBidAmount.compareTo(amount250).should.equal 0
+            result.trades[2].right.newOfferAmount.compareTo(Amount.ZERO).should.equal 0
 
             expect(@engine.getAccount('Peter').orders[2]).to.not.be.ok
             expect(@engine.getAccount('Peter').orders[3]).to.not.be.ok
@@ -881,34 +807,26 @@ describe 'Engine', ->
             offerCurrency: 'BTC'
             bidPrice: amount99
             bidAmount: amount50
-        deltaSpy = sinon.spy()
-        @engine.on 'delta', deltaSpy
-        operation1 = 
+        result = @engine.apply
           reference: '550e8400-e29b-41d4-a716-446655440000'
           account: 'Peter'
           sequence: 4
           timestamp: 1371737390976
           cancel:
             sequence: 2
-        @engine.apply operation1
         expect(@engine.getAccount('Peter').orders[2]).to.not.be.ok
         expect(@engine.getBook('BTC', 'EUR').next()).to.not.be.ok
-        deltaSpy.should.have.been.calledOnce
-        deltaSpy.firstCall.args[0].sequence.should.equal 4
-        deltaSpy.firstCall.args[0].operation.should.equal operation1
-        operation2 = 
+        result.sequence.should.equal 4
+        result = @engine.apply
           reference: '550e8400-e29b-41d4-a716-446655440000'
           account: 'Paul'
           sequence: 5
           timestamp: 1371737390976
           cancel:
             sequence: 3
-        @engine.apply operation2
         expect(@engine.getAccount('Paul').orders[3]).to.not.be.ok
         expect(@engine.getBook('EUR', 'BTC').next()).to.not.be.ok
-        deltaSpy.should.have.been.calledTwice
-        deltaSpy.secondCall.args[0].sequence.should.equal 5
-        deltaSpy.secondCall.args[0].operation.should.equal operation2
+        result.sequence.should.equal 5
 
       it 'should throw an error if the order cannot be found', ->
         expect =>

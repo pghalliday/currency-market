@@ -460,7 +460,7 @@ describe 'Order', ->
       describe 'and the new (left) price is same', ->
         describe 'and the left order is a bid', ->
           describe 'and the right order is offering exactly the amount the left order is bidding', ->
-            it 'should trade the amount the right order is offering, emit a trade event and return false to indicate that no higher trades can be filled by the left order', ->
+            it 'should trade the amount the right order is offering and return the transaction information', ->
               order = @paulBidEUR
                 price: amountPoint2
                 amount: amount1000
@@ -488,24 +488,17 @@ describe 'Order', ->
               @order.bidAmount.compareTo(Amount.ZERO).should.equal 0
               @order.offerAmount.compareTo(Amount.ZERO).should.equal 0
 
-              result.trade.timestamp.should.equal order.timestamp
-              result.trade.left.sequence.should.equal order.sequence
-              result.trade.left.newBidAmount.compareTo(order.bidAmount).should.equal 0
-              result.trade.left.balanceDeltas.debit.amount.compareTo(amount200).should.equal 0
-              result.trade.left.balanceDeltas.credit.amount.compareTo(amount995).should.equal 0
-              result.trade.left.balanceDeltas.credit.commission.amount.compareTo(amount5).should.equal 0
-              result.trade.left.balanceDeltas.credit.commission.reference.should.equal 'Paul commission level'
-              result.trade.right.sequence.should.equal @order.sequence
-              result.trade.right.newOfferAmount.compareTo(@order.offerAmount).should.equal 0
-              result.trade.right.balanceDeltas.debit.amount.compareTo(amount1000).should.equal 0
-              result.trade.right.balanceDeltas.credit.amount.compareTo(amount199).should.equal 0
-              result.trade.right.balanceDeltas.credit.commission.amount.compareTo(amount1).should.equal 0
-              result.trade.right.balanceDeltas.credit.commission.reference.should.equal 'Peter commission level'
-              result.trade.price.compareTo(@order.offerPrice).should.equal 0
-              result.trade.amount.compareTo(amount1000).should.equal 0
+              result.trade.left.debit.amount.compareTo(amount200).should.equal 0
+              result.trade.left.credit.amount.compareTo(amount995).should.equal 0
+              result.trade.left.credit.commission.amount.compareTo(amount5).should.equal 0
+              result.trade.left.credit.commission.reference.should.equal 'Paul commission level'
+              result.trade.right.debit.amount.compareTo(amount1000).should.equal 0
+              result.trade.right.credit.amount.compareTo(amount199).should.equal 0
+              result.trade.right.credit.commission.amount.compareTo(amount1).should.equal 0
+              result.trade.right.credit.commission.reference.should.equal 'Peter commission level'
 
           describe 'and the right order is offering more than the left order is bidding', ->
-            it 'should trade the amount the left order is offering, emit fill events and a trade event and return false to indicate that higher trades may still be filled by the left order', ->
+            it 'should trade the amount the left order is offering and return the transaction information', ->
               order = @paulBidEUR
                 price: amountPoint2
                 amount: amount500
@@ -533,24 +526,17 @@ describe 'Order', ->
               @order.bidAmount.compareTo(amount100).should.equal 0
               @order.offerAmount.compareTo(amount500).should.equal 0
 
-              result.trade.timestamp.should.equal order.timestamp
-              result.trade.left.sequence.should.equal order.sequence
-              result.trade.left.newBidAmount.compareTo(order.bidAmount).should.equal 0
-              result.trade.left.balanceDeltas.debit.amount.compareTo(amount100).should.equal 0
-              result.trade.left.balanceDeltas.credit.amount.compareTo(amount495).should.equal 0
-              result.trade.left.balanceDeltas.credit.commission.amount.compareTo(amount5).should.equal 0
-              result.trade.left.balanceDeltas.credit.commission.reference.should.equal 'Paul commission level'
-              result.trade.right.sequence.should.equal @order.sequence
-              result.trade.right.newOfferAmount.compareTo(@order.offerAmount).should.equal 0
-              result.trade.right.balanceDeltas.debit.amount.compareTo(amount500).should.equal 0
-              result.trade.right.balanceDeltas.credit.amount.compareTo(amount99).should.equal 0
-              result.trade.right.balanceDeltas.credit.commission.amount.compareTo(amount1).should.equal 0
-              result.trade.right.balanceDeltas.credit.commission.reference.should.equal 'Peter commission level'
-              result.trade.price.compareTo(@order.offerPrice).should.equal 0
-              result.trade.amount.compareTo(amount500).should.equal 0
+              result.trade.left.debit.amount.compareTo(amount100).should.equal 0
+              result.trade.left.credit.amount.compareTo(amount495).should.equal 0
+              result.trade.left.credit.commission.amount.compareTo(amount5).should.equal 0
+              result.trade.left.credit.commission.reference.should.equal 'Paul commission level'
+              result.trade.right.debit.amount.compareTo(amount500).should.equal 0
+              result.trade.right.credit.amount.compareTo(amount99).should.equal 0
+              result.trade.right.credit.commission.amount.compareTo(amount1).should.equal 0
+              result.trade.right.credit.commission.reference.should.equal 'Peter commission level'
 
           describe 'and the right order is offering less than the left order is bidding', ->
-            it 'should trade the amount the right order is offering, emit fill events and a trade event and return true', ->
+            it 'should trade the amount the right order is offering and return the transaction information', ->
               order = @paulBidEUR
                 price: amountPoint2
                 amount: amount1500
@@ -578,25 +564,18 @@ describe 'Order', ->
               @order.bidAmount.compareTo(Amount.ZERO).should.equal 0
               @order.offerAmount.compareTo(Amount.ZERO).should.equal 0
 
-              result.trade.timestamp.should.equal order.timestamp
-              result.trade.left.sequence.should.equal order.sequence
-              result.trade.left.newBidAmount.compareTo(order.bidAmount).should.equal 0
-              result.trade.left.balanceDeltas.debit.amount.compareTo(amount200).should.equal 0
-              result.trade.left.balanceDeltas.credit.amount.compareTo(amount995).should.equal 0
-              result.trade.left.balanceDeltas.credit.commission.amount.compareTo(amount5).should.equal 0
-              result.trade.left.balanceDeltas.credit.commission.reference.should.equal 'Paul commission level'
-              result.trade.right.sequence.should.equal @order.sequence
-              result.trade.right.newOfferAmount.compareTo(@order.offerAmount).should.equal 0
-              result.trade.right.balanceDeltas.debit.amount.compareTo(amount1000).should.equal 0
-              result.trade.right.balanceDeltas.credit.amount.compareTo(amount199).should.equal 0
-              result.trade.right.balanceDeltas.credit.commission.amount.compareTo(amount1).should.equal 0
-              result.trade.right.balanceDeltas.credit.commission.reference.should.equal 'Peter commission level'
-              result.trade.price.compareTo(@order.offerPrice).should.equal 0
-              result.trade.amount.compareTo(amount1000).should.equal 0
+              result.trade.left.debit.amount.compareTo(amount200).should.equal 0
+              result.trade.left.credit.amount.compareTo(amount995).should.equal 0
+              result.trade.left.credit.commission.amount.compareTo(amount5).should.equal 0
+              result.trade.left.credit.commission.reference.should.equal 'Paul commission level'
+              result.trade.right.debit.amount.compareTo(amount1000).should.equal 0
+              result.trade.right.credit.amount.compareTo(amount199).should.equal 0
+              result.trade.right.credit.commission.amount.compareTo(amount1).should.equal 0
+              result.trade.right.credit.commission.reference.should.equal 'Peter commission level'
 
         describe 'and the left order is an offer', ->
           describe 'and the right order is offering exactly the amount the left order is offering', ->
-            it 'should trade the amount the right order is offering, emit a fill events and a trade event and return false', ->
+            it 'should trade the amount the right order is offering and return the transaction information', ->
               order = @paulOfferBTC
                 price: amount5
                 amount: amount200
@@ -624,24 +603,17 @@ describe 'Order', ->
               @order.bidAmount.compareTo(Amount.ZERO).should.equal 0
               @order.offerAmount.compareTo(Amount.ZERO).should.equal 0
 
-              result.trade.timestamp.should.equal order.timestamp
-              result.trade.left.sequence.should.equal order.sequence
-              result.trade.left.newOfferAmount.compareTo(order.offerAmount).should.equal 0
-              result.trade.left.balanceDeltas.debit.amount.compareTo(amount200).should.equal 0
-              result.trade.left.balanceDeltas.credit.amount.compareTo(amount995).should.equal 0
-              result.trade.left.balanceDeltas.credit.commission.amount.compareTo(amount5).should.equal 0
-              result.trade.left.balanceDeltas.credit.commission.reference.should.equal 'Paul commission level'
-              result.trade.right.sequence.should.equal @order.sequence
-              result.trade.right.newOfferAmount.compareTo(@order.offerAmount).should.equal 0
-              result.trade.right.balanceDeltas.debit.amount.compareTo(amount1000).should.equal 0
-              result.trade.right.balanceDeltas.credit.amount.compareTo(amount199).should.equal 0
-              result.trade.right.balanceDeltas.credit.commission.amount.compareTo(amount1).should.equal 0
-              result.trade.right.balanceDeltas.credit.commission.reference.should.equal 'Peter commission level'
-              result.trade.price.compareTo(@order.offerPrice).should.equal 0
-              result.trade.amount.compareTo(amount1000).should.equal 0
+              result.trade.left.debit.amount.compareTo(amount200).should.equal 0
+              result.trade.left.credit.amount.compareTo(amount995).should.equal 0
+              result.trade.left.credit.commission.amount.compareTo(amount5).should.equal 0
+              result.trade.left.credit.commission.reference.should.equal 'Paul commission level'
+              result.trade.right.debit.amount.compareTo(amount1000).should.equal 0
+              result.trade.right.credit.amount.compareTo(amount199).should.equal 0
+              result.trade.right.credit.commission.amount.compareTo(amount1).should.equal 0
+              result.trade.right.credit.commission.reference.should.equal 'Peter commission level'
 
           describe 'and the right order is offering more than the left order is offering', ->
-            it 'should trade the amount the left order is offering, emit a fill events and a trade event and return false', ->
+            it 'should trade the amount the left order is offering and return the transaction information', ->
               order = @paulOfferBTC
                 price: amount5
                 amount: amount100
@@ -669,24 +641,17 @@ describe 'Order', ->
               @order.bidAmount.compareTo(amount100).should.equal 0
               @order.offerAmount.compareTo(amount500).should.equal 0
 
-              result.trade.timestamp.should.equal order.timestamp
-              result.trade.left.sequence.should.equal order.sequence
-              result.trade.left.newOfferAmount.compareTo(order.offerAmount).should.equal 0
-              result.trade.left.balanceDeltas.debit.amount.compareTo(amount100).should.equal 0
-              result.trade.left.balanceDeltas.credit.amount.compareTo(amount495).should.equal 0
-              result.trade.left.balanceDeltas.credit.commission.amount.compareTo(amount5).should.equal 0
-              result.trade.left.balanceDeltas.credit.commission.reference.should.equal 'Paul commission level'
-              result.trade.right.sequence.should.equal @order.sequence
-              result.trade.right.newOfferAmount.compareTo(@order.offerAmount).should.equal 0
-              result.trade.right.balanceDeltas.debit.amount.compareTo(amount500).should.equal 0
-              result.trade.right.balanceDeltas.credit.amount.compareTo(amount99).should.equal 0
-              result.trade.right.balanceDeltas.credit.commission.amount.compareTo(amount1).should.equal 0
-              result.trade.right.balanceDeltas.credit.commission.reference.should.equal 'Peter commission level'
-              result.trade.price.compareTo(@order.offerPrice).should.equal 0
-              result.trade.amount.compareTo(amount500).should.equal 0                
+              result.trade.left.debit.amount.compareTo(amount100).should.equal 0
+              result.trade.left.credit.amount.compareTo(amount495).should.equal 0
+              result.trade.left.credit.commission.amount.compareTo(amount5).should.equal 0
+              result.trade.left.credit.commission.reference.should.equal 'Paul commission level'
+              result.trade.right.debit.amount.compareTo(amount500).should.equal 0
+              result.trade.right.credit.amount.compareTo(amount99).should.equal 0
+              result.trade.right.credit.commission.amount.compareTo(amount1).should.equal 0
+              result.trade.right.credit.commission.reference.should.equal 'Peter commission level'
 
           describe 'and the right order is offering less than the left order is offering', ->
-            it 'should trade the amount the right order is offering, emit fill events and a trade event and return true', ->
+            it 'should trade the amount the right order is offering and return the transaction information', ->
               order = @paulOfferBTC
                 price: amount5
                 amount: amount300
@@ -714,26 +679,19 @@ describe 'Order', ->
               @order.bidAmount.compareTo(Amount.ZERO).should.equal 0
               @order.offerAmount.compareTo(Amount.ZERO).should.equal 0
 
-              result.trade.timestamp.should.equal order.timestamp
-              result.trade.left.sequence.should.equal order.sequence
-              result.trade.left.newOfferAmount.compareTo(order.offerAmount).should.equal 0
-              result.trade.left.balanceDeltas.debit.amount.compareTo(amount200).should.equal 0
-              result.trade.left.balanceDeltas.credit.amount.compareTo(amount995).should.equal 0
-              result.trade.left.balanceDeltas.credit.commission.amount.compareTo(amount5).should.equal 0
-              result.trade.left.balanceDeltas.credit.commission.reference.should.equal 'Paul commission level'
-              result.trade.right.sequence.should.equal @order.sequence
-              result.trade.right.newOfferAmount.compareTo(@order.offerAmount).should.equal 0
-              result.trade.right.balanceDeltas.debit.amount.compareTo(amount1000).should.equal 0
-              result.trade.right.balanceDeltas.credit.amount.compareTo(amount199).should.equal 0
-              result.trade.right.balanceDeltas.credit.commission.amount.compareTo(amount1).should.equal 0
-              result.trade.right.balanceDeltas.credit.commission.reference.should.equal 'Peter commission level'
-              result.trade.price.compareTo(@order.offerPrice).should.equal 0
-              result.trade.amount.compareTo(amount1000).should.equal 0                
+              result.trade.left.debit.amount.compareTo(amount200).should.equal 0
+              result.trade.left.credit.amount.compareTo(amount995).should.equal 0
+              result.trade.left.credit.commission.amount.compareTo(amount5).should.equal 0
+              result.trade.left.credit.commission.reference.should.equal 'Paul commission level'
+              result.trade.right.debit.amount.compareTo(amount1000).should.equal 0
+              result.trade.right.credit.amount.compareTo(amount199).should.equal 0
+              result.trade.right.credit.commission.amount.compareTo(amount1).should.equal 0
+              result.trade.right.credit.commission.reference.should.equal 'Peter commission level'
 
       describe 'and the new (left) price is the better', ->
         describe 'and the left order is an offer', ->              
           describe 'and the right order is offering exactly the amount that the left order is offering multiplied by the right order price', ->
-            it 'should trade the amount the right order is offering at the right order price, emit fill events and a trade event and return false', ->
+            it 'should trade the amount the right order is offering at the right order price and return the transaction information', ->
               order = @paulOfferBTC
                 price: amount4
                 amount: amount200
@@ -761,24 +719,17 @@ describe 'Order', ->
               @order.bidAmount.compareTo(Amount.ZERO).should.equal 0
               @order.offerAmount.compareTo(Amount.ZERO).should.equal 0
 
-              result.trade.timestamp.should.equal order.timestamp
-              result.trade.left.sequence.should.equal order.sequence
-              result.trade.left.newOfferAmount.compareTo(order.offerAmount).should.equal 0
-              result.trade.left.balanceDeltas.debit.amount.compareTo(amount200).should.equal 0
-              result.trade.left.balanceDeltas.credit.amount.compareTo(amount995).should.equal 0
-              result.trade.left.balanceDeltas.credit.commission.amount.compareTo(amount5).should.equal 0
-              result.trade.left.balanceDeltas.credit.commission.reference.should.equal 'Paul commission level'
-              result.trade.right.sequence.should.equal @order.sequence
-              result.trade.right.newOfferAmount.compareTo(@order.offerAmount).should.equal 0
-              result.trade.right.balanceDeltas.debit.amount.compareTo(amount1000).should.equal 0
-              result.trade.right.balanceDeltas.credit.amount.compareTo(amount199).should.equal 0
-              result.trade.right.balanceDeltas.credit.commission.amount.compareTo(amount1).should.equal 0
-              result.trade.right.balanceDeltas.credit.commission.reference.should.equal 'Peter commission level'
-              result.trade.price.compareTo(@order.offerPrice).should.equal 0
-              result.trade.amount.compareTo(amount1000).should.equal 0                
+              result.trade.left.debit.amount.compareTo(amount200).should.equal 0
+              result.trade.left.credit.amount.compareTo(amount995).should.equal 0
+              result.trade.left.credit.commission.amount.compareTo(amount5).should.equal 0
+              result.trade.left.credit.commission.reference.should.equal 'Paul commission level'
+              result.trade.right.debit.amount.compareTo(amount1000).should.equal 0
+              result.trade.right.credit.amount.compareTo(amount199).should.equal 0
+              result.trade.right.credit.commission.amount.compareTo(amount1).should.equal 0
+              result.trade.right.credit.commission.reference.should.equal 'Peter commission level'
 
           describe 'and the right order is offering more than the left order is offering multiplied by the right order price', ->
-            it 'should trade the amount the left order is offering at the right order price, emit fill events and a trade event and return false', ->
+            it 'should trade the amount the left order is offering at the right order price and return the transaction information', ->
               order = @paulOfferBTC
                 price: amount4
                 amount: amount100
@@ -806,24 +757,17 @@ describe 'Order', ->
               @order.bidAmount.compareTo(amount100).should.equal 0
               @order.offerAmount.compareTo(amount500).should.equal 0
 
-              result.trade.timestamp.should.equal order.timestamp
-              result.trade.left.sequence.should.equal order.sequence
-              result.trade.left.newOfferAmount.compareTo(order.offerAmount).should.equal 0
-              result.trade.left.balanceDeltas.debit.amount.compareTo(amount100).should.equal 0
-              result.trade.left.balanceDeltas.credit.amount.compareTo(amount495).should.equal 0
-              result.trade.left.balanceDeltas.credit.commission.amount.compareTo(amount5).should.equal 0
-              result.trade.left.balanceDeltas.credit.commission.reference.should.equal 'Paul commission level'
-              result.trade.right.sequence.should.equal @order.sequence
-              result.trade.right.newOfferAmount.compareTo(@order.offerAmount).should.equal 0
-              result.trade.right.balanceDeltas.debit.amount.compareTo(amount500).should.equal 0
-              result.trade.right.balanceDeltas.credit.amount.compareTo(amount99).should.equal 0
-              result.trade.right.balanceDeltas.credit.commission.amount.compareTo(amount1).should.equal 0
-              result.trade.right.balanceDeltas.credit.commission.reference.should.equal 'Peter commission level'
-              result.trade.price.compareTo(@order.offerPrice).should.equal 0
-              result.trade.amount.compareTo(amount500).should.equal 0                
+              result.trade.left.debit.amount.compareTo(amount100).should.equal 0
+              result.trade.left.credit.amount.compareTo(amount495).should.equal 0
+              result.trade.left.credit.commission.amount.compareTo(amount5).should.equal 0
+              result.trade.left.credit.commission.reference.should.equal 'Paul commission level'
+              result.trade.right.debit.amount.compareTo(amount500).should.equal 0
+              result.trade.right.credit.amount.compareTo(amount99).should.equal 0
+              result.trade.right.credit.commission.amount.compareTo(amount1).should.equal 0
+              result.trade.right.credit.commission.reference.should.equal 'Peter commission level'
 
           describe 'and the right order is offering less than the left order is offering multiplied by the right order price', ->
-            it 'should trade the amount the right order is offering at the right order price, emit fill events and a trade event and return true', ->
+            it 'should trade the amount the right order is offering at the right order price and return the transaction information', ->
               order = @paulOfferBTC
                 price: amount4
                 amount: amount300
@@ -851,25 +795,18 @@ describe 'Order', ->
               @order.bidAmount.compareTo(Amount.ZERO).should.equal 0
               @order.offerAmount.compareTo(Amount.ZERO).should.equal 0
 
-              result.trade.timestamp.should.equal order.timestamp
-              result.trade.left.sequence.should.equal order.sequence
-              result.trade.left.newOfferAmount.compareTo(order.offerAmount).should.equal 0
-              result.trade.left.balanceDeltas.debit.amount.compareTo(amount200).should.equal 0
-              result.trade.left.balanceDeltas.credit.amount.compareTo(amount995).should.equal 0
-              result.trade.left.balanceDeltas.credit.commission.amount.compareTo(amount5).should.equal 0
-              result.trade.left.balanceDeltas.credit.commission.reference.should.equal 'Paul commission level'
-              result.trade.right.sequence.should.equal @order.sequence
-              result.trade.right.newOfferAmount.compareTo(@order.offerAmount).should.equal 0
-              result.trade.right.balanceDeltas.debit.amount.compareTo(amount1000).should.equal 0
-              result.trade.right.balanceDeltas.credit.amount.compareTo(amount199).should.equal 0
-              result.trade.right.balanceDeltas.credit.commission.amount.compareTo(amount1).should.equal 0
-              result.trade.right.balanceDeltas.credit.commission.reference.should.equal 'Peter commission level'
-              result.trade.price.compareTo(@order.offerPrice).should.equal 0
-              result.trade.amount.compareTo(amount1000).should.equal 0                
+              result.trade.left.debit.amount.compareTo(amount200).should.equal 0
+              result.trade.left.credit.amount.compareTo(amount995).should.equal 0
+              result.trade.left.credit.commission.amount.compareTo(amount5).should.equal 0
+              result.trade.left.credit.commission.reference.should.equal 'Paul commission level'
+              result.trade.right.debit.amount.compareTo(amount1000).should.equal 0
+              result.trade.right.credit.amount.compareTo(amount199).should.equal 0
+              result.trade.right.credit.commission.amount.compareTo(amount1).should.equal 0
+              result.trade.right.credit.commission.reference.should.equal 'Peter commission level'
 
         describe 'and the left order is a bid', ->
           describe 'and the right order is offering exactly the amount that the left order is bidding', ->
-            it 'should trade the amount the right order is offering at the right order price, emit fill events and a trade event and retrun false', ->
+            it 'should trade the amount the right order is offering at the right order price and return the transaction information', ->
               order = @paulBidEUR
                 price: amountPoint25
                 amount: amount1000
@@ -897,24 +834,17 @@ describe 'Order', ->
               @order.bidAmount.compareTo(Amount.ZERO).should.equal 0
               @order.offerAmount.compareTo(Amount.ZERO).should.equal 0
 
-              result.trade.timestamp.should.equal order.timestamp
-              result.trade.left.sequence.should.equal order.sequence
-              result.trade.left.newBidAmount.compareTo(order.bidAmount).should.equal 0
-              result.trade.left.balanceDeltas.debit.amount.compareTo(amount200).should.equal 0
-              result.trade.left.balanceDeltas.credit.amount.compareTo(amount995).should.equal 0
-              result.trade.left.balanceDeltas.credit.commission.amount.compareTo(amount5).should.equal 0
-              result.trade.left.balanceDeltas.credit.commission.reference.should.equal 'Paul commission level'
-              result.trade.right.sequence.should.equal @order.sequence
-              result.trade.right.newOfferAmount.compareTo(@order.offerAmount).should.equal 0
-              result.trade.right.balanceDeltas.debit.amount.compareTo(amount1000).should.equal 0
-              result.trade.right.balanceDeltas.credit.amount.compareTo(amount199).should.equal 0
-              result.trade.right.balanceDeltas.credit.commission.amount.compareTo(amount1).should.equal 0
-              result.trade.right.balanceDeltas.credit.commission.reference.should.equal 'Peter commission level'
-              result.trade.price.compareTo(@order.offerPrice).should.equal 0
-              result.trade.amount.compareTo(amount1000).should.equal 0                
+              result.trade.left.debit.amount.compareTo(amount200).should.equal 0
+              result.trade.left.credit.amount.compareTo(amount995).should.equal 0
+              result.trade.left.credit.commission.amount.compareTo(amount5).should.equal 0
+              result.trade.left.credit.commission.reference.should.equal 'Paul commission level'
+              result.trade.right.debit.amount.compareTo(amount1000).should.equal 0
+              result.trade.right.credit.amount.compareTo(amount199).should.equal 0
+              result.trade.right.credit.commission.amount.compareTo(amount1).should.equal 0
+              result.trade.right.credit.commission.reference.should.equal 'Peter commission level'
               
           describe 'and the right order is offering more than the left order is bidding', ->
-            it 'should trade the amount the left order is bidding at the right order price, emit fill events and a trade event and return false', ->
+            it 'should trade the amount the left order is bidding at the right order price and return the transaction information', ->
               order = @paulBidEUR
                 price: amountPoint25
                 amount: amount500
@@ -942,24 +872,17 @@ describe 'Order', ->
               @order.bidAmount.compareTo(amount100).should.equal 0
               @order.offerAmount.compareTo(amount500).should.equal 0
 
-              result.trade.timestamp.should.equal order.timestamp
-              result.trade.left.sequence.should.equal order.sequence
-              result.trade.left.newBidAmount.compareTo(order.bidAmount).should.equal 0
-              result.trade.left.balanceDeltas.debit.amount.compareTo(amount100).should.equal 0
-              result.trade.left.balanceDeltas.credit.amount.compareTo(amount495).should.equal 0
-              result.trade.left.balanceDeltas.credit.commission.amount.compareTo(amount5).should.equal 0
-              result.trade.left.balanceDeltas.credit.commission.reference.should.equal 'Paul commission level'
-              result.trade.right.sequence.should.equal @order.sequence
-              result.trade.right.newOfferAmount.compareTo(@order.offerAmount).should.equal 0
-              result.trade.right.balanceDeltas.debit.amount.compareTo(amount500).should.equal 0
-              result.trade.right.balanceDeltas.credit.amount.compareTo(amount99).should.equal 0
-              result.trade.right.balanceDeltas.credit.commission.amount.compareTo(amount1).should.equal 0
-              result.trade.right.balanceDeltas.credit.commission.reference.should.equal 'Peter commission level'
-              result.trade.price.compareTo(@order.offerPrice).should.equal 0
-              result.trade.amount.compareTo(amount500).should.equal 0                
+              result.trade.left.debit.amount.compareTo(amount100).should.equal 0
+              result.trade.left.credit.amount.compareTo(amount495).should.equal 0
+              result.trade.left.credit.commission.amount.compareTo(amount5).should.equal 0
+              result.trade.left.credit.commission.reference.should.equal 'Paul commission level'
+              result.trade.right.debit.amount.compareTo(amount500).should.equal 0
+              result.trade.right.credit.amount.compareTo(amount99).should.equal 0
+              result.trade.right.credit.commission.amount.compareTo(amount1).should.equal 0
+              result.trade.right.credit.commission.reference.should.equal 'Peter commission level'
 
           describe 'and the right order is offering less than the left order is bidding', ->
-            it 'should trade the amount the right order is offering at the right order price, emit fill events and a trade event and return true', ->
+            it 'should trade the amount the right order is offering at the right order price and return the transaction information', ->
               order = @paulBidEUR
                 price: amountPoint25
                 amount: amount1500
@@ -987,21 +910,14 @@ describe 'Order', ->
               @order.bidAmount.compareTo(Amount.ZERO).should.equal 0
               @order.offerAmount.compareTo(Amount.ZERO).should.equal 0
 
-              result.trade.timestamp.should.equal order.timestamp
-              result.trade.left.sequence.should.equal order.sequence
-              result.trade.left.newBidAmount.compareTo(order.bidAmount).should.equal 0
-              result.trade.left.balanceDeltas.debit.amount.compareTo(amount200).should.equal 0
-              result.trade.left.balanceDeltas.credit.amount.compareTo(amount995).should.equal 0
-              result.trade.left.balanceDeltas.credit.commission.amount.compareTo(amount5).should.equal 0
-              result.trade.left.balanceDeltas.credit.commission.reference.should.equal 'Paul commission level'
-              result.trade.right.sequence.should.equal @order.sequence
-              result.trade.right.newOfferAmount.compareTo(@order.offerAmount).should.equal 0
-              result.trade.right.balanceDeltas.debit.amount.compareTo(amount1000).should.equal 0
-              result.trade.right.balanceDeltas.credit.amount.compareTo(amount199).should.equal 0
-              result.trade.right.balanceDeltas.credit.commission.amount.compareTo(amount1).should.equal 0
-              result.trade.right.balanceDeltas.credit.commission.reference.should.equal 'Peter commission level'
-              result.trade.price.compareTo(@order.offerPrice).should.equal 0
-              result.trade.amount.compareTo(amount1000).should.equal 0                
+              result.trade.left.debit.amount.compareTo(amount200).should.equal 0
+              result.trade.left.credit.amount.compareTo(amount995).should.equal 0
+              result.trade.left.credit.commission.amount.compareTo(amount5).should.equal 0
+              result.trade.left.credit.commission.reference.should.equal 'Paul commission level'
+              result.trade.right.debit.amount.compareTo(amount1000).should.equal 0
+              result.trade.right.credit.amount.compareTo(amount199).should.equal 0
+              result.trade.right.credit.commission.amount.compareTo(amount1).should.equal 0
+              result.trade.right.credit.commission.reference.should.equal 'Peter commission level'
             
     describe 'where the existing (right) order is a bid', ->
       beforeEach ->
@@ -1012,7 +928,7 @@ describe 'Order', ->
       describe 'and the new (left) price is better', ->
         describe 'and the left order is an offer', ->
           describe 'and the right order is bidding exactly the amount that the left order is offering', ->
-            it 'should trade the amount the right order is bidding at the right order price, emit fill events and a trade event and return false', ->
+            it 'should trade the amount the right order is bidding at the right order price and return the transaction information', ->
               order = @paulOfferBTC
                 price: amount4
                 amount: amount200
@@ -1039,24 +955,17 @@ describe 'Order', ->
               @order.bidAmount.compareTo(Amount.ZERO).should.equal 0
               @order.offerAmount.compareTo(Amount.ZERO).should.equal 0
 
-              result.trade.timestamp.should.equal order.timestamp
-              result.trade.left.sequence.should.equal order.sequence
-              result.trade.left.newOfferAmount.compareTo(order.offerAmount).should.equal 0
-              result.trade.left.balanceDeltas.debit.amount.compareTo(amount200).should.equal 0
-              result.trade.left.balanceDeltas.credit.amount.compareTo(amount995).should.equal 0
-              result.trade.left.balanceDeltas.credit.commission.amount.compareTo(amount5).should.equal 0
-              result.trade.left.balanceDeltas.credit.commission.reference.should.equal 'Paul commission level'
-              result.trade.right.sequence.should.equal @order.sequence
-              result.trade.right.newBidAmount.compareTo(@order.bidAmount).should.equal 0
-              result.trade.right.balanceDeltas.debit.amount.compareTo(amount1000).should.equal 0
-              result.trade.right.balanceDeltas.credit.amount.compareTo(amount199).should.equal 0
-              result.trade.right.balanceDeltas.credit.commission.amount.compareTo(amount1).should.equal 0
-              result.trade.right.balanceDeltas.credit.commission.reference.should.equal 'Peter commission level'
-              result.trade.price.compareTo(@order.bidPrice).should.equal 0
-              result.trade.amount.compareTo(amount200).should.equal 0                
+              result.trade.left.debit.amount.compareTo(amount200).should.equal 0
+              result.trade.left.credit.amount.compareTo(amount995).should.equal 0
+              result.trade.left.credit.commission.amount.compareTo(amount5).should.equal 0
+              result.trade.left.credit.commission.reference.should.equal 'Paul commission level'
+              result.trade.right.debit.amount.compareTo(amount1000).should.equal 0
+              result.trade.right.credit.amount.compareTo(amount199).should.equal 0
+              result.trade.right.credit.commission.amount.compareTo(amount1).should.equal 0
+              result.trade.right.credit.commission.reference.should.equal 'Peter commission level'
 
           describe 'and the right order is bidding more than the left order is offering', ->
-            it 'should trade the amount the left order is offering at the right order price, emit fill events and a trade event and return false', ->
+            it 'should trade the amount the left order is offering at the right order price and return the transaction information', ->
               order = @paulOfferBTC
                 price: amount4
                 amount: amount100
@@ -1084,24 +993,17 @@ describe 'Order', ->
               @order.bidAmount.compareTo(amount100).should.equal 0
               @order.offerAmount.compareTo(amount500).should.equal 0
 
-              result.trade.timestamp.should.equal order.timestamp
-              result.trade.left.sequence.should.equal order.sequence
-              result.trade.left.newOfferAmount.compareTo(order.offerAmount).should.equal 0
-              result.trade.left.balanceDeltas.debit.amount.compareTo(amount100).should.equal 0
-              result.trade.left.balanceDeltas.credit.amount.compareTo(amount495).should.equal 0
-              result.trade.left.balanceDeltas.credit.commission.amount.compareTo(amount5).should.equal 0
-              result.trade.left.balanceDeltas.credit.commission.reference.should.equal 'Paul commission level'
-              result.trade.right.sequence.should.equal @order.sequence
-              result.trade.right.newBidAmount.compareTo(@order.bidAmount).should.equal 0
-              result.trade.right.balanceDeltas.debit.amount.compareTo(amount500).should.equal 0
-              result.trade.right.balanceDeltas.credit.amount.compareTo(amount99).should.equal 0
-              result.trade.right.balanceDeltas.credit.commission.amount.compareTo(amount1).should.equal 0
-              result.trade.right.balanceDeltas.credit.commission.reference.should.equal 'Peter commission level'
-              result.trade.price.compareTo(@order.bidPrice).should.equal 0
-              result.trade.amount.compareTo(amount100).should.equal 0                
+              result.trade.left.debit.amount.compareTo(amount100).should.equal 0
+              result.trade.left.credit.amount.compareTo(amount495).should.equal 0
+              result.trade.left.credit.commission.amount.compareTo(amount5).should.equal 0
+              result.trade.left.credit.commission.reference.should.equal 'Paul commission level'
+              result.trade.right.debit.amount.compareTo(amount500).should.equal 0
+              result.trade.right.credit.amount.compareTo(amount99).should.equal 0
+              result.trade.right.credit.commission.amount.compareTo(amount1).should.equal 0
+              result.trade.right.credit.commission.reference.should.equal 'Peter commission level'
 
           describe 'and the right order is bidding less than the left order is offering', ->
-            it 'should trade the amount the right order is bidding at the right order price, emit fill events and a trade event and return true', ->
+            it 'should trade the amount the right order is bidding at the right order price and return the transaction information', ->
               order = @paulOfferBTC
                 price: amount4
                 amount: amount300
@@ -1129,25 +1031,18 @@ describe 'Order', ->
               @order.bidAmount.compareTo(Amount.ZERO).should.equal 0
               @order.offerAmount.compareTo(Amount.ZERO).should.equal 0
 
-              result.trade.timestamp.should.equal order.timestamp
-              result.trade.left.sequence.should.equal order.sequence
-              result.trade.left.newOfferAmount.compareTo(order.offerAmount).should.equal 0
-              result.trade.left.balanceDeltas.debit.amount.compareTo(amount200).should.equal 0
-              result.trade.left.balanceDeltas.credit.amount.compareTo(amount995).should.equal 0
-              result.trade.left.balanceDeltas.credit.commission.amount.compareTo(amount5).should.equal 0
-              result.trade.left.balanceDeltas.credit.commission.reference.should.equal 'Paul commission level'
-              result.trade.right.sequence.should.equal @order.sequence
-              result.trade.right.newBidAmount.compareTo(@order.bidAmount).should.equal 0
-              result.trade.right.balanceDeltas.debit.amount.compareTo(amount1000).should.equal 0
-              result.trade.right.balanceDeltas.credit.amount.compareTo(amount199).should.equal 0
-              result.trade.right.balanceDeltas.credit.commission.amount.compareTo(amount1).should.equal 0
-              result.trade.right.balanceDeltas.credit.commission.reference.should.equal 'Peter commission level'
-              result.trade.price.compareTo(@order.bidPrice).should.equal 0
-              result.trade.amount.compareTo(amount200).should.equal 0                
+              result.trade.left.debit.amount.compareTo(amount200).should.equal 0
+              result.trade.left.credit.amount.compareTo(amount995).should.equal 0
+              result.trade.left.credit.commission.amount.compareTo(amount5).should.equal 0
+              result.trade.left.credit.commission.reference.should.equal 'Paul commission level'
+              result.trade.right.debit.amount.compareTo(amount1000).should.equal 0
+              result.trade.right.credit.amount.compareTo(amount199).should.equal 0
+              result.trade.right.credit.commission.amount.compareTo(amount1).should.equal 0
+              result.trade.right.credit.commission.reference.should.equal 'Peter commission level'
 
         describe 'and the left order is a bid', ->
           describe 'and the right order is bidding exactly the amount that the left order is bidding multiplied by the right order price', ->
-            it 'should trade the amount the right order is bidding at the right order price, emit fill events and a trade event and return false', ->
+            it 'should trade the amount the right order is bidding at the right order price and return the transaction information', ->
               order = @paulBidEUR
                 price: amountPoint25
                 amount: amount1000
@@ -1175,24 +1070,17 @@ describe 'Order', ->
               @order.bidAmount.compareTo(Amount.ZERO).should.equal 0
               @order.offerAmount.compareTo(Amount.ZERO).should.equal 0
 
-              result.trade.timestamp.should.equal order.timestamp
-              result.trade.left.sequence.should.equal order.sequence
-              result.trade.left.newBidAmount.compareTo(order.bidAmount).should.equal 0
-              result.trade.left.balanceDeltas.debit.amount.compareTo(amount200).should.equal 0
-              result.trade.left.balanceDeltas.credit.amount.compareTo(amount995).should.equal 0
-              result.trade.left.balanceDeltas.credit.commission.amount.compareTo(amount5).should.equal 0
-              result.trade.left.balanceDeltas.credit.commission.reference.should.equal 'Paul commission level'
-              result.trade.right.sequence.should.equal @order.sequence
-              result.trade.right.newBidAmount.compareTo(@order.bidAmount).should.equal 0
-              result.trade.right.balanceDeltas.debit.amount.compareTo(amount1000).should.equal 0
-              result.trade.right.balanceDeltas.credit.amount.compareTo(amount199).should.equal 0
-              result.trade.right.balanceDeltas.credit.commission.amount.compareTo(amount1).should.equal 0
-              result.trade.right.balanceDeltas.credit.commission.reference.should.equal 'Peter commission level'
-              result.trade.price.compareTo(@order.bidPrice).should.equal 0
-              result.trade.amount.compareTo(amount200).should.equal 0                
+              result.trade.left.debit.amount.compareTo(amount200).should.equal 0
+              result.trade.left.credit.amount.compareTo(amount995).should.equal 0
+              result.trade.left.credit.commission.amount.compareTo(amount5).should.equal 0
+              result.trade.left.credit.commission.reference.should.equal 'Paul commission level'
+              result.trade.right.debit.amount.compareTo(amount1000).should.equal 0
+              result.trade.right.credit.amount.compareTo(amount199).should.equal 0
+              result.trade.right.credit.commission.amount.compareTo(amount1).should.equal 0
+              result.trade.right.credit.commission.reference.should.equal 'Peter commission level'
 
           describe 'and the right order is bidding more than the left order is bidding multiplied by the right order price', ->
-            it 'should trade the amount the left order is bidding at the right order price, emit fill events and a trade event and return false', ->
+            it 'should trade the amount the left order is bidding at the right order price and return the transaction information', ->
               order = @paulBidEUR
                 price: amountPoint25
                 amount: amount500
@@ -1220,24 +1108,17 @@ describe 'Order', ->
               @order.bidAmount.compareTo(amount100).should.equal 0
               @order.offerAmount.compareTo(amount500).should.equal 0
 
-              result.trade.timestamp.should.equal order.timestamp
-              result.trade.left.sequence.should.equal order.sequence
-              result.trade.left.newBidAmount.compareTo(order.bidAmount).should.equal 0
-              result.trade.left.balanceDeltas.debit.amount.compareTo(amount100).should.equal 0
-              result.trade.left.balanceDeltas.credit.amount.compareTo(amount495).should.equal 0
-              result.trade.left.balanceDeltas.credit.commission.amount.compareTo(amount5).should.equal 0
-              result.trade.left.balanceDeltas.credit.commission.reference.should.equal 'Paul commission level'
-              result.trade.right.sequence.should.equal @order.sequence
-              result.trade.right.newBidAmount.compareTo(@order.bidAmount).should.equal 0
-              result.trade.right.balanceDeltas.debit.amount.compareTo(amount500).should.equal 0
-              result.trade.right.balanceDeltas.credit.amount.compareTo(amount99).should.equal 0
-              result.trade.right.balanceDeltas.credit.commission.amount.compareTo(amount1).should.equal 0
-              result.trade.right.balanceDeltas.credit.commission.reference.should.equal 'Peter commission level'
-              result.trade.price.compareTo(@order.bidPrice).should.equal 0
-              result.trade.amount.compareTo(amount100).should.equal 0                
+              result.trade.left.debit.amount.compareTo(amount100).should.equal 0
+              result.trade.left.credit.amount.compareTo(amount495).should.equal 0
+              result.trade.left.credit.commission.amount.compareTo(amount5).should.equal 0
+              result.trade.left.credit.commission.reference.should.equal 'Paul commission level'
+              result.trade.right.debit.amount.compareTo(amount500).should.equal 0
+              result.trade.right.credit.amount.compareTo(amount99).should.equal 0
+              result.trade.right.credit.commission.amount.compareTo(amount1).should.equal 0
+              result.trade.right.credit.commission.reference.should.equal 'Peter commission level'
               
           describe 'and the right order is bidding less than the left order is bidding multiplied by the right order price', ->
-            it 'should trade the amount the right order is bidding at the right order price, emit fill events and a trade event and return true', ->
+            it 'should trade the amount the right order is bidding at the right order price and return the transaction information', ->
               order = @paulBidEUR
                 price: amountPoint25
                 amount: amount1500
@@ -1264,21 +1145,14 @@ describe 'Order', ->
               @order.bidAmount.compareTo(Amount.ZERO).should.equal 0
               @order.offerAmount.compareTo(Amount.ZERO).should.equal 0
 
-              result.trade.timestamp.should.equal order.timestamp
-              result.trade.left.sequence.should.equal order.sequence
-              result.trade.left.newBidAmount.compareTo(order.bidAmount).should.equal 0
-              result.trade.left.balanceDeltas.debit.amount.compareTo(amount200).should.equal 0
-              result.trade.left.balanceDeltas.credit.amount.compareTo(amount995).should.equal 0
-              result.trade.left.balanceDeltas.credit.commission.amount.compareTo(amount5).should.equal 0
-              result.trade.left.balanceDeltas.credit.commission.reference.should.equal 'Paul commission level'
-              result.trade.right.sequence.should.equal @order.sequence
-              result.trade.right.newBidAmount.compareTo(@order.bidAmount).should.equal 0
-              result.trade.right.balanceDeltas.debit.amount.compareTo(amount1000).should.equal 0
-              result.trade.right.balanceDeltas.credit.amount.compareTo(amount199).should.equal 0
-              result.trade.right.balanceDeltas.credit.commission.amount.compareTo(amount1).should.equal 0
-              result.trade.right.balanceDeltas.credit.commission.reference.should.equal 'Peter commission level'
-              result.trade.price.compareTo(@order.bidPrice).should.equal 0
-              result.trade.amount.compareTo(amount200).should.equal 0                
+              result.trade.left.debit.amount.compareTo(amount200).should.equal 0
+              result.trade.left.credit.amount.compareTo(amount995).should.equal 0
+              result.trade.left.credit.commission.amount.compareTo(amount5).should.equal 0
+              result.trade.left.credit.commission.reference.should.equal 'Paul commission level'
+              result.trade.right.debit.amount.compareTo(amount1000).should.equal 0
+              result.trade.right.credit.amount.compareTo(amount199).should.equal 0
+              result.trade.right.credit.commission.amount.compareTo(amount1).should.equal 0
+              result.trade.right.credit.commission.reference.should.equal 'Peter commission level'
 
   describe '#add', ->
     beforeEach ->

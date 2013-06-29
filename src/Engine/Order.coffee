@@ -113,17 +113,8 @@ module.exports = class Order
             rightBalanceDeltas = fill.call order, leftOfferAmount, rightOfferAmount, @timestamp
             leftBalanceDeltas = partialOffer.call @, rightOfferAmount, leftOfferAmount, @timestamp
             result.trade = 
-              timestamp: @timestamp
-              left:
-                sequence: @sequence
-                newOfferAmount: @offerAmount
-                balanceDeltas: leftBalanceDeltas
-              right:
-                sequence: order.sequence
-                newBidAmount: order.bidAmount
-                balanceDeltas: rightBalanceDeltas
-              price: price
-              amount: leftOfferAmount
+              left: leftBalanceDeltas
+              right: rightBalanceDeltas
             return result
           else
             leftOfferAmount = @offerAmount
@@ -135,17 +126,8 @@ module.exports = class Order
             leftBalanceDeltas = fill.call @, rightOfferAmount, leftOfferAmount, @timestamp
             result.complete = true
             result.trade = 
-              timestamp: @timestamp
-              left:
-                sequence: @sequence
-                newOfferAmount: @offerAmount
-                balanceDeltas: leftBalanceDeltas
-              right:
-                sequence: order.sequence
-                newBidAmount: order.bidAmount
-                balanceDeltas: rightBalanceDeltas
-              price: price
-              amount: leftOfferAmount
+              left: leftBalanceDeltas
+              right: rightBalanceDeltas
       else
         if order.offerPrice.multiply(@offerPrice).compareTo(Amount.ONE) <= 0
           # prices overlap so we make a trade
@@ -157,17 +139,8 @@ module.exports = class Order
             rightBalanceDeltas = fill.call order, leftOfferAmount, rightOfferAmount, @timestamp
             leftBalanceDeltas = partialOffer.call @, rightOfferAmount, leftOfferAmount, @timestamp
             result.trade = 
-              timestamp: @timestamp
-              left:
-                sequence: @sequence
-                newOfferAmount: @offerAmount
-                balanceDeltas: leftBalanceDeltas
-              right:
-                sequence: order.sequence
-                newOfferAmount: order.offerAmount
-                balanceDeltas: rightBalanceDeltas
-              price: price
-              amount: rightOfferAmount
+              left: leftBalanceDeltas
+              right: rightBalanceDeltas
           else
             leftOfferAmount = @offerAmount
             # NB: Cannot think of any way to avoid this divide but
@@ -184,17 +157,8 @@ module.exports = class Order
             leftBalanceDeltas = fill.call @, rightOfferAmount, leftOfferAmount, @timestamp
             result.complete = true
             result.trade = 
-              timestamp: @timestamp
-              left:
-                sequence: @sequence
-                newOfferAmount: @offerAmount
-                balanceDeltas: leftBalanceDeltas
-              right:
-                sequence: order.sequence
-                newOfferAmount: order.offerAmount
-                balanceDeltas: rightBalanceDeltas
-              price: price
-              amount: rightOfferAmount
+              left: leftBalanceDeltas
+              right: rightBalanceDeltas
     else
       if order.offerPrice
         if @bidPrice.compareTo(order.offerPrice) >= 0
@@ -207,17 +171,8 @@ module.exports = class Order
             rightBalanceDeltas = fill.call order, leftOfferAmount, rightOfferAmount, @timestamp
             leftBalanceDeltas = partialBid.call @, rightOfferAmount, leftOfferAmount, @timestamp
             result.trade = 
-              timestamp: @timestamp
-              left:
-                sequence: @sequence
-                newBidAmount: @bidAmount
-                balanceDeltas: leftBalanceDeltas
-              right:
-                sequence: order.sequence
-                newOfferAmount: order.offerAmount
-                balanceDeltas: rightBalanceDeltas
-              price: price
-              amount: rightOfferAmount
+              left: leftBalanceDeltas
+              right: rightBalanceDeltas
           else
             rightOfferAmount = @bidAmount
             leftOfferAmount = rightOfferAmount.multiply price
@@ -228,17 +183,8 @@ module.exports = class Order
             leftBalanceDeltas = fill.call @, rightOfferAmount, leftOfferAmount, @timestamp
             result.complete = true
             result.trade = 
-              timestamp: @timestamp
-              left:
-                sequence: @sequence
-                newBidAmount: @bidAmount
-                balanceDeltas: leftBalanceDeltas
-              right:
-                sequence: order.sequence
-                newOfferAmount: order.offerAmount
-                balanceDeltas: rightBalanceDeltas
-              price: price
-              amount: rightOfferAmount
+              left: leftBalanceDeltas
+              right: rightBalanceDeltas
       else
         if order.bidPrice.multiply(@bidPrice).compareTo(Amount.ONE) >= 0
           # prices overlap so we make a trade
@@ -250,17 +196,8 @@ module.exports = class Order
             rightBalanceDeltas = fill.call order, leftOfferAmount, rightOfferAmount, @timestamp
             leftBalanceDeltas = partialBid.call @, rightOfferAmount, leftOfferAmount, @timestamp
             result.trade = 
-              timestamp: @timestamp
-              left:
-                sequence: @sequence
-                newBidAmount: @bidAmount
-                balanceDeltas: leftBalanceDeltas
-              right:
-                sequence: order.sequence
-                newBidAmount: order.bidAmount
-                balanceDeltas: rightBalanceDeltas
-              price: price
-              amount: leftOfferAmount
+              left: leftBalanceDeltas
+              right: rightBalanceDeltas
           else
             # NB: Cannot think of any way to avoid this divide but
             # must ensure that we round down as rounding up could
@@ -280,17 +217,8 @@ module.exports = class Order
             leftBalanceDeltas = fill.call @, rightOfferAmount, leftOfferAmount, @timestamp
             result.complete = true
             result.trade = 
-              timestamp: @timestamp
-              left:
-                sequence: @sequence
-                newBidAmount: @bidAmount
-                balanceDeltas: leftBalanceDeltas
-              right:
-                sequence: order.sequence
-                newBidAmount: order.bidAmount
-                balanceDeltas: rightBalanceDeltas
-              price: price
-              amount: leftOfferAmount
+              left: leftBalanceDeltas
+              right: rightBalanceDeltas
     return result
 
   add: (order, nextHigher) =>

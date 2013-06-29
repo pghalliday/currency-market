@@ -2,9 +2,8 @@ Book = require('./Book')
 Account = require('./Account')
 Amount = require('../Amount')
 Order = require('./Order')
-EventEmitter = require('events').EventEmitter
 
-module.exports = class Engine extends EventEmitter
+module.exports = class Engine
   constructor: (params) ->
     @nextOperationSequence = 0
     @nextDeltaSequence = 0
@@ -41,18 +40,13 @@ module.exports = class Engine extends EventEmitter
         @nextOperationSequence++
         if typeof operation.timestamp != 'undefined'
           account = @getAccount operation.account
-          delta =
-            sequence: @nextDeltaSequence
-            operation: operation
+          result = Object.create null
           if operation.deposit
             account.deposit operation.deposit
-            @nextDeltaSequence++
-            @emit 'delta', delta
           else if operation.withdraw
             account.withdraw operation.withdraw
-            @nextDeltaSequence++
-            @emit 'delta', delta
           else if operation.submit
+            result.nextHigherOrderSequence = -1
             submit = operation.submit
             leftBook = @getBook submit.bidCurrency, submit.offerCurrency
             order = new Order
@@ -67,22 +61,18 @@ module.exports = class Engine extends EventEmitter
             account.submit order
             nextHigher = leftBook.submit order
             if nextHigher
-              delta.nextHigherOrderSequence = nextHigher.sequence
-            else
-              delta.nextHigherOrderSequence = -1
-            # emit an order added event
-            @nextDeltaSequence++
-            @emit 'delta', delta
+              result.nextHigherOrderSequence = nextHigher.sequence
             # check the books to see if any orders can be executed
             rightBook = @getBook submit.offerCurrency, submit.bidCurrency
-            @execute leftBook, rightBook
+            result.trades = []
+            @execute result.trades, leftBook, rightBook
           else if operation.cancel
             order = account.cancel operation.cancel.sequence
             @getBook(order.bidBalance.currency, order.offerBalance.currency).cancel order
-            @nextDeltaSequence++
-            @emit 'delta', delta
           else
             throw new Error 'Unknown operation'
+          result.sequence = @nextDeltaSequence++
+          return result
         else
           throw new Error 'Must supply a timestamp'
       else
@@ -91,7 +81,7 @@ module.exports = class Engine extends EventEmitter
       throw new Error 'Must supply a sequence number'
 
   # Private method used by apply
-  execute: (leftBook, rightBook) =>
+  execute: (trades, leftBook, rightBook) =>
     leftOrder = leftBook.next()
     rightOrder = rightBook.next()
     if leftOrder && rightOrder
@@ -100,13 +90,17 @@ module.exports = class Engine extends EventEmitter
       # take the price from the right order
       result = leftOrder.match rightOrder
       if result.trade
-        delta =
-          sequence: @nextDeltaSequence
-          trade: result.trade
-        @nextDeltaSequence++
-        @emit 'delta', delta
+        trades.push
+          left:
+            newBidAmount: leftOrder.bidAmount
+            newOfferAmount: leftOrder.offerAmount
+            transaction: result.trade.left
+          right:
+            newBidAmount: rightOrder.bidAmount
+            newOfferAmount: rightOrder.offerAmount
+            transaction: result.trade.right
         if !result.complete
-          @execute leftBook, rightBook
+          @execute trades, leftBook, rightBook
 
   export: =>
     object = Object.create null
