@@ -40,13 +40,16 @@ module.exports = class Engine
         @nextOperationSequence++
         if typeof operation.timestamp != 'undefined'
           account = @getAccount operation.account
-          result = Object.create null
+          delta = 
+            operation: operation
           if operation.deposit
             account.deposit operation.deposit
           else if operation.withdraw
             account.withdraw operation.withdraw
           else if operation.submit
-            result.nextHigherOrderSequence = -1
+            delta.result = 
+              nextHigherOrderSequence: -1
+              trades: []
             submit = operation.submit
             leftBook = @getBook submit.bidCurrency, submit.offerCurrency
             order = new Order
@@ -61,18 +64,17 @@ module.exports = class Engine
             account.submit order
             nextHigher = leftBook.submit order
             if nextHigher
-              result.nextHigherOrderSequence = nextHigher.sequence
+              delta.result.nextHigherOrderSequence = nextHigher.sequence
             # check the books to see if any orders can be executed
             rightBook = @getBook submit.offerCurrency, submit.bidCurrency
-            result.trades = []
-            @execute result.trades, leftBook, rightBook
+            @execute delta.result.trades, leftBook, rightBook
           else if operation.cancel
             order = account.cancel operation.cancel.sequence
             @getBook(order.bidBalance.currency, order.offerBalance.currency).cancel order
           else
             throw new Error 'Unknown operation'
-          result.sequence = @nextDeltaSequence++
-          return result
+          delta.sequence = @nextDeltaSequence++
+          return delta
         else
           throw new Error 'Must supply a timestamp'
       else

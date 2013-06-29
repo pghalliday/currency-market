@@ -132,9 +132,9 @@ describe 'Engine', ->
               currency: 'EUR'
         .to.throw 'Must supply an amount'
 
-      it 'should credit the correct account and currency and return the delta sequence number', ->
+      it 'should credit the correct account and currency and return the delta', ->
         account = @engine.getAccount('Peter')
-        result = @engine.apply
+        operation = 
           reference: '550e8400-e29b-41d4-a716-446655440000'
           account: 'Peter'
           sequence: 0
@@ -142,9 +142,11 @@ describe 'Engine', ->
           deposit:
             currency: 'EUR'
             amount: amount5000
+        delta = @engine.apply operation
         account.getBalance('EUR').funds.compareTo(amount5000).should.equal 0
-        result.sequence.should.equal 0
-        result = @engine.apply
+        delta.sequence.should.equal 0
+        delta.operation.should.equal operation
+        operation =
           reference: '550e8400-e29b-41d4-a716-446655440000'
           account: 'Peter'
           sequence: 1
@@ -152,8 +154,10 @@ describe 'Engine', ->
           deposit:
             currency: 'BTC'
             amount: amount50
+        delta = @engine.apply operation
         account.getBalance('BTC').funds.compareTo(amount50).should.equal 0
-        result.sequence.should.equal 1
+        delta.operation.should.equal operation
+        delta.sequence.should.equal 1
 
     describe 'withdraw', ->
       it 'should throw an error if no currency is supplied', ->
@@ -178,7 +182,7 @@ describe 'Engine', ->
               currency: 'EUR'
         .to.throw 'Must supply an amount'
 
-      it 'should debit the correct account and currency and return the delta sequence number unless the requested funds are not available', ->
+      it 'should debit the correct account and currency and return the delta unless the requested funds are not available', ->
         account = @engine.getAccount('Peter')
         @engine.apply
           reference: '550e8400-e29b-41d4-a716-446655440000'
@@ -188,7 +192,7 @@ describe 'Engine', ->
           deposit:
             currency: 'BTC'
             amount: amount200
-        result = @engine.apply
+        operation =
           reference: '550e8400-e29b-41d4-a716-446655440000'
           account: 'Peter'
           sequence: 1
@@ -196,9 +200,11 @@ describe 'Engine', ->
           withdraw:
             currency: 'BTC'
             amount: amount50
+        delta = @engine.apply operation
         account.getBalance('BTC').funds.compareTo(amount150).should.equal 0
-        result.sequence.should.equal 1
-        result = @engine.apply
+        delta.sequence.should.equal 1
+        delta.operation.should.equal operation
+        delta = @engine.apply
           reference: '550e8400-e29b-41d4-a716-446655440000'
           account: 'Peter'
           sequence: 2
@@ -207,7 +213,7 @@ describe 'Engine', ->
             currency: 'BTC'
             amount: amount75
         account.getBalance('BTC').funds.compareTo(amount75).should.equal 0
-        result.sequence.should.equal 2
+        delta.sequence.should.equal 2
         expect =>            
           @engine.apply
             reference: '550e8400-e29b-41d4-a716-446655440000'
@@ -252,7 +258,7 @@ describe 'Engine', ->
             offerAmount: amount100
         account.getBalance('EUR').lockedFunds.compareTo(amount150).should.equal 0
 
-      it 'should record an order, submit it to the correct book and return the delta sequence number', ->
+      it 'should record an order, submit it to the correct book and return the delta', ->
         @engine.apply
           reference: '550e8400-e29b-41d4-a716-446655440000'
           account: 'Peter'
@@ -269,7 +275,7 @@ describe 'Engine', ->
           deposit:
             currency: 'BTC'
             amount: amount4950
-        result = @engine.apply
+        operation =
           reference: '550e8400-e29b-41d4-a716-446655440000'
           account: 'Peter'
           sequence: 2
@@ -279,10 +285,12 @@ describe 'Engine', ->
             offerCurrency: 'EUR'
             offerPrice: amount100
             offerAmount: amount50
+        delta = @engine.apply operation
         @engine.getBook('BTC', 'EUR').next().sequence.should.equal 2
-        result.sequence.should.equal 2
-        result.nextHigherOrderSequence.should.equal -1
-        result = @engine.apply
+        delta.sequence.should.equal 2
+        delta.operation.should.equal operation
+        delta.result.nextHigherOrderSequence.should.equal -1
+        delta = @engine.apply
           reference: '550e8400-e29b-41d4-a716-446655440000'
           account: 'Paul'
           sequence: 3
@@ -293,8 +301,8 @@ describe 'Engine', ->
             bidPrice: amount99
             bidAmount: amount50
         @engine.getBook('EUR', 'BTC').next().sequence.should.equal 3
-        result.sequence.should.equal 3
-        result.nextHigherOrderSequence.should.equal -1
+        delta.sequence.should.equal 3
+        delta.result.nextHigherOrderSequence.should.equal -1
 
       it 'should trade matching orders', ->
         @engine.apply
@@ -336,7 +344,7 @@ describe 'Engine', ->
             offerCurrency: 'BTC'
             bidPrice: amountPoint2
             bidAmount: amount1000
-        result = @engine.apply operation2
+        delta = @engine.apply operation2
 
         @calculateCommission.should.have.been.calledTwice
         @calculateCommission.firstCall.args[0].amount.compareTo(amount200).should.equal 0
@@ -350,19 +358,19 @@ describe 'Engine', ->
         @calculateCommission.secondCall.args[0].currency.should.equal operation2.submit.bidCurrency
         @engine.getAccount('commission').getBalance(operation2.submit.bidCurrency).funds.compareTo(Amount.ONE).should.equal 0
 
-        result.sequence.should.equal 3
-        result.trades[0].left.newBidAmount.compareTo(Amount.ZERO).should.equal 0
-        result.trades[0].left.newOfferAmount.compareTo(Amount.ZERO).should.equal 0
-        result.trades[0].left.transaction.debit.amount.compareTo(amount200).should.equal 0
-        result.trades[0].left.transaction.credit.amount.compareTo(amount999).should.equal 0
-        result.trades[0].left.transaction.credit.commission.amount.compareTo(Amount.ONE).should.equal 0
-        result.trades[0].left.transaction.credit.commission.reference.should.equal 'Flat 1'
-        result.trades[0].right.newBidAmount.compareTo(Amount.ZERO).should.equal 0
-        result.trades[0].right.newOfferAmount.compareTo(Amount.ZERO).should.equal 0
-        result.trades[0].right.transaction.debit.amount.compareTo(amount1000).should.equal 0
-        result.trades[0].right.transaction.credit.amount.compareTo(amount199).should.equal 0
-        result.trades[0].right.transaction.credit.commission.amount.compareTo(Amount.ONE).should.equal 0
-        result.trades[0].right.transaction.credit.commission.reference.should.equal 'Flat 1'
+        delta.sequence.should.equal 3
+        delta.result.trades[0].left.newBidAmount.compareTo(Amount.ZERO).should.equal 0
+        delta.result.trades[0].left.newOfferAmount.compareTo(Amount.ZERO).should.equal 0
+        delta.result.trades[0].left.transaction.debit.amount.compareTo(amount200).should.equal 0
+        delta.result.trades[0].left.transaction.credit.amount.compareTo(amount999).should.equal 0
+        delta.result.trades[0].left.transaction.credit.commission.amount.compareTo(Amount.ONE).should.equal 0
+        delta.result.trades[0].left.transaction.credit.commission.reference.should.equal 'Flat 1'
+        delta.result.trades[0].right.newBidAmount.compareTo(Amount.ZERO).should.equal 0
+        delta.result.trades[0].right.newOfferAmount.compareTo(Amount.ZERO).should.equal 0
+        delta.result.trades[0].right.transaction.debit.amount.compareTo(amount1000).should.equal 0
+        delta.result.trades[0].right.transaction.credit.amount.compareTo(amount199).should.equal 0
+        delta.result.trades[0].right.transaction.credit.commission.amount.compareTo(Amount.ONE).should.equal 0
+        delta.result.trades[0].right.transaction.credit.commission.reference.should.equal 'Flat 1'
 
         expect(@engine.getAccount('Peter').orders[1]).to.not.be.ok
         expect(@engine.getAccount('Paul').orders[2]).to.not.be.ok
@@ -448,7 +456,7 @@ describe 'Engine', ->
                 offerCurrency: 'BTC'
                 bidPrice: amountPoint5
                 bidAmount: amount1250
-            result = @engine.apply operation
+            delta = @engine.apply operation
 
             @calculateCommission.callCount.should.equal 6
             @calculateCommission.getCall(0).args[0].amount.compareTo(amount100).should.equal 0
@@ -478,14 +486,13 @@ describe 'Engine', ->
             @engine.getAccount('commission').getBalance('BTC').funds.compareTo(amount3).should.equal 0
             @engine.getAccount('commission').getBalance('EUR').funds.compareTo(amount3).should.equal 0
 
-            result.sequence.should.equal 6
-            console.log result.trades
-            result.trades[0].left.newBidAmount.compareTo(amount750).should.equal 0
-            result.trades[0].right.newOfferAmount.compareTo(Amount.ZERO).should.equal 0
-            result.trades[1].left.newBidAmount.compareTo(amount250).should.equal 0
-            result.trades[1].right.newOfferAmount.compareTo(Amount.ZERO).should.equal 0
-            result.trades[2].left.newBidAmount.compareTo(Amount.ZERO).should.equal 0
-            result.trades[2].right.newOfferAmount.compareTo(amount250).should.equal 0
+            delta.sequence.should.equal 6
+            delta.result.trades[0].left.newBidAmount.compareTo(amount750).should.equal 0
+            delta.result.trades[0].right.newOfferAmount.compareTo(Amount.ZERO).should.equal 0
+            delta.result.trades[1].left.newBidAmount.compareTo(amount250).should.equal 0
+            delta.result.trades[1].right.newOfferAmount.compareTo(Amount.ZERO).should.equal 0
+            delta.result.trades[2].left.newBidAmount.compareTo(Amount.ZERO).should.equal 0
+            delta.result.trades[2].right.newOfferAmount.compareTo(amount250).should.equal 0
 
             expect(@engine.getAccount('Peter').orders[2]).to.not.be.ok
             expect(@engine.getAccount('Peter').orders[3]).to.not.be.ok
@@ -511,7 +518,7 @@ describe 'Engine', ->
                 offerCurrency: 'BTC'
                 bidPrice: amountPoint5
                 bidAmount: amount1750
-            result = @engine.apply operation
+            delta = @engine.apply operation
 
             @calculateCommission.callCount.should.equal 6
             @calculateCommission.getCall(0).args[0].amount.compareTo(amount100).should.equal 0
@@ -541,13 +548,13 @@ describe 'Engine', ->
             @engine.getAccount('commission').getBalance('BTC').funds.compareTo(amount3).should.equal 0
             @engine.getAccount('commission').getBalance('EUR').funds.compareTo(amount3).should.equal 0
 
-            result.sequence.should.equal 6
-            result.trades[0].left.newBidAmount.compareTo(amount1250).should.equal 0
-            result.trades[0].right.newOfferAmount.compareTo(Amount.ZERO).should.equal 0
-            result.trades[1].left.newBidAmount.compareTo(amount750).should.equal 0
-            result.trades[1].right.newOfferAmount.compareTo(Amount.ZERO).should.equal 0
-            result.trades[2].left.newBidAmount.compareTo(amount250).should.equal 0
-            result.trades[2].right.newOfferAmount.compareTo(Amount.ZERO).should.equal 0
+            delta.sequence.should.equal 6
+            delta.result.trades[0].left.newBidAmount.compareTo(amount1250).should.equal 0
+            delta.result.trades[0].right.newOfferAmount.compareTo(Amount.ZERO).should.equal 0
+            delta.result.trades[1].left.newBidAmount.compareTo(amount750).should.equal 0
+            delta.result.trades[1].right.newOfferAmount.compareTo(Amount.ZERO).should.equal 0
+            delta.result.trades[2].left.newBidAmount.compareTo(amount250).should.equal 0
+            delta.result.trades[2].right.newOfferAmount.compareTo(Amount.ZERO).should.equal 0
 
             expect(@engine.getAccount('Peter').orders[2]).to.not.be.ok
             expect(@engine.getAccount('Peter').orders[3]).to.not.be.ok
@@ -770,7 +777,7 @@ describe 'Engine', ->
             sequence: 1
         account.getBalance('EUR').lockedFunds.compareTo(amount100).should.equal 0
 
-      it 'should remove the order from the orders collection and from the correct book, record the last transaction ID and emit an cancellation event', ->
+      it 'should remove the order from the orders collection and from the correct book and return the delta', ->
         @engine.apply
           reference: '550e8400-e29b-41d4-a716-446655440000'
           account: 'Peter'
@@ -807,17 +814,19 @@ describe 'Engine', ->
             offerCurrency: 'BTC'
             bidPrice: amount99
             bidAmount: amount50
-        result = @engine.apply
+        operation = 
           reference: '550e8400-e29b-41d4-a716-446655440000'
           account: 'Peter'
           sequence: 4
           timestamp: 1371737390976
           cancel:
             sequence: 2
+        delta = @engine.apply operation
         expect(@engine.getAccount('Peter').orders[2]).to.not.be.ok
         expect(@engine.getBook('BTC', 'EUR').next()).to.not.be.ok
-        result.sequence.should.equal 4
-        result = @engine.apply
+        delta.sequence.should.equal 4
+        delta.operation.should.equal operation
+        delta = @engine.apply
           reference: '550e8400-e29b-41d4-a716-446655440000'
           account: 'Paul'
           sequence: 5
@@ -826,7 +835,7 @@ describe 'Engine', ->
             sequence: 3
         expect(@engine.getAccount('Paul').orders[3]).to.not.be.ok
         expect(@engine.getBook('EUR', 'BTC').next()).to.not.be.ok
-        result.sequence.should.equal 5
+        delta.sequence.should.equal 5
 
       it 'should throw an error if the order cannot be found', ->
         expect =>
