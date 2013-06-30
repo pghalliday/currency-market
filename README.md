@@ -105,7 +105,7 @@ var engine = new engine({
 
 The `apply` method applies operations and returns the resulting deltas.
 
-Operations and deltas can be converted losslessly to and from JSON for tranmission.
+Operations and deltas can be converted losslessly to and from JSON for transmission.
 
 If an operation fails for any reason (eg. not enough funds) then an error will be thrown.
 
