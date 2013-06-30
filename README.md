@@ -131,36 +131,36 @@ try {
       ...
     }
   });
-
-  // The returned delta will have the following structure
-  var delta = {
-    // The delta sequence number. These will be generated consecutively by the engine
-    // for successful operations. As such they will not be synchronized with operation sequence
-    // numbers due to the possibility of operations throwing errors
-    sequence: 45632,
-    // The operation parameters as supplied to the `apply` method
-    operation: {
-      reference: '550e8400-e29b-41d4-a716-446655440000',
-      account: 'Peter',
-      sequence: 123456,
-      timestamp: 1371737390976,
-      operationType: {
-        // Operation parameters
-        ...
-      }
-    },
-    // Only `submit` operations currently set the result field
-    // due to the complexity of the potential side effects from
-    // submitting orders
-    result: {
-      // Result properties
-      ...
-    }
-  };
 } catch(error) {
   // Possible errors will include invalid parameters or insufficient funds to complete the operation
   ...
 }
+
+// The returned delta will have the following structure
+var delta = {
+  // The delta sequence number. These will be generated consecutively by the engine
+  // for successful operations. As such they will not be synchronized with operation sequence
+  // numbers due to the possibility of operations throwing errors
+  sequence: 45632,
+  // The operation parameters as supplied to the `apply` method
+  operation: {
+    reference: '550e8400-e29b-41d4-a716-446655440000',
+    account: 'Peter',
+    sequence: 123456,
+    timestamp: 1371737390976,
+    operationType: {
+      // Operation parameters
+      ...
+    }
+  },
+  // Only `submit` operations currently set the result field
+  // due to the complexity of the potential side effects from
+  // submitting orders
+  result: {
+    // Result properties
+    ...
+  }
+};
 ```
 
 ##### `deposit` operation
