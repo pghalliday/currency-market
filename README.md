@@ -176,6 +176,7 @@ var delta  = engine.apply({
   // deposit 1000 Euros to account ID 'Peter'
   deposit: {
     currency: 'EUR',
+    // Strings are used for amounts and prices throughout to avoid issues with Javascript numbers
     amount: '1000'
   }
 });
@@ -209,6 +210,7 @@ var delta  = engine.apply({
   // withdraw 1000 Euros from account ID 'Peter'
   withdraw: {
     currency: 'EUR',
+    // Strings are used for amounts and prices throughout to avoid issues with Javascript numbers
     amount: '1000'
   }
 });
@@ -335,6 +337,7 @@ var delta  = engine.apply({
   submit: {
     bidCurrency: 'BTC',
     offerCurrency: 'EUR',
+    // Strings are used for amounts and prices throughout to avoid issues with Javascript numbers
     bidPrice: '100',
     bidAmount: '10'
   }
@@ -353,6 +356,7 @@ var delta  = engine.apply({
   submit: {
     bidCurrency: 'BTC',
     offerCurrency: 'EUR',
+    // Strings are used for amounts and prices throughout to avoid issues with Javascript numbers
     offerPrice: '0.01',
     offerAmount: '1000'
   }
