@@ -6,14 +6,6 @@ currency-market
 
 A synchronous implementation of a limit order based currency market
 
-## Features
-
-- Supports an arbitrary list of currencies
-- Synchronously executes trades as orders are added
-- Emits events when changes are made to the market
-- Can export the state and initialise from an exported state
-- Supports pluggable commission schemes
-
 ## Installation
 
 ```
@@ -22,403 +14,424 @@ npm install currency-market
 
 ## API
 
-All functions and constructors complete synchronously and throw errors if they fail.
-Events are made available for monitoring changes in the market.
+All functions complete synchronously and throw errors if they fail.
+
+### `Amount`
+
+`Amount` handles large numerical arithmetic accurately (unlike the built in Javascript number implementation). It is used for all internal numerical operations and in the external interfaces to specify amounts and prices.
+
+`Amount` instances are immutable.
+
+Divisions are carried out to an arbitrary precision of 25 decimal points.
+
+``` Javascript
+var Amount = require('currency-market').Amount;
+
+// Always initialise from a string representation of a number
+var amount1000 = new Amount('1000');
+var amount200 = new Amount('200');
+
+// multiply 2 amounts
+var amount200000 = amount1000.multiply(amount200);
+
+// add 2 amounts
+var amount1200 = amount1000.add(amount200);
+
+// subtract 2 amounts
+var amount800 = amount1000.subtract(amount200);
+
+// divide 2 amounts
+var amountPoint2 = amount200.divide(amount1000);
+
+// Return the string representation of an amount
+var str1000 = amount1000.toString();
+
+// Compare 2 values
+amount1000.compareTo(amount200) > 0;
+amount200.compareTo(amount1000) < 0;
+amount200.compareTo(amount200) == 0;
+
+// 2 Identity constants are defined
+var Amount.ZERO = new Amount('0');
+var Amount.ONE = new Amount('1');
+```
+
+### `Engine`
+
+`Engine` instances accept operations and return deltas that can be applied to simplified `State` instances.
+
+#### Constructor
 
 ```javascript
-var Market = require('currency-market').Market;
-var Account = require('currency-market').Account;
+var Engine = require('currency-market').Engine;
 var Amount = require('currency-market').Amount;
-var Order = require('currency-market').Order;
-
 
 // Define a commission rate of 0.5%
 var COMMISSION_RATE = new Amount('0.005');
 
-// instantiate a market
-var market = new Market({
+// instantiate an engine
+var engine = new engine({
+  // Optionally specify how commission should be applied to credits resulting from trades.
+  // If this is not specified then no commission will be charged
   commission: {
-    // The account ID of the account to receive the commission
+    // The ID of the account to receive the commission
     account: 'commission',
-    // A callback to use for calculating the commission amount to subtract from a deposit
-    // resulting from an order match
+    // The callback to use for calculating the commission amount to subtract from a credit
+    // resulting from a trade
     calculate: function(params) {
-      // The matched bid order corresponding to the deposit
-      var bid = params.bid;
-      // The amount to be deposited before commission (due to partial and better price
-      // matches this amount may be different to the bidAmount from the bid order)
-      var bidAmount = params.bidAmount;
-      // The timestamp of the order that triggered the match (not necessarily from the bid
-      // order, this is effectively the time that the trade was made)
+      // A timestamp for the trade being executed
       var timestamp = params.timestamp;
-      // return the calculated commission amount to be subtracted from the deposit
-      // and deposited in the commission account (it's best to avoid divisions
-      // here in order to avoid rounding errors)
-      return bidAmount.multiply(COMMISSION_RATE);
+      // The ID of the account that is being credited
+      var account = params.account;
+      // The currency of the credited amount
+      var currency = params.currency;
+      // The amount that is being credited as an Amount instance
+      var amount = params.amount;
+
+      // Return an object containing the amount of commission to deduct as an Amount
+      // instance and a reference for the commission rate/type being charged
+      // NB. It is best to avoid divisions when calculating commissions so as
+      // to avoid rounding errors
+      return {
+        amount: amount.multiply(COMMISSION_RATE),
+        reference: COMMISSION_RATE + '%'
+      };
     }
   }
 });
+```
 
-// register for events
-market.on('deposit', function(deposit) {
-  console.log('');
-  console.log('********************');
-  console.log('********************');
-  console.log('');
-  console.log('Deposit');
-  console.log('');
-  console.log('********************');
-  console.log('********************');
-  console.log('');
-  console.log(deposit);
-});
-market.on('withdrawal', function(withdrawal) {
-  console.log('');
-  console.log('********************');
-  console.log('********************');
-  console.log('');
-  console.log('Withdrawal');
-  console.log('');
-  console.log('********************');
-  console.log('********************');
-  console.log('');
-  console.log(withdrawal);
-});
-market.on('order', function(order) {
-  console.log('');
-  console.log('********************');
-  console.log('********************');
-  console.log('');
-  console.log('Order');
-  console.log('');
-  console.log('********************');
-  console.log('********************');
-  console.log('');
-  console.log(order);
-});
-market.on('cancellation', function(cancellation) {
-  console.log('');
-  console.log('********************');
-  console.log('********************');
-  console.log('');
-  console.log('Cancellation');
-  console.log('');
-  console.log('********************');
-  console.log('********************');
-  console.log('');
-  console.log(cancellation);
-});
-market.on('trade', function(trade) {
-  console.log('');
-  console.log('********************');
-  console.log('********************');
-  console.log('');
-  console.log('Trade');
-  console.log('');
-  console.log('********************');
-  console.log('********************');
-  console.log('');
-  console.log(trade);
-});
+#### `apply` method
 
-// make deposits
-market.deposit({
-  // All IDs are intended to be the transaction IDs and as such
-  // should be globally unique. If not unique then the lastTransaction
-  // field may be rendered meaningless preventing restoration from a 
-  // saved transaction log.
-  // Additionally these IDs are used to key collections so strange behaviour
-  // may result if they are not unique
-  id: '100002',
-  // Although the timestamp is not used internally, it is required
-  // so that any functionality hanging off the events can replicate
-  // their time relative behaviour in case a Market has to be restored
-  // from a transaction log
-  timestamp: '1366758224',
-  // Note that the acount field should be set to the unique ID of the account.
-  // Accounts will be created and initialised on first reference
-  account: 'Peter',
-  currency: 'EUR',
-  amount: new Amount('5000')
-});
-market.deposit({
-  id: '100003',
-  timestamp: '1366758225',
-  account: 'Paul',
-  currency: 'BTC',
-  amount: new Amount('5000')
-});
+The `apply` method applies operations and returns the resulting deltas. If an operation fails for any reason (eg. not enough funds) then an error will be thrown. All operations follow the same pattern
 
-// make withdrawals
-market.withdraw({
-  id: '100004',
-  timestamp: '1366758226',
-  account: 'Peter',
-  currency: 'EUR',
-  amount: new Amount('1000')
-});
-market.withdraw({
-  id: '100005',
-  timestamp: '1366758227',
-  account: 'Paul',
-  currency: 'BTC',
-  amount: new Amount('1000')
-});
+```Javascript
 
-// submit orders
-market.submit(new Order({
-  id: '100006',
-  timestamp: '1366758228',
-  account: 'Peter',
-  bidCurrency: 'BTC',
-  offerCurrency: 'EUR',
-  bidPrice: new Amount('2'),
-  bidAmount: new Amount('500')
-}));
-market.submit(new Order({
-  id: '100007',
-  timestamp: '1366758229',
-  account: 'Peter',
-  bidCurrency: 'BTC',
-  offerCurrency: 'EUR',
-  bidPrice: new Amount('1'),
-  bidAmount: new Amount('2000')
-}));
-market.submit(new Order({
-  id: '100008',
-  timestamp: '1366758230',
-  account: 'Paul',
-  bidCurrency: 'EUR',
-  offerCurrency: 'BTC',
-  offerPrice: new Amount('2'),
-  offerAmount: new Amount('250')
-}));
-market.submit(new Order({
-  id: '100009',
-  timestamp: '1366758231',
-  account: 'Paul',
-  bidCurrency: 'EUR',
-  offerCurrency: 'BTC',
-  offerPrice: new Amount('3'),
-  offerAmount: new Amount('3000')
-}));
-
-// cancel an order
-market.cancel({
-  id: '100010',
-  timestamp: '1366758232',
-  order: new Order({
-    id: '100006',
-    timestamp: '1366758228',
+try {
+  var delta  = engine.apply({
+    // User specified reference that is returned untouched with the operation details included in the delta
+    reference: '550e8400-e29b-41d4-a716-446655440000',
+    // The ID of the account submitting the operation
     account: 'Peter',
+    // The operation sequence number. These must be consecutive for consecutive operations
+    sequence: 123456,
+    // The timestamp for the operation as a Unix time since epoch in milliseconds
+    timestamp: 1371737390976,
+    // The operation details, the name of this property will determine the type of the operation
+    // and what additional fields need to be supplied
+    operationType: {
+      // Operation parameters
+      ...
+    }
+  });
+
+  // The returned delta will have the following structure
+  var delta = {
+    // The delta sequence number. These will be generated consecutively by the engine
+    // for successful operations. As such they will not be synchronized with operation sequence
+    // numbers due to the possibility of operations throwing errors
+    sequence: 45632,
+    // The operation parameters as supplied to the `apply` method
+    operation: {
+      reference: '550e8400-e29b-41d4-a716-446655440000',
+      account: 'Peter',
+      sequence: 123456,
+      timestamp: 1371737390976,
+      operationType: {
+        // Operation parameters
+        ...
+      }
+    },
+    // Only `submit` operations currently set the result field
+    // due to the complexity of the potential side effects from
+    // submitting orders
+    result: {
+      // Result properties
+      ...
+    }
+  };
+} catch (error) {
+  // Possible errors will include invalid parameters or insufficient funds to complete the operation
+}
+```
+
+##### `deposit` operation
+
+Deposit funds into an account
+
+```Javascript
+var delta  = engine.apply({
+  reference: '550e8400-e29b-41d4-a716-446655440000',
+  account: 'Peter',
+  sequence: 4562312,
+  timestamp: 1371737390976,
+  // deposit 1000 Euros to account ID 'Peter'
+  deposit: {
+    currency: 'EUR',
+    amount: new Amount('1000')
+  }
+});
+
+// The returned delta will have the following structure
+var delta = {
+  sequence: 35489,
+  operation: {
+    reference: '550e8400-e29b-41d4-a716-446655440000',
+    account: 'Peter',
+    sequence: 4562312,
+    timestamp: 1371737390976,
+    deposit: {
+      currency: 'EUR',
+      amount: new Amount('1000')
+    }
+  }
+};
+```
+
+##### `withdraw` operation
+
+Withdraw funds from an account
+
+```Javascript
+var delta  = engine.apply({
+  reference: '550e8400-e29b-41d4-a716-446655440000',
+  account: 'Peter',
+  sequence: 789652,
+  timestamp: 1371737390976,
+  // withdraw 1000 Euros from account ID 'Peter'
+  withdraw: {
+    currency: 'EUR',
+    amount: new Amount('1000')
+  }
+});
+
+// The returned delta will have the following structure
+var delta = {
+  sequence: 45872,
+  operation: {
+    reference: '550e8400-e29b-41d4-a716-446655440000',
+    account: 'Peter',
+    sequence: 789652,
+    timestamp: 1371737390976,
+    withdraw: {
+      currency: 'EUR',
+      amount: new Amount('1000')
+    }
+  }
+};
+```
+
+##### `submit` operation
+
+Submit orders to the market. Both bid and offer orders can be submitted and follow this pattern
+
+```Javascript
+var delta  = engine.apply({
+  reference: '550e8400-e29b-41d4-a716-446655440000',
+  account: 'Peter',
+  sequence: 654895,
+  timestamp: 1371737390976,
+  // Place a bid order for 10 BTC offering 100 Euros per BTC
+  submit: {
+    // order parameters
+    ...
+  }
+});
+
+// The returned delta will have the following structure
+var delta = {
+  sequence: 98546,
+  operation: {
+    reference: '550e8400-e29b-41d4-a716-446655440000',
+    account: 'Peter',
+    sequence: 654895,
+    timestamp: 1371737390976,
+    submit: {
+      // order parameters
+      ...
+    }
+  },
+  result: {
+    // Note that only one of `nextHigherOrderSequence` or `trades` will be set
+
+    // If the order is not at the top of the order book then the sequence number
+    // of the next order above it is returned. This is a hint to optimize the
+    // insertion of the order into a `State` instance
+    nextHigherOrderSequence: 652973,
+
+    // If the order was inserted at the top of the order book then an array of trades
+    // will be returned. This array will still be set, but will be empty, if no actual 
+    // trades were made
+    //
+    // Note that the price at which any trade was executed will be given by the bid or
+    // offer price associated with the `right` order and that the volume traded in each
+    // currency is most easily referenced by the debit amounts associated with the `left`
+    // and `right` accounts in their respective order's offer currencies
+    trades: [{
+      // `left` gives the changes to be applied to the order that was submitted and the
+      // account that submitted it
+      left: {
+        // Only one of `left` or `right` will have a remainder and this
+        // signals the amount of the order that has not yet been executed.
+        // When no remainder is specified it signals that the order was
+        // completely executed. It is possible that neither `left` nor `right`
+        // will have a remainder if they completely satisfy each other
+        remainder: {
+          // The remaining bidAmount on the order
+          bidAmount: new Amount('12589.1335'),
+          // The remaining offerAmount on the order
+          offerAmount: new Amount('3261.23'),
+        },
+        // The transaction fields signal by how much the account balances have changed
+        // and how much commission was applied
+        transaction: {
+          debit: {
+            // The amount of the order's offer currency debited from the account
+            amount: new Amount('6592.32697')
+          },
+          credit: {
+            // The amount of the order's bid currency credited to the account
+            amount: new Amount('326598.2356'),
+            // If the engine was instantiated without commission then the commission
+            // field will not be set
+            commission: {
+              // The amount of the order's bid currency credited to the commission account
+              amount: new Amount('326.123588'),
+              // The reference associated with the commission calculation
+              reference: '0.01%'
+            }
+          }
+        }
+      },
+      // `right` gives the changes to be applied to the order that was matched and the
+      // account that submitted it. This order will always be the order that is currently
+      // at the top of the opposing order book to that which the submitted order was added
+      right: {
+        // The fields that can be set are the same as for `left`
+        ...
+      }
+    }, ...]
+  }
+};
+```
+
+###### Bid orders
+
+```Javascript
+var delta  = engine.apply({
+  reference: '550e8400-e29b-41d4-a716-446655440000',
+  account: 'Peter',
+  sequence: 0,
+  timestamp: 1371737390976,
+  // Place a bid for 10 BTC offering 100 Euros per BTC
+  submit: {
     bidCurrency: 'BTC',
     offerCurrency: 'EUR',
-    bidPrice: new Amount('2'),
-    bidAmount: new Amount('250')
-  })
+    bidPrice: new Amount('100'),
+    bidAmount: new Amount('10')
+  }
+});
+```
+
+###### Offer orders
+
+```Javascript
+var delta  = engine.apply({
+  reference: '550e8400-e29b-41d4-a716-446655440000',
+  account: 'Peter',
+  sequence: 0,
+  timestamp: 1371737390976,
+  // Place an offer of 1000 EUR bidding 0.01 BTC per EUR
+  submit: {
+    bidCurrency: 'BTC',
+    offerCurrency: 'EUR',
+    offerPrice: new Amount('0.01'),
+    offerAmount: new Amount('1000')
+  }
+});
+```
+
+##### `cancel` operation
+
+Orders can be cancelled using the cancel operation.
+
+```Javascript
+var delta  = engine.apply({
+  reference: '550e8400-e29b-41d4-a716-446655440000',
+  account: 'Peter',
+  sequence: 625879,
+  timestamp: 1371737390976,
+  // Cancel the order submitted by acount ID 'Peter' with operation sequence 615368 
+  cancel: {
+    sequence: 615368
+  }
 });
 
-// Export an account as an object that can be converted to JSON
-console.log('');
-console.log('********************');
-console.log('********************');
-console.log('');
-console.log('Peter\'s account');
-console.log('');
-console.log('********************');
-console.log('********************');
-console.log('');
-console.log(market.getAccount('Peter').export());
-console.log('');
-console.log('********************');
-console.log('********************');
-console.log('');
-console.log('Paul\'s account');
-console.log('');
-console.log('********************');
-console.log('********************');
-console.log('');
-console.log(market.getAccount('Paul').export());
-console.log('');
-console.log('********************');
-console.log('********************');
-console.log('');
-console.log('Commission account');
-console.log('');
-console.log('********************');
-console.log('********************');
-console.log('');
-console.log(market.getAccount('commission').export());
+// The returned delta will have the following structure
+var delta = {
+  sequence: 35489,
+  operation: {
+    reference: '550e8400-e29b-41d4-a716-446655440000',
+    account: 'Peter',
+    sequence: 4562312,
+    timestamp: 1371737390976,
+    cancel: {
+      sequence: 615368
+    }
+  }
+};
+```
 
-// Export an order book as an array that can be converted to JSON
-console.log('');
-console.log('********************');
-console.log('********************');
-console.log('');
-console.log('EUR bids in order');
-console.log('');
-console.log('********************');
-console.log('********************');
-console.log('');
-console.log(market.getBook('EUR', 'BTC').export());
-console.log('');
-console.log('********************');
-console.log('********************');
-console.log('');
-console.log('BTC bids in order');
-console.log('');
-console.log('********************');
-console.log('********************');
-console.log('');
-console.log(market.getBook('BTC', 'EUR').export());
+#### `export` method
 
-// export a snapshot of the market as an object that can be converted to JSON
-var snapshot = market.export();
+The `export` method is used to export the current state of the market as an object that can be converted to and from JSON and used to reinitialise another `Engine` instance in the same state or initialize a synchronized `State` instance
 
-// JSON stringify the snapshot
-var json = JSON.stringify(snapshot);
-console.log('');
-console.log('********************');
-console.log('********************');
-console.log('');
-console.log('Stringified market snapshot');
-console.log('');
-console.log('********************');
-console.log('********************');
-console.log('');
-console.log(json);
+```Javascript
+var exported = engine.export();
+```
 
-// initialise an identical market from the snapshot
-var anotherMarket = new Market();
-anotherMarket.import(JSON.parse(json));
+#### `import` method
 
-// Retrieve the last transaction ID processed 
-console.log('');
-console.log('********************');
-console.log('********************');
-console.log('');
-console.log('Last transaction ID from new Market: ' + anotherMarket.lastTransaction);
-console.log('');
-console.log('********************');
-console.log('********************');
+The `import` method is used to import a previously exported state
+
+```Javascript
+engine.import(exported);
+```
+
+### `State`
+
+`State` instances provide simplified access to a market state. They do not contain the logic for matching orders but do accept `Engine` generated deltas to keep them synchronized with `Engine` instances
+
+
+#### Constructor
+
+```javascript
+var State = require('currency-market').State;
+
+// instantiate a state
+var state = new State();
+```
+
+#### `export` method
+
+The `export` method is used to export the current state of the market as an object that can be converted to and from JSON and used to reinitialise another `State` instance in the same state
+
+```Javascript
+var exported = state.export();
+```
+
+#### `import` method
+
+The `import` method is used to import a previously exported state, either from another `State` instance or an `Engine` instance
+
+```Javascript
+state.import(exported);
 ```
 
 ## Roadmap
 
-- Refactor API
-
-```javascript
-var Engine = require('currency-market').Engine;
-var State = require('currency-market').State;
-
-var engine = new Engine({
-  commission: {
-    // The account ID of the account to receive the commission
-    account: 'commission',
-    // A callback to use for calculating the commission amount to subtract from a deposit
-    // resulting from an order match
-    calculate: function(params) {
-      // The matched bid order corresponding to the deposit
-      var bid = params.bid;
-      // The amount to be deposited before commission (due to partial and better price
-      // matches this amount may be different to the bidAmount from the bid order)
-      var bidAmount = params.bidAmount;
-      // The timestamp of the order that triggered the match (not necessarily from the bid
-      // order, this is effectively the time that the trade was made)
-      var timestamp = params.timestamp;
-      // return the calculated commission amount to be subtracted from the deposit
-      // and deposited in the commission account (it's best to avoid divisions
-      // here in order to avoid rounding errors)
-      return bidAmount.multiply(COMMISSION_RATE);
-    }
-  },
-  state: {
-    ?
-  }
-});
-
-var state = new State(engine.export());
-
-engine.apply({
-  "reference": "550e8400-e29b-41d4-a716-446655440000",
-  "account": "Peter",
-  "sequence": 1234567890,
-  "timestamp": 1371737390976,
-  "deposit": {
-    "currency": "EUR",
-    "amount": "5000"
-  }
-});
-
-engine.on('delta', function(delta) {
-  // delta = {
-  // "sequence": 1234567890,
-  // "operation": {
-  //   "reference": "550e8400-e29b-41d4-a716-446655440000",
-  //   "account": "Peter",
-  //   "sequence": 9876543210,
-  //   "timestamp": 1371737390976,
-  //   "deposit": {
-  //     "currency": "EUR",
-  //     "amount": "5000"
-  //   }
-  // };
-  state.apply(delta);
-});
-
-var engine = new Engine({
-  commission: {
-    // The account ID of the account to receive the commission
-    account: 'commission',
-    // A callback to use for calculating the commission amount to subtract from a deposit
-    // resulting from an order match
-    calculate: function(params) {
-      // The matched bid order corresponding to the deposit
-      var bid = params.bid;
-      // The amount to be deposited before commission (due to partial and better price
-      // matches this amount may be different to the bidAmount from the bid order)
-      var bidAmount = params.bidAmount;
-      // The timestamp of the order that triggered the match (not necessarily from the bid
-      // order, this is effectively the time that the trade was made)
-      var timestamp = params.timestamp;
-      // return the calculated commission amount to be subtracted from the deposit
-      // and deposited in the commission account (it's best to avoid divisions
-      // here in order to avoid rounding errors)
-      return bidAmount.multiply(COMMISSION_RATE);
-    }
-  },
-  state: state.export()
-});
-
-var engine = new Engine({
-  commission: {
-    // The account ID of the account to receive the commission
-    account: 'commission',
-    // A callback to use for calculating the commission amount to subtract from a deposit
-    // resulting from an order match
-    calculate: function(params) {
-      // The matched bid order corresponding to the deposit
-      var bid = params.bid;
-      // The amount to be deposited before commission (due to partial and better price
-      // matches this amount may be different to the bidAmount from the bid order)
-      var bidAmount = params.bidAmount;
-      // The timestamp of the order that triggered the match (not necessarily from the bid
-      // order, this is effectively the time that the trade was made)
-      var timestamp = params.timestamp;
-      // return the calculated commission amount to be subtracted from the deposit
-      // and deposited in the commission account (it's best to avoid divisions
-      // here in order to avoid rounding errors)
-      return bidAmount.multiply(COMMISSION_RATE);
-    }
-  },
-  state: engine.export()
-});
-
-var account = state.getAccount('Peter');
-var balance = account.getBalance('EUR');
-etc...
-```
-
+- refactor `submit` deltas as described above
+- Implement `State` as described above 
 - Instant orders
   - Market orders
     - zero priced offers that are rejected if they cannot be completely filled by the market
