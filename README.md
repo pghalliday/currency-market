@@ -455,8 +455,6 @@ var exported = state.export();
 
 ## Roadmap
 
-- factor out the `Amount` instances from operations and deltas as described above
-- refactor `submit` deltas as described above
 - Implement `State` as described above 
 - Instant orders
   - Market orders
