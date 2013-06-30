@@ -37,29 +37,30 @@ module.exports = class Balance
     @lockedFunds = @lockedFunds.subtract amount    
 
   applyOffer: (params) =>
-    debit = 
-      amount: params.amount
     @lockedFunds = @lockedFunds.subtract params.fundsUnlocked
-    @funds = @funds.subtract debit.amount
-    return debit
+    @funds = @funds.subtract params.amount
+    debit = 
+      amount: params.amount.toString()
 
   applyBid: (params) =>
     if @commissionBalance
-      credit =
-        commission: @commissionCalculate
-          amount: params.amount
-          timestamp: params.timestamp
-          account: @account
-          currency: @currency
-      credit.amount = params.amount.subtract credit.commission.amount
-      @funds = @funds.add credit.amount
-      @commissionBalance.deposit credit.commission.amount
-      return credit
-    else
-      credit =
+      commission = @commissionCalculate
         amount: params.amount
-      @funds = @funds.add credit.amount
-      return credit
+        timestamp: params.timestamp
+        account: @account
+        currency: @currency
+      amount = params.amount.subtract commission.amount
+      @funds = @funds.add amount
+      @commissionBalance.deposit commission.amount
+      credit =
+        amount: amount.toString()
+        commission:
+          amount: commission.amount.toString()
+          reference: commission.reference
+    else
+      @funds = @funds.add params.amount
+      credit =
+        amount: params.amount.toString()
 
   export: =>
     object = Object.create null

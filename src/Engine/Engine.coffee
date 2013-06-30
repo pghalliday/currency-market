@@ -43,13 +43,17 @@ module.exports = class Engine
           delta = 
             operation: operation
           if operation.deposit
-            account.deposit operation.deposit
+            deposit = operation.deposit
+            account.deposit
+              currency: deposit.currency
+              amount: if deposit.amount then new Amount deposit.amount
           else if operation.withdraw
-            account.withdraw operation.withdraw
+            withdraw = operation.withdraw
+            account.withdraw
+              currency: withdraw.currency
+              amount: if withdraw.amount then new Amount withdraw.amount
           else if operation.submit
-            delta.result = 
-              nextHigherOrderSequence: -1
-              trades: []
+            delta.result = Object.create null
             submit = operation.submit
             leftBook = @getBook submit.bidCurrency, submit.offerCurrency
             order = new Order
@@ -57,17 +61,19 @@ module.exports = class Engine
               timestamp: operation.timestamp
               account: account
               book: leftBook
-              bidPrice: submit.bidPrice
-              bidAmount: submit.bidAmount
-              offerPrice: submit.offerPrice
-              offerAmount: submit.offerAmount
+              bidPrice: if submit.bidPrice then new Amount submit.bidPrice
+              bidAmount: if submit.bidAmount then new Amount submit.bidAmount
+              offerPrice: if submit.offerPrice then new Amount submit.offerPrice
+              offerAmount: if submit.offerAmount then new Amount submit.offerAmount
             account.submit order
             nextHigher = leftBook.submit order
             if nextHigher
               delta.result.nextHigherOrderSequence = nextHigher.sequence
-            # check the books to see if any orders can be executed
-            rightBook = @getBook submit.offerCurrency, submit.bidCurrency
-            @execute delta.result.trades, leftBook, rightBook
+            else
+              # check the books to see if any orders can be executed
+              delta.result.trades = []
+              rightBook = @getBook submit.offerCurrency, submit.bidCurrency
+              @execute delta.result.trades, leftBook, rightBook
           else if operation.cancel
             order = account.cancel operation.cancel.sequence
             @getBook(order.bidBalance.currency, order.offerBalance.currency).cancel order
@@ -90,18 +96,10 @@ module.exports = class Engine
       # just added an order to the left book so the left order must be
       # the most recent addition if we get here. This means that we should
       # take the price from the right order
-      result = leftOrder.match rightOrder
-      if result.trade
-        trades.push
-          left:
-            newBidAmount: leftOrder.bidAmount
-            newOfferAmount: leftOrder.offerAmount
-            transaction: result.trade.left
-          right:
-            newBidAmount: rightOrder.bidAmount
-            newOfferAmount: rightOrder.offerAmount
-            transaction: result.trade.right
-        if !result.complete
+      trade = leftOrder.match rightOrder
+      if trade
+        trades.push trade
+        if trade.left.remainder
           @execute trades, leftBook, rightBook
 
   export: =>
@@ -120,14 +118,11 @@ module.exports = class Engine
 
   import: (snapshot) =>
     for id, account of snapshot.accounts
+      accountObject = @getAccount id
       for currency, balance of account.balances
-        @apply
-          account: id
-          sequence: @nextOperationSequence
-          timestamp: 0
-          deposit:
-            currency: currency
-            amount: new Amount balance.funds
+        accountObject.deposit
+          currency: currency
+          amount: new Amount balance.funds
     for bidCurrency, books of snapshot.books
       for offerCurrency, book of books
         for order in book
@@ -139,10 +134,10 @@ module.exports = class Engine
               timestamp: order.timestamp
               account: account
               book: book
-              bidPrice: if order.bidPrice then new Amount order.bidPrice else undefined
-              bidAmount: if order.bidAmount then new Amount order.bidAmount else undefined
-              offerPrice: if order.offerPrice then new Amount order.offerPrice else undefined
-              offerAmount: if order.offerAmount then new Amount order.offerAmount else undefined
+              bidPrice: if order.bidPrice then new Amount order.bidPrice
+              bidAmount: if order.bidAmount then new Amount order.bidAmount
+              offerPrice: if order.offerPrice then new Amount order.offerPrice
+              offerAmount: if order.offerAmount then new Amount order.offerAmount
             account.submit orderObject
             book.submit orderObject
     @nextOperationSequence = snapshot.nextOperationSequence

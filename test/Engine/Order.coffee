@@ -460,13 +460,12 @@ describe 'Order', ->
       describe 'and the new (left) price is same', ->
         describe 'and the left order is a bid', ->
           describe 'and the right order is offering exactly the amount the left order is bidding', ->
-            it 'should trade the amount the right order is offering and return the transaction information', ->
+            it 'should trade the amount the right order is offering and return the trade information', ->
               order = @paulBidEUR
                 price: amountPoint2
                 amount: amount1000
 
-              result = order.match @order
-              result.complete.should.be.true
+              trade = order.match @order
 
               expect(@bookBTCEUR.next()).to.not.be.ok
               expect(@accountPeter.orders[0]).to.not.be.ok
@@ -488,23 +487,24 @@ describe 'Order', ->
               @order.bidAmount.compareTo(Amount.ZERO).should.equal 0
               @order.offerAmount.compareTo(Amount.ZERO).should.equal 0
 
-              result.trade.left.debit.amount.compareTo(amount200).should.equal 0
-              result.trade.left.credit.amount.compareTo(amount995).should.equal 0
-              result.trade.left.credit.commission.amount.compareTo(amount5).should.equal 0
-              result.trade.left.credit.commission.reference.should.equal 'Paul commission level'
-              result.trade.right.debit.amount.compareTo(amount1000).should.equal 0
-              result.trade.right.credit.amount.compareTo(amount199).should.equal 0
-              result.trade.right.credit.commission.amount.compareTo(amount1).should.equal 0
-              result.trade.right.credit.commission.reference.should.equal 'Peter commission level'
+              expect(trade.left.remainder).to.not.be.ok
+              trade.left.transaction.debit.amount.should.equal '200'
+              trade.left.transaction.credit.amount.should.equal '995'
+              trade.left.transaction.credit.commission.amount.should.equal '5'
+              trade.left.transaction.credit.commission.reference.should.equal 'Paul commission level'
+              expect(trade.right.remainder).to.not.be.ok
+              trade.right.transaction.debit.amount.should.equal '1000'
+              trade.right.transaction.credit.amount.should.equal '199'
+              trade.right.transaction.credit.commission.amount.should.equal '1'
+              trade.right.transaction.credit.commission.reference.should.equal 'Peter commission level'
 
           describe 'and the right order is offering more than the left order is bidding', ->
-            it 'should trade the amount the left order is offering and return the transaction information', ->
+            it 'should trade the amount the left order is offering and return the trade information', ->
               order = @paulBidEUR
                 price: amountPoint2
                 amount: amount500
 
-              result = order.match @order
-              result.complete.should.be.true
+              trade = order.match @order
 
               @bookBTCEUR.next().should.equal @order
               @accountPeter.orders[0].should.equal @order
@@ -526,23 +526,25 @@ describe 'Order', ->
               @order.bidAmount.compareTo(amount100).should.equal 0
               @order.offerAmount.compareTo(amount500).should.equal 0
 
-              result.trade.left.debit.amount.compareTo(amount100).should.equal 0
-              result.trade.left.credit.amount.compareTo(amount495).should.equal 0
-              result.trade.left.credit.commission.amount.compareTo(amount5).should.equal 0
-              result.trade.left.credit.commission.reference.should.equal 'Paul commission level'
-              result.trade.right.debit.amount.compareTo(amount500).should.equal 0
-              result.trade.right.credit.amount.compareTo(amount99).should.equal 0
-              result.trade.right.credit.commission.amount.compareTo(amount1).should.equal 0
-              result.trade.right.credit.commission.reference.should.equal 'Peter commission level'
+              expect(trade.left.remainder).to.not.be.ok
+              trade.left.transaction.debit.amount.should.equal '100'
+              trade.left.transaction.credit.amount.should.equal '495'
+              trade.left.transaction.credit.commission.amount.should.equal '5'
+              trade.left.transaction.credit.commission.reference.should.equal 'Paul commission level'
+              trade.right.remainder.bidAmount.should.equal '100'
+              trade.right.remainder.offerAmount.should.equal '500'
+              trade.right.transaction.debit.amount.should.equal '500'
+              trade.right.transaction.credit.amount.should.equal '99'
+              trade.right.transaction.credit.commission.amount.should.equal '1'
+              trade.right.transaction.credit.commission.reference.should.equal 'Peter commission level'
 
           describe 'and the right order is offering less than the left order is bidding', ->
-            it 'should trade the amount the right order is offering and return the transaction information', ->
+            it 'should trade the amount the right order is offering and return the trade information', ->
               order = @paulBidEUR
                 price: amountPoint2
                 amount: amount1500
 
-              result = order.match @order
-              result.complete.should.be.false
+              trade = order.match @order
 
               expect(@bookBTCEUR.next()).to.not.be.ok
               expect(@accountPeter.orders[0]).to.not.be.ok
@@ -564,24 +566,26 @@ describe 'Order', ->
               @order.bidAmount.compareTo(Amount.ZERO).should.equal 0
               @order.offerAmount.compareTo(Amount.ZERO).should.equal 0
 
-              result.trade.left.debit.amount.compareTo(amount200).should.equal 0
-              result.trade.left.credit.amount.compareTo(amount995).should.equal 0
-              result.trade.left.credit.commission.amount.compareTo(amount5).should.equal 0
-              result.trade.left.credit.commission.reference.should.equal 'Paul commission level'
-              result.trade.right.debit.amount.compareTo(amount1000).should.equal 0
-              result.trade.right.credit.amount.compareTo(amount199).should.equal 0
-              result.trade.right.credit.commission.amount.compareTo(amount1).should.equal 0
-              result.trade.right.credit.commission.reference.should.equal 'Peter commission level'
+              trade.left.remainder.bidAmount.should.equal '500'
+              trade.left.remainder.offerAmount.should.equal '100'
+              trade.left.transaction.debit.amount.should.equal '200'
+              trade.left.transaction.credit.amount.should.equal '995'
+              trade.left.transaction.credit.commission.amount.should.equal '5'
+              trade.left.transaction.credit.commission.reference.should.equal 'Paul commission level'
+              expect(trade.right.remainder).to.not.be.ok
+              trade.right.transaction.debit.amount.should.equal '1000'
+              trade.right.transaction.credit.amount.should.equal '199'
+              trade.right.transaction.credit.commission.amount.should.equal '1'
+              trade.right.transaction.credit.commission.reference.should.equal 'Peter commission level'
 
         describe 'and the left order is an offer', ->
           describe 'and the right order is offering exactly the amount the left order is offering', ->
-            it 'should trade the amount the right order is offering and return the transaction information', ->
+            it 'should trade the amount the right order is offering and return the trade information', ->
               order = @paulOfferBTC
                 price: amount5
                 amount: amount200
 
-              result = order.match @order
-              result.complete.should.be.true
+              trade = order.match @order
 
               expect(@bookBTCEUR.next()).to.not.be.ok
               expect(@accountPeter.orders[0]).to.not.be.ok
@@ -603,23 +607,24 @@ describe 'Order', ->
               @order.bidAmount.compareTo(Amount.ZERO).should.equal 0
               @order.offerAmount.compareTo(Amount.ZERO).should.equal 0
 
-              result.trade.left.debit.amount.compareTo(amount200).should.equal 0
-              result.trade.left.credit.amount.compareTo(amount995).should.equal 0
-              result.trade.left.credit.commission.amount.compareTo(amount5).should.equal 0
-              result.trade.left.credit.commission.reference.should.equal 'Paul commission level'
-              result.trade.right.debit.amount.compareTo(amount1000).should.equal 0
-              result.trade.right.credit.amount.compareTo(amount199).should.equal 0
-              result.trade.right.credit.commission.amount.compareTo(amount1).should.equal 0
-              result.trade.right.credit.commission.reference.should.equal 'Peter commission level'
+              expect(trade.left.remainder).to.not.be.ok
+              trade.left.transaction.debit.amount.should.equal '200'
+              trade.left.transaction.credit.amount.should.equal '995'
+              trade.left.transaction.credit.commission.amount.should.equal '5'
+              trade.left.transaction.credit.commission.reference.should.equal 'Paul commission level'
+              expect(trade.right.remainder).to.not.be.ok
+              trade.right.transaction.debit.amount.should.equal '1000'
+              trade.right.transaction.credit.amount.should.equal '199'
+              trade.right.transaction.credit.commission.amount.should.equal '1'
+              trade.right.transaction.credit.commission.reference.should.equal 'Peter commission level'
 
           describe 'and the right order is offering more than the left order is offering', ->
-            it 'should trade the amount the left order is offering and return the transaction information', ->
+            it 'should trade the amount the left order is offering and return the trade information', ->
               order = @paulOfferBTC
                 price: amount5
                 amount: amount100
 
-              result = order.match @order
-              result.complete.should.be.true
+              trade = order.match @order
 
               @bookBTCEUR.next().should.equal @order
               @accountPeter.orders[0].should.equal @order
@@ -641,23 +646,25 @@ describe 'Order', ->
               @order.bidAmount.compareTo(amount100).should.equal 0
               @order.offerAmount.compareTo(amount500).should.equal 0
 
-              result.trade.left.debit.amount.compareTo(amount100).should.equal 0
-              result.trade.left.credit.amount.compareTo(amount495).should.equal 0
-              result.trade.left.credit.commission.amount.compareTo(amount5).should.equal 0
-              result.trade.left.credit.commission.reference.should.equal 'Paul commission level'
-              result.trade.right.debit.amount.compareTo(amount500).should.equal 0
-              result.trade.right.credit.amount.compareTo(amount99).should.equal 0
-              result.trade.right.credit.commission.amount.compareTo(amount1).should.equal 0
-              result.trade.right.credit.commission.reference.should.equal 'Peter commission level'
+              expect(trade.left.remainder).to.not.be.ok
+              trade.left.transaction.debit.amount.should.equal '100'
+              trade.left.transaction.credit.amount.should.equal '495'
+              trade.left.transaction.credit.commission.amount.should.equal '5'
+              trade.left.transaction.credit.commission.reference.should.equal 'Paul commission level'
+              trade.right.remainder.bidAmount.should.equal '100'
+              trade.right.remainder.offerAmount.should.equal '500'
+              trade.right.transaction.debit.amount.should.equal '500'
+              trade.right.transaction.credit.amount.should.equal '99'
+              trade.right.transaction.credit.commission.amount.should.equal '1'
+              trade.right.transaction.credit.commission.reference.should.equal 'Peter commission level'
 
           describe 'and the right order is offering less than the left order is offering', ->
-            it 'should trade the amount the right order is offering and return the transaction information', ->
+            it 'should trade the amount the right order is offering and return the trade information', ->
               order = @paulOfferBTC
                 price: amount5
                 amount: amount300
 
-              result = order.match @order
-              result.complete.should.be.false
+              trade = order.match @order
 
               expect(@bookBTCEUR.next()).to.not.be.ok
               expect(@accountPeter.orders[0]).to.not.be.ok
@@ -679,25 +686,27 @@ describe 'Order', ->
               @order.bidAmount.compareTo(Amount.ZERO).should.equal 0
               @order.offerAmount.compareTo(Amount.ZERO).should.equal 0
 
-              result.trade.left.debit.amount.compareTo(amount200).should.equal 0
-              result.trade.left.credit.amount.compareTo(amount995).should.equal 0
-              result.trade.left.credit.commission.amount.compareTo(amount5).should.equal 0
-              result.trade.left.credit.commission.reference.should.equal 'Paul commission level'
-              result.trade.right.debit.amount.compareTo(amount1000).should.equal 0
-              result.trade.right.credit.amount.compareTo(amount199).should.equal 0
-              result.trade.right.credit.commission.amount.compareTo(amount1).should.equal 0
-              result.trade.right.credit.commission.reference.should.equal 'Peter commission level'
+              trade.left.remainder.bidAmount.should.equal '500'
+              trade.left.remainder.offerAmount.should.equal '100'
+              trade.left.transaction.debit.amount.should.equal '200'
+              trade.left.transaction.credit.amount.should.equal '995'
+              trade.left.transaction.credit.commission.amount.should.equal '5'
+              trade.left.transaction.credit.commission.reference.should.equal 'Paul commission level'
+              expect(trade.right.remainder).to.not.be.ok
+              trade.right.transaction.debit.amount.should.equal '1000'
+              trade.right.transaction.credit.amount.should.equal '199'
+              trade.right.transaction.credit.commission.amount.should.equal '1'
+              trade.right.transaction.credit.commission.reference.should.equal 'Peter commission level'
 
       describe 'and the new (left) price is the better', ->
         describe 'and the left order is an offer', ->              
           describe 'and the right order is offering exactly the amount that the left order is offering multiplied by the right order price', ->
-            it 'should trade the amount the right order is offering at the right order price and return the transaction information', ->
+            it 'should trade the amount the right order is offering at the right order price and return the trade information', ->
               order = @paulOfferBTC
                 price: amount4
                 amount: amount200
 
-              result = order.match @order
-              result.complete.should.be.true
+              trade = order.match @order
 
               expect(@bookBTCEUR.next()).to.not.be.ok
               expect(@accountPeter.orders[0]).to.not.be.ok
@@ -719,23 +728,24 @@ describe 'Order', ->
               @order.bidAmount.compareTo(Amount.ZERO).should.equal 0
               @order.offerAmount.compareTo(Amount.ZERO).should.equal 0
 
-              result.trade.left.debit.amount.compareTo(amount200).should.equal 0
-              result.trade.left.credit.amount.compareTo(amount995).should.equal 0
-              result.trade.left.credit.commission.amount.compareTo(amount5).should.equal 0
-              result.trade.left.credit.commission.reference.should.equal 'Paul commission level'
-              result.trade.right.debit.amount.compareTo(amount1000).should.equal 0
-              result.trade.right.credit.amount.compareTo(amount199).should.equal 0
-              result.trade.right.credit.commission.amount.compareTo(amount1).should.equal 0
-              result.trade.right.credit.commission.reference.should.equal 'Peter commission level'
+              expect(trade.left.remainder).to.not.be.ok
+              trade.left.transaction.debit.amount.should.equal '200'
+              trade.left.transaction.credit.amount.should.equal '995'
+              trade.left.transaction.credit.commission.amount.should.equal '5'
+              trade.left.transaction.credit.commission.reference.should.equal 'Paul commission level'
+              expect(trade.right.remainder).to.not.be.ok
+              trade.right.transaction.debit.amount.should.equal '1000'
+              trade.right.transaction.credit.amount.should.equal '199'
+              trade.right.transaction.credit.commission.amount.should.equal '1'
+              trade.right.transaction.credit.commission.reference.should.equal 'Peter commission level'
 
           describe 'and the right order is offering more than the left order is offering multiplied by the right order price', ->
-            it 'should trade the amount the left order is offering at the right order price and return the transaction information', ->
+            it 'should trade the amount the left order is offering at the right order price and return the trade information', ->
               order = @paulOfferBTC
                 price: amount4
                 amount: amount100
 
-              result = order.match @order
-              result.complete.should.be.true
+              trade = order.match @order
 
               @bookBTCEUR.next().should.equal @order
               @accountPeter.orders[0].should.equal @order
@@ -757,23 +767,25 @@ describe 'Order', ->
               @order.bidAmount.compareTo(amount100).should.equal 0
               @order.offerAmount.compareTo(amount500).should.equal 0
 
-              result.trade.left.debit.amount.compareTo(amount100).should.equal 0
-              result.trade.left.credit.amount.compareTo(amount495).should.equal 0
-              result.trade.left.credit.commission.amount.compareTo(amount5).should.equal 0
-              result.trade.left.credit.commission.reference.should.equal 'Paul commission level'
-              result.trade.right.debit.amount.compareTo(amount500).should.equal 0
-              result.trade.right.credit.amount.compareTo(amount99).should.equal 0
-              result.trade.right.credit.commission.amount.compareTo(amount1).should.equal 0
-              result.trade.right.credit.commission.reference.should.equal 'Peter commission level'
+              expect(trade.left.remainder).to.not.be.ok
+              trade.left.transaction.debit.amount.should.equal '100'
+              trade.left.transaction.credit.amount.should.equal '495'
+              trade.left.transaction.credit.commission.amount.should.equal '5'
+              trade.left.transaction.credit.commission.reference.should.equal 'Paul commission level'
+              trade.right.remainder.bidAmount.should.equal '100'
+              trade.right.remainder.offerAmount.should.equal '500'
+              trade.right.transaction.debit.amount.should.equal '500'
+              trade.right.transaction.credit.amount.should.equal '99'
+              trade.right.transaction.credit.commission.amount.should.equal '1'
+              trade.right.transaction.credit.commission.reference.should.equal 'Peter commission level'
 
           describe 'and the right order is offering less than the left order is offering multiplied by the right order price', ->
-            it 'should trade the amount the right order is offering at the right order price and return the transaction information', ->
+            it 'should trade the amount the right order is offering at the right order price and return the trade information', ->
               order = @paulOfferBTC
                 price: amount4
                 amount: amount300
 
-              result = order.match @order
-              result.complete.should.be.false
+              trade = order.match @order
 
               expect(@bookBTCEUR.next()).to.not.be.ok
               expect(@accountPeter.orders[0]).to.not.be.ok
@@ -795,24 +807,26 @@ describe 'Order', ->
               @order.bidAmount.compareTo(Amount.ZERO).should.equal 0
               @order.offerAmount.compareTo(Amount.ZERO).should.equal 0
 
-              result.trade.left.debit.amount.compareTo(amount200).should.equal 0
-              result.trade.left.credit.amount.compareTo(amount995).should.equal 0
-              result.trade.left.credit.commission.amount.compareTo(amount5).should.equal 0
-              result.trade.left.credit.commission.reference.should.equal 'Paul commission level'
-              result.trade.right.debit.amount.compareTo(amount1000).should.equal 0
-              result.trade.right.credit.amount.compareTo(amount199).should.equal 0
-              result.trade.right.credit.commission.amount.compareTo(amount1).should.equal 0
-              result.trade.right.credit.commission.reference.should.equal 'Peter commission level'
+              trade.left.remainder.bidAmount.should.equal '400'
+              trade.left.remainder.offerAmount.should.equal '100'
+              trade.left.transaction.debit.amount.should.equal '200'
+              trade.left.transaction.credit.amount.should.equal '995'
+              trade.left.transaction.credit.commission.amount.should.equal '5'
+              trade.left.transaction.credit.commission.reference.should.equal 'Paul commission level'
+              expect(trade.right.remainder).to.not.be.ok
+              trade.right.transaction.debit.amount.should.equal '1000'
+              trade.right.transaction.credit.amount.should.equal '199'
+              trade.right.transaction.credit.commission.amount.should.equal '1'
+              trade.right.transaction.credit.commission.reference.should.equal 'Peter commission level'
 
         describe 'and the left order is a bid', ->
           describe 'and the right order is offering exactly the amount that the left order is bidding', ->
-            it 'should trade the amount the right order is offering at the right order price and return the transaction information', ->
+            it 'should trade the amount the right order is offering at the right order price and return the trade information', ->
               order = @paulBidEUR
                 price: amountPoint25
                 amount: amount1000
 
-              result = order.match @order
-              result.complete.should.be.true
+              trade = order.match @order
 
               expect(@bookBTCEUR.next()).to.not.be.ok
               expect(@accountPeter.orders[0]).to.not.be.ok
@@ -834,23 +848,24 @@ describe 'Order', ->
               @order.bidAmount.compareTo(Amount.ZERO).should.equal 0
               @order.offerAmount.compareTo(Amount.ZERO).should.equal 0
 
-              result.trade.left.debit.amount.compareTo(amount200).should.equal 0
-              result.trade.left.credit.amount.compareTo(amount995).should.equal 0
-              result.trade.left.credit.commission.amount.compareTo(amount5).should.equal 0
-              result.trade.left.credit.commission.reference.should.equal 'Paul commission level'
-              result.trade.right.debit.amount.compareTo(amount1000).should.equal 0
-              result.trade.right.credit.amount.compareTo(amount199).should.equal 0
-              result.trade.right.credit.commission.amount.compareTo(amount1).should.equal 0
-              result.trade.right.credit.commission.reference.should.equal 'Peter commission level'
+              expect(trade.left.remainder).to.not.be.ok
+              trade.left.transaction.debit.amount.should.equal '200'
+              trade.left.transaction.credit.amount.should.equal '995'
+              trade.left.transaction.credit.commission.amount.should.equal '5'
+              trade.left.transaction.credit.commission.reference.should.equal 'Paul commission level'
+              expect(trade.right.remainder).to.not.be.ok
+              trade.right.transaction.debit.amount.should.equal '1000'
+              trade.right.transaction.credit.amount.should.equal '199'
+              trade.right.transaction.credit.commission.amount.should.equal '1'
+              trade.right.transaction.credit.commission.reference.should.equal 'Peter commission level'
               
           describe 'and the right order is offering more than the left order is bidding', ->
-            it 'should trade the amount the left order is bidding at the right order price and return the transaction information', ->
+            it 'should trade the amount the left order is bidding at the right order price and return the trade information', ->
               order = @paulBidEUR
                 price: amountPoint25
                 amount: amount500
 
-              result = order.match @order
-              result.complete.should.be.true
+              trade = order.match @order
 
               @bookBTCEUR.next().should.equal @order
               @accountPeter.orders[0].should.equal @order
@@ -872,23 +887,25 @@ describe 'Order', ->
               @order.bidAmount.compareTo(amount100).should.equal 0
               @order.offerAmount.compareTo(amount500).should.equal 0
 
-              result.trade.left.debit.amount.compareTo(amount100).should.equal 0
-              result.trade.left.credit.amount.compareTo(amount495).should.equal 0
-              result.trade.left.credit.commission.amount.compareTo(amount5).should.equal 0
-              result.trade.left.credit.commission.reference.should.equal 'Paul commission level'
-              result.trade.right.debit.amount.compareTo(amount500).should.equal 0
-              result.trade.right.credit.amount.compareTo(amount99).should.equal 0
-              result.trade.right.credit.commission.amount.compareTo(amount1).should.equal 0
-              result.trade.right.credit.commission.reference.should.equal 'Peter commission level'
+              expect(trade.left.remainder).to.not.be.ok
+              trade.left.transaction.debit.amount.should.equal '100'
+              trade.left.transaction.credit.amount.should.equal '495'
+              trade.left.transaction.credit.commission.amount.should.equal '5'
+              trade.left.transaction.credit.commission.reference.should.equal 'Paul commission level'
+              trade.right.remainder.bidAmount.should.equal '100'
+              trade.right.remainder.offerAmount.should.equal '500'
+              trade.right.transaction.debit.amount.should.equal '500'
+              trade.right.transaction.credit.amount.should.equal '99'
+              trade.right.transaction.credit.commission.amount.should.equal '1'
+              trade.right.transaction.credit.commission.reference.should.equal 'Peter commission level'
 
           describe 'and the right order is offering less than the left order is bidding', ->
-            it 'should trade the amount the right order is offering at the right order price and return the transaction information', ->
+            it 'should trade the amount the right order is offering at the right order price and return the trade information', ->
               order = @paulBidEUR
                 price: amountPoint25
                 amount: amount1500
 
-              result = order.match @order
-              result.complete.should.be.false
+              trade = order.match @order
 
               expect(@bookBTCEUR.next()).to.not.be.ok
               expect(@accountPeter.orders[0]).to.not.be.ok
@@ -910,14 +927,17 @@ describe 'Order', ->
               @order.bidAmount.compareTo(Amount.ZERO).should.equal 0
               @order.offerAmount.compareTo(Amount.ZERO).should.equal 0
 
-              result.trade.left.debit.amount.compareTo(amount200).should.equal 0
-              result.trade.left.credit.amount.compareTo(amount995).should.equal 0
-              result.trade.left.credit.commission.amount.compareTo(amount5).should.equal 0
-              result.trade.left.credit.commission.reference.should.equal 'Paul commission level'
-              result.trade.right.debit.amount.compareTo(amount1000).should.equal 0
-              result.trade.right.credit.amount.compareTo(amount199).should.equal 0
-              result.trade.right.credit.commission.amount.compareTo(amount1).should.equal 0
-              result.trade.right.credit.commission.reference.should.equal 'Peter commission level'
+              trade.left.remainder.bidAmount.should.equal '500'
+              trade.left.remainder.offerAmount.should.equal '125'
+              trade.left.transaction.debit.amount.should.equal '200'
+              trade.left.transaction.credit.amount.should.equal '995'
+              trade.left.transaction.credit.commission.amount.should.equal '5'
+              trade.left.transaction.credit.commission.reference.should.equal 'Paul commission level'
+              expect(trade.right.remainder).to.not.be.ok
+              trade.right.transaction.debit.amount.should.equal '1000'
+              trade.right.transaction.credit.amount.should.equal '199'
+              trade.right.transaction.credit.commission.amount.should.equal '1'
+              trade.right.transaction.credit.commission.reference.should.equal 'Peter commission level'
             
     describe 'where the existing (right) order is a bid', ->
       beforeEach ->
@@ -928,13 +948,12 @@ describe 'Order', ->
       describe 'and the new (left) price is better', ->
         describe 'and the left order is an offer', ->
           describe 'and the right order is bidding exactly the amount that the left order is offering', ->
-            it 'should trade the amount the right order is bidding at the right order price and return the transaction information', ->
+            it 'should trade the amount the right order is bidding at the right order price and return the trade information', ->
               order = @paulOfferBTC
                 price: amount4
                 amount: amount200
 
-              result = order.match @order
-              result.complete.should.be.true
+              trade = order.match @order
 
               expect(@bookBTCEUR.next()).to.not.be.ok
               expect(@accountPeter.orders[0]).to.not.be.ok
@@ -955,23 +974,24 @@ describe 'Order', ->
               @order.bidAmount.compareTo(Amount.ZERO).should.equal 0
               @order.offerAmount.compareTo(Amount.ZERO).should.equal 0
 
-              result.trade.left.debit.amount.compareTo(amount200).should.equal 0
-              result.trade.left.credit.amount.compareTo(amount995).should.equal 0
-              result.trade.left.credit.commission.amount.compareTo(amount5).should.equal 0
-              result.trade.left.credit.commission.reference.should.equal 'Paul commission level'
-              result.trade.right.debit.amount.compareTo(amount1000).should.equal 0
-              result.trade.right.credit.amount.compareTo(amount199).should.equal 0
-              result.trade.right.credit.commission.amount.compareTo(amount1).should.equal 0
-              result.trade.right.credit.commission.reference.should.equal 'Peter commission level'
+              expect(trade.left.remainder).to.not.be.ok
+              trade.left.transaction.debit.amount.should.equal '200'
+              trade.left.transaction.credit.amount.should.equal '995'
+              trade.left.transaction.credit.commission.amount.should.equal '5'
+              trade.left.transaction.credit.commission.reference.should.equal 'Paul commission level'
+              expect(trade.right.remainder).to.not.be.ok
+              trade.right.transaction.debit.amount.should.equal '1000'
+              trade.right.transaction.credit.amount.should.equal '199'
+              trade.right.transaction.credit.commission.amount.should.equal '1'
+              trade.right.transaction.credit.commission.reference.should.equal 'Peter commission level'
 
           describe 'and the right order is bidding more than the left order is offering', ->
-            it 'should trade the amount the left order is offering at the right order price and return the transaction information', ->
+            it 'should trade the amount the left order is offering at the right order price and return the trade information', ->
               order = @paulOfferBTC
                 price: amount4
                 amount: amount100
 
-              result = order.match @order
-              result.complete.should.be.true
+              trade = order.match @order
 
               @bookBTCEUR.next().should.equal @order
               @accountPeter.orders[0].should.equal @order
@@ -993,23 +1013,25 @@ describe 'Order', ->
               @order.bidAmount.compareTo(amount100).should.equal 0
               @order.offerAmount.compareTo(amount500).should.equal 0
 
-              result.trade.left.debit.amount.compareTo(amount100).should.equal 0
-              result.trade.left.credit.amount.compareTo(amount495).should.equal 0
-              result.trade.left.credit.commission.amount.compareTo(amount5).should.equal 0
-              result.trade.left.credit.commission.reference.should.equal 'Paul commission level'
-              result.trade.right.debit.amount.compareTo(amount500).should.equal 0
-              result.trade.right.credit.amount.compareTo(amount99).should.equal 0
-              result.trade.right.credit.commission.amount.compareTo(amount1).should.equal 0
-              result.trade.right.credit.commission.reference.should.equal 'Peter commission level'
+              expect(trade.left.remainder).to.not.be.ok
+              trade.left.transaction.debit.amount.should.equal '100'
+              trade.left.transaction.credit.amount.should.equal '495'
+              trade.left.transaction.credit.commission.amount.should.equal '5'
+              trade.left.transaction.credit.commission.reference.should.equal 'Paul commission level'
+              trade.right.remainder.bidAmount.should.equal '100'
+              trade.right.remainder.offerAmount.should.equal '500'
+              trade.right.transaction.debit.amount.should.equal '500'
+              trade.right.transaction.credit.amount.should.equal '99'
+              trade.right.transaction.credit.commission.amount.should.equal '1'
+              trade.right.transaction.credit.commission.reference.should.equal 'Peter commission level'
 
           describe 'and the right order is bidding less than the left order is offering', ->
-            it 'should trade the amount the right order is bidding at the right order price and return the transaction information', ->
+            it 'should trade the amount the right order is bidding at the right order price and return the trade information', ->
               order = @paulOfferBTC
                 price: amount4
                 amount: amount300
 
-              result = order.match @order
-              result.complete.should.be.false
+              trade = order.match @order
 
               expect(@bookBTCEUR.next()).to.not.be.ok
               expect(@accountPeter.orders[0]).to.not.be.ok
@@ -1031,24 +1053,26 @@ describe 'Order', ->
               @order.bidAmount.compareTo(Amount.ZERO).should.equal 0
               @order.offerAmount.compareTo(Amount.ZERO).should.equal 0
 
-              result.trade.left.debit.amount.compareTo(amount200).should.equal 0
-              result.trade.left.credit.amount.compareTo(amount995).should.equal 0
-              result.trade.left.credit.commission.amount.compareTo(amount5).should.equal 0
-              result.trade.left.credit.commission.reference.should.equal 'Paul commission level'
-              result.trade.right.debit.amount.compareTo(amount1000).should.equal 0
-              result.trade.right.credit.amount.compareTo(amount199).should.equal 0
-              result.trade.right.credit.commission.amount.compareTo(amount1).should.equal 0
-              result.trade.right.credit.commission.reference.should.equal 'Peter commission level'
+              trade.left.remainder.bidAmount.should.equal '400'
+              trade.left.remainder.offerAmount.should.equal '100'
+              trade.left.transaction.debit.amount.should.equal '200'
+              trade.left.transaction.credit.amount.should.equal '995'
+              trade.left.transaction.credit.commission.amount.should.equal '5'
+              trade.left.transaction.credit.commission.reference.should.equal 'Paul commission level'
+              expect(trade.right.remainder).to.not.be.ok
+              trade.right.transaction.debit.amount.should.equal '1000'
+              trade.right.transaction.credit.amount.should.equal '199'
+              trade.right.transaction.credit.commission.amount.should.equal '1'
+              trade.right.transaction.credit.commission.reference.should.equal 'Peter commission level'
 
         describe 'and the left order is a bid', ->
           describe 'and the right order is bidding exactly the amount that the left order is bidding multiplied by the right order price', ->
-            it 'should trade the amount the right order is bidding at the right order price and return the transaction information', ->
+            it 'should trade the amount the right order is bidding at the right order price and return the trade information', ->
               order = @paulBidEUR
                 price: amountPoint25
                 amount: amount1000
 
-              result = order.match @order
-              result.complete.should.be.true
+              trade = order.match @order
 
               expect(@bookBTCEUR.next()).to.not.be.ok
               expect(@accountPeter.orders[0]).to.not.be.ok
@@ -1070,23 +1094,24 @@ describe 'Order', ->
               @order.bidAmount.compareTo(Amount.ZERO).should.equal 0
               @order.offerAmount.compareTo(Amount.ZERO).should.equal 0
 
-              result.trade.left.debit.amount.compareTo(amount200).should.equal 0
-              result.trade.left.credit.amount.compareTo(amount995).should.equal 0
-              result.trade.left.credit.commission.amount.compareTo(amount5).should.equal 0
-              result.trade.left.credit.commission.reference.should.equal 'Paul commission level'
-              result.trade.right.debit.amount.compareTo(amount1000).should.equal 0
-              result.trade.right.credit.amount.compareTo(amount199).should.equal 0
-              result.trade.right.credit.commission.amount.compareTo(amount1).should.equal 0
-              result.trade.right.credit.commission.reference.should.equal 'Peter commission level'
+              expect(trade.left.remainder).to.not.be.ok
+              trade.left.transaction.debit.amount.should.equal '200'
+              trade.left.transaction.credit.amount.should.equal '995'
+              trade.left.transaction.credit.commission.amount.should.equal '5'
+              trade.left.transaction.credit.commission.reference.should.equal 'Paul commission level'
+              expect(trade.right.remainder).to.not.be.ok
+              trade.right.transaction.debit.amount.should.equal '1000'
+              trade.right.transaction.credit.amount.should.equal '199'
+              trade.right.transaction.credit.commission.amount.should.equal '1'
+              trade.right.transaction.credit.commission.reference.should.equal 'Peter commission level'
 
           describe 'and the right order is bidding more than the left order is bidding multiplied by the right order price', ->
-            it 'should trade the amount the left order is bidding at the right order price and return the transaction information', ->
+            it 'should trade the amount the left order is bidding at the right order price and return the trade information', ->
               order = @paulBidEUR
                 price: amountPoint25
                 amount: amount500
 
-              result = order.match @order
-              result.complete.should.be.true
+              trade = order.match @order
 
               @bookBTCEUR.next().should.equal @order
               @accountPeter.orders[0].should.equal @order
@@ -1108,23 +1133,25 @@ describe 'Order', ->
               @order.bidAmount.compareTo(amount100).should.equal 0
               @order.offerAmount.compareTo(amount500).should.equal 0
 
-              result.trade.left.debit.amount.compareTo(amount100).should.equal 0
-              result.trade.left.credit.amount.compareTo(amount495).should.equal 0
-              result.trade.left.credit.commission.amount.compareTo(amount5).should.equal 0
-              result.trade.left.credit.commission.reference.should.equal 'Paul commission level'
-              result.trade.right.debit.amount.compareTo(amount500).should.equal 0
-              result.trade.right.credit.amount.compareTo(amount99).should.equal 0
-              result.trade.right.credit.commission.amount.compareTo(amount1).should.equal 0
-              result.trade.right.credit.commission.reference.should.equal 'Peter commission level'
+              expect(trade.left.remainder).to.not.be.ok
+              trade.left.transaction.debit.amount.should.equal '100'
+              trade.left.transaction.credit.amount.should.equal '495'
+              trade.left.transaction.credit.commission.amount.should.equal '5'
+              trade.left.transaction.credit.commission.reference.should.equal 'Paul commission level'
+              trade.right.remainder.bidAmount.should.equal '100'
+              trade.right.remainder.offerAmount.should.equal '500'
+              trade.right.transaction.debit.amount.should.equal '500'
+              trade.right.transaction.credit.amount.should.equal '99'
+              trade.right.transaction.credit.commission.amount.should.equal '1'
+              trade.right.transaction.credit.commission.reference.should.equal 'Peter commission level'
               
           describe 'and the right order is bidding less than the left order is bidding multiplied by the right order price', ->
-            it 'should trade the amount the right order is bidding at the right order price and return the transaction information', ->
+            it 'should trade the amount the right order is bidding at the right order price and return the trade information', ->
               order = @paulBidEUR
                 price: amountPoint25
                 amount: amount1500
 
-              result = order.match @order
-              result.complete.should.be.false
+              trade = order.match @order
 
               expect(@bookBTCEUR.next()).to.not.be.ok
               expect(@accountPeter.orders[0]).to.not.be.ok
@@ -1145,14 +1172,17 @@ describe 'Order', ->
               @order.bidAmount.compareTo(Amount.ZERO).should.equal 0
               @order.offerAmount.compareTo(Amount.ZERO).should.equal 0
 
-              result.trade.left.debit.amount.compareTo(amount200).should.equal 0
-              result.trade.left.credit.amount.compareTo(amount995).should.equal 0
-              result.trade.left.credit.commission.amount.compareTo(amount5).should.equal 0
-              result.trade.left.credit.commission.reference.should.equal 'Paul commission level'
-              result.trade.right.debit.amount.compareTo(amount1000).should.equal 0
-              result.trade.right.credit.amount.compareTo(amount199).should.equal 0
-              result.trade.right.credit.commission.amount.compareTo(amount1).should.equal 0
-              result.trade.right.credit.commission.reference.should.equal 'Peter commission level'
+              trade.left.remainder.bidAmount.should.equal '500'
+              trade.left.remainder.offerAmount.should.equal '125'
+              trade.left.transaction.debit.amount.should.equal '200'
+              trade.left.transaction.credit.amount.should.equal '995'
+              trade.left.transaction.credit.commission.amount.should.equal '5'
+              trade.left.transaction.credit.commission.reference.should.equal 'Paul commission level'
+              expect(trade.right.remainder).to.not.be.ok
+              trade.right.transaction.debit.amount.should.equal '1000'
+              trade.right.transaction.credit.amount.should.equal '199'
+              trade.right.transaction.credit.commission.amount.should.equal '1'
+              trade.right.transaction.credit.commission.reference.should.equal 'Peter commission level'
 
   describe '#add', ->
     beforeEach ->

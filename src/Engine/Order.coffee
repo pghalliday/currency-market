@@ -62,45 +62,53 @@ module.exports = class Order
   partialOffer = (bidAmount, offerAmount, timestamp) ->
     @offerAmount = @offerAmount.subtract offerAmount
     @bidAmount = @offerAmount.multiply @offerPrice
-    balanceDeltas =
-      credit: @bidBalance.applyBid
-        amount: bidAmount
-        timestamp: timestamp
-      debit: @offerBalance.applyOffer
-        amount: offerAmount
-        fundsUnlocked: offerAmount
+    delta =
+      remainder:
+        bidAmount: @bidAmount.toString()
+        offerAmount: @offerAmount.toString()
+      transaction:
+        credit: @bidBalance.applyBid
+          amount: bidAmount
+          timestamp: timestamp
+        debit: @offerBalance.applyOffer
+          amount: offerAmount
+          fundsUnlocked: offerAmount
 
   partialBid = (bidAmount, offerAmount, timestamp) ->
     @bidAmount = @bidAmount.subtract bidAmount
     newOfferAmount = @bidAmount.multiply @bidPrice
     fundsUnlocked = @offerAmount.subtract newOfferAmount
     @offerAmount = newOfferAmount
-    balanceDeltas =
-      credit: @bidBalance.applyBid
-        amount: bidAmount
-        timestamp: timestamp
-      debit: @offerBalance.applyOffer
-        amount: offerAmount
-        fundsUnlocked: fundsUnlocked
+    delta =
+      remainder:
+        bidAmount: @bidAmount.toString()
+        offerAmount: @offerAmount.toString()
+      transaction:
+        credit: @bidBalance.applyBid
+          amount: bidAmount
+          timestamp: timestamp
+        debit: @offerBalance.applyOffer
+          amount: offerAmount
+          fundsUnlocked: fundsUnlocked
 
   fill = (bidAmount, offerAmount, timestamp) ->
     fundsUnlocked = @offerAmount
     @bidAmount = Amount.ZERO
     @offerAmount = Amount.ZERO
-    balanceDeltas =
-      credit: @bidBalance.applyBid
-        amount: bidAmount
-        timestamp: timestamp
-      debit: @offerBalance.applyOffer
-        amount: offerAmount
-        fundsUnlocked: fundsUnlocked
+    delta =
+      transaction:
+        credit: @bidBalance.applyBid
+          amount: bidAmount
+          timestamp: timestamp
+        debit: @offerBalance.applyOffer
+          amount: offerAmount
+          fundsUnlocked: fundsUnlocked
     @account.complete @
     @book.cancel @
-    return balanceDeltas
+    return delta
 
   match: (order) =>
-    result = 
-      complete: false
+    trade = undefined
     if @offerPrice
       if order.bidPrice
         if order.bidPrice.compareTo(@offerPrice) >= 0
@@ -110,24 +118,22 @@ module.exports = class Order
           if compareAmounts > 0
             leftOfferAmount = order.bidAmount
             rightOfferAmount = order.offerAmount
-            rightBalanceDeltas = fill.call order, leftOfferAmount, rightOfferAmount, @timestamp
-            leftBalanceDeltas = partialOffer.call @, rightOfferAmount, leftOfferAmount, @timestamp
-            result.trade = 
-              left: leftBalanceDeltas
-              right: rightBalanceDeltas
-            return result
+            rightDelta = fill.call order, leftOfferAmount, rightOfferAmount, @timestamp
+            leftDelta = partialOffer.call @, rightOfferAmount, leftOfferAmount, @timestamp
+            trade = 
+              left: leftDelta
+              right: rightDelta
           else
             leftOfferAmount = @offerAmount
             rightOfferAmount = leftOfferAmount.multiply price
             if compareAmounts == 0
-              rightBalanceDeltas = fill.call order, leftOfferAmount, rightOfferAmount, @timestamp
+              rightDelta = fill.call order, leftOfferAmount, rightOfferAmount, @timestamp
             else
-              rightBalanceDeltas = partialBid.call order, leftOfferAmount, rightOfferAmount, @timestamp
-            leftBalanceDeltas = fill.call @, rightOfferAmount, leftOfferAmount, @timestamp
-            result.complete = true
-            result.trade = 
-              left: leftBalanceDeltas
-              right: rightBalanceDeltas
+              rightDelta = partialBid.call order, leftOfferAmount, rightOfferAmount, @timestamp
+            leftDelta = fill.call @, rightOfferAmount, leftOfferAmount, @timestamp
+            trade = 
+              left: leftDelta
+              right: rightDelta
       else
         if order.offerPrice.multiply(@offerPrice).compareTo(Amount.ONE) <= 0
           # prices overlap so we make a trade
@@ -136,11 +142,11 @@ module.exports = class Order
           if compareAmounts > 0
             leftOfferAmount = order.bidAmount
             rightOfferAmount = order.offerAmount
-            rightBalanceDeltas = fill.call order, leftOfferAmount, rightOfferAmount, @timestamp
-            leftBalanceDeltas = partialOffer.call @, rightOfferAmount, leftOfferAmount, @timestamp
-            result.trade = 
-              left: leftBalanceDeltas
-              right: rightBalanceDeltas
+            rightDelta = fill.call order, leftOfferAmount, rightOfferAmount, @timestamp
+            leftDelta = partialOffer.call @, rightOfferAmount, leftOfferAmount, @timestamp
+            trade = 
+              left: leftDelta
+              right: rightDelta
           else
             leftOfferAmount = @offerAmount
             # NB: Cannot think of any way to avoid this divide but
@@ -151,14 +157,13 @@ module.exports = class Order
             # if you allow your market to be priced in either direction
             rightOfferAmount = leftOfferAmount.divide price
             if compareAmounts == 0
-              rightBalanceDeltas = fill.call order, leftOfferAmount, rightOfferAmount, @timestamp
+              rightDelta = fill.call order, leftOfferAmount, rightOfferAmount, @timestamp
             else
-              rightBalanceDeltas = partialOffer.call order, leftOfferAmount, rightOfferAmount, @timestamp
-            leftBalanceDeltas = fill.call @, rightOfferAmount, leftOfferAmount, @timestamp
-            result.complete = true
-            result.trade = 
-              left: leftBalanceDeltas
-              right: rightBalanceDeltas
+              rightDelta = partialOffer.call order, leftOfferAmount, rightOfferAmount, @timestamp
+            leftDelta = fill.call @, rightOfferAmount, leftOfferAmount, @timestamp
+            trade = 
+              left: leftDelta
+              right: rightDelta
     else
       if order.offerPrice
         if @bidPrice.compareTo(order.offerPrice) >= 0
@@ -168,23 +173,22 @@ module.exports = class Order
           if compareAmounts > 0
             rightOfferAmount = order.offerAmount
             leftOfferAmount = rightOfferAmount.multiply price
-            rightBalanceDeltas = fill.call order, leftOfferAmount, rightOfferAmount, @timestamp
-            leftBalanceDeltas = partialBid.call @, rightOfferAmount, leftOfferAmount, @timestamp
-            result.trade = 
-              left: leftBalanceDeltas
-              right: rightBalanceDeltas
+            rightDelta = fill.call order, leftOfferAmount, rightOfferAmount, @timestamp
+            leftDelta = partialBid.call @, rightOfferAmount, leftOfferAmount, @timestamp
+            trade = 
+              left: leftDelta
+              right: rightDelta
           else
             rightOfferAmount = @bidAmount
             leftOfferAmount = rightOfferAmount.multiply price
             if compareAmounts == 0
-              rightBalanceDeltas = fill.call order, leftOfferAmount, rightOfferAmount, @timestamp
+              rightDelta = fill.call order, leftOfferAmount, rightOfferAmount, @timestamp
             else
-              rightBalanceDeltas = partialOffer.call order, leftOfferAmount, rightOfferAmount, @timestamp
-            leftBalanceDeltas = fill.call @, rightOfferAmount, leftOfferAmount, @timestamp
-            result.complete = true
-            result.trade = 
-              left: leftBalanceDeltas
-              right: rightBalanceDeltas
+              rightDelta = partialOffer.call order, leftOfferAmount, rightOfferAmount, @timestamp
+            leftDelta = fill.call @, rightOfferAmount, leftOfferAmount, @timestamp
+            trade = 
+              left: leftDelta
+              right: rightDelta
       else
         if order.bidPrice.multiply(@bidPrice).compareTo(Amount.ONE) >= 0
           # prices overlap so we make a trade
@@ -193,11 +197,11 @@ module.exports = class Order
           if compareAmounts > 0
             leftOfferAmount = order.bidAmount
             rightOfferAmount = order.offerAmount
-            rightBalanceDeltas = fill.call order, leftOfferAmount, rightOfferAmount, @timestamp
-            leftBalanceDeltas = partialBid.call @, rightOfferAmount, leftOfferAmount, @timestamp
-            result.trade = 
-              left: leftBalanceDeltas
-              right: rightBalanceDeltas
+            rightDelta = fill.call order, leftOfferAmount, rightOfferAmount, @timestamp
+            leftDelta = partialBid.call @, rightOfferAmount, leftOfferAmount, @timestamp
+            trade = 
+              left: leftDelta
+              right: rightDelta
           else
             # NB: Cannot think of any way to avoid this divide but
             # must ensure that we round down as rounding up could
@@ -211,15 +215,14 @@ module.exports = class Order
             # division as there is no remainder)
             rightOfferAmount = leftOfferAmount.multiply price
             if compareAmounts == 0
-              rightBalanceDeltas = fill.call order, leftOfferAmount, rightOfferAmount, @timestamp
+              rightDelta = fill.call order, leftOfferAmount, rightOfferAmount, @timestamp
             else
-              rightBalanceDeltas = partialBid.call order, leftOfferAmount, rightOfferAmount, @timestamp
-            leftBalanceDeltas = fill.call @, rightOfferAmount, leftOfferAmount, @timestamp
-            result.complete = true
-            result.trade = 
-              left: leftBalanceDeltas
-              right: rightBalanceDeltas
-    return result
+              rightDelta = partialBid.call order, leftOfferAmount, rightOfferAmount, @timestamp
+            leftDelta = fill.call @, rightOfferAmount, leftOfferAmount, @timestamp
+            trade = 
+              left: leftDelta
+              right: rightDelta
+    return trade
 
   add: (order, nextHigher) =>
     if @bidPrice

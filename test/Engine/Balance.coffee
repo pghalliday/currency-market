@@ -125,13 +125,13 @@ describe 'Balance', ->
         fundsUnlocked: amount50
       balance.lockedFunds.compareTo(amount150).should.equal 0
       balance.funds.compareTo(amount150).should.equal 0
-      debit.amount.compareTo(amount50).should.equal 0
+      debit.amount.should.equal '50'
       debit = balance.applyOffer
         amount: amount50
         fundsUnlocked: amount100
       balance.lockedFunds.compareTo(amount50).should.equal 0
       balance.funds.compareTo(amount100).should.equal 0
-      debit.amount.compareTo(amount50).should.equal 0
+      debit.amount.should.equal '50'
 
   describe '#applyBid', ->
     describe 'without commision', ->
@@ -144,7 +144,7 @@ describe 'Balance', ->
           amount: amount50
           timestamp: 1371737390976
         balance.funds.compareTo(amount50).should.equal 0
-        credit.amount.compareTo(amount50).should.equal 0
+        credit.amount.should.equal '50'
         expect(credit.commission).to.not.be.ok
 
     describe 'with commision', ->
@@ -165,8 +165,8 @@ describe 'Balance', ->
           amount: amount50
           timestamp: 1371737390976
         balance.funds.compareTo(amount45).should.equal 0
-        credit.amount.compareTo(amount45).should.equal 0
-        credit.commission.amount.compareTo(amount5).should.equal 0
+        credit.amount.should.equal '45'
+        credit.commission.amount.should.equal '5'
         credit.commission.reference.should.equal 'Flat 5'
         commissionAccount.getBalance('EUR').funds.compareTo(amount5).should.equal 0
 
