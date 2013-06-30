@@ -18,7 +18,7 @@ All functions complete synchronously and throw errors if they fail.
 
 ### `Amount`
 
-`Amount` handles large numerical arithmetic accurately (unlike the built in Javascript number implementation). It is used for all internal numerical operations and in the external interfaces to specify amounts and prices.
+`Amount` handles large numerical arithmetic accurately (unlike the built in Javascript number implementation). It is used for all internal numerical operations and is provided as a utility for applications to apply the same arimthmetic functionality in their own contexts. In particular it should be used in commission calculations.
 
 `Amount` instances are immutable.
 
@@ -103,13 +103,20 @@ var engine = new engine({
 
 #### `apply` method
 
-The `apply` method applies operations and returns the resulting deltas. If an operation fails for any reason (eg. not enough funds) then an error will be thrown. All operations follow the same pattern
+The `apply` method applies operations and returns the resulting deltas.
+
+Operations and deltas can be converted losslessly to and from JSON for tranmission.
+
+If an operation fails for any reason (eg. not enough funds) then an error will be thrown.
+
+All operations follow the same pattern
 
 ```Javascript
 
 try {
   var delta  = engine.apply({
-    // User specified reference that is returned untouched with the operation details included in the delta
+    // Application specified reference that is returned untouched with the operation details included in the delta.
+    // Care should be taken to ensure that this too can be converted to and from JSON
     reference: '550e8400-e29b-41d4-a716-446655440000',
     // The ID of the account submitting the operation
     account: 'Peter',
@@ -150,8 +157,9 @@ try {
       ...
     }
   };
-} catch (error) {
+} catch(error) {
   // Possible errors will include invalid parameters or insufficient funds to complete the operation
+  ...
 }
 ```
 
@@ -168,7 +176,7 @@ var delta  = engine.apply({
   // deposit 1000 Euros to account ID 'Peter'
   deposit: {
     currency: 'EUR',
-    amount: new Amount('1000')
+    amount: '1000'
   }
 });
 
@@ -182,7 +190,7 @@ var delta = {
     timestamp: 1371737390976,
     deposit: {
       currency: 'EUR',
-      amount: new Amount('1000')
+      amount: '1000'
     }
   }
 };
@@ -201,7 +209,7 @@ var delta  = engine.apply({
   // withdraw 1000 Euros from account ID 'Peter'
   withdraw: {
     currency: 'EUR',
-    amount: new Amount('1000')
+    amount: '1000'
   }
 });
 
@@ -215,7 +223,7 @@ var delta = {
     timestamp: 1371737390976,
     withdraw: {
       currency: 'EUR',
-      amount: new Amount('1000')
+      amount: '1000'
     }
   }
 };
@@ -278,25 +286,25 @@ var delta = {
         // will have a remainder if they completely satisfy each other
         remainder: {
           // The remaining bidAmount on the order
-          bidAmount: new Amount('12589.1335'),
+          bidAmount: '12589.1335',
           // The remaining offerAmount on the order
-          offerAmount: new Amount('3261.23'),
+          offerAmount: '3261.23',
         },
         // The transaction fields signal by how much the account balances have changed
         // and how much commission was applied
         transaction: {
           debit: {
             // The amount of the order's offer currency debited from the account
-            amount: new Amount('6592.32697')
+            amount: '6592.32697'
           },
           credit: {
             // The amount of the order's bid currency credited to the account
-            amount: new Amount('326598.2356'),
+            amount: '326598.2356',
             // If the engine was instantiated without commission then the commission
             // field will not be set
             commission: {
               // The amount of the order's bid currency credited to the commission account
-              amount: new Amount('326.123588'),
+              amount: '326.123588',
               // The reference associated with the commission calculation
               reference: '0.01%'
             }
@@ -327,8 +335,8 @@ var delta  = engine.apply({
   submit: {
     bidCurrency: 'BTC',
     offerCurrency: 'EUR',
-    bidPrice: new Amount('100'),
-    bidAmount: new Amount('10')
+    bidPrice: '100',
+    bidAmount: '10'
   }
 });
 ```
@@ -345,8 +353,8 @@ var delta  = engine.apply({
   submit: {
     bidCurrency: 'BTC',
     offerCurrency: 'EUR',
-    offerPrice: new Amount('0.01'),
-    offerAmount: new Amount('1000')
+    offerPrice: '0.01',
+    offerAmount: '1000'
   }
 });
 ```
@@ -412,14 +420,6 @@ var State = require('currency-market').State;
 var state = new State();
 ```
 
-#### `export` method
-
-The `export` method is used to export the current state of the market as an object that can be converted to and from JSON and used to reinitialise another `State` instance in the same state
-
-```Javascript
-var exported = state.export();
-```
-
 #### `import` method
 
 The `import` method is used to import a previously exported state, either from another `State` instance or an `Engine` instance
@@ -428,8 +428,30 @@ The `import` method is used to import a previously exported state, either from a
 state.import(exported);
 ```
 
+#### `apply` method
+
+The `apply` method is used to apply deltas generated by `Engine` instances. The delta will be applied synchronously and errors may be thrown
+
+```Javascript
+try {
+  state.apply(delta);
+} catch(error) {
+  // possible errors include out of sequence deltas 
+  ...
+}
+```
+
+#### `export` method
+
+The `export` method is used to export the current state of the market as an object that can be converted to and from JSON and used to reinitialise another `State` instance in the same state
+
+```Javascript
+var exported = state.export();
+```
+
 ## Roadmap
 
+- factor out the `Amount` instances from operations and deltas as described above
 - refactor `submit` deltas as described above
 - Implement `State` as described above 
 - Instant orders
