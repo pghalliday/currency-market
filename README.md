@@ -270,10 +270,16 @@ var delta = {
     }
   },
   result: {
-    // The index of the order in the book it was inserted into
-    index: 0,
     // The new level of locked funds in the order's offer currency
     lockedFunds: '45685.1234',
+
+    // Note that only one of `nextHigherOrderSequence` or `trades` will be set
+
+    // If the order is not at the top of the order book then the sequence number
+    // of the next order above it is returned. This is a hint to optimize the
+    // insertion of the order into a `State` instance
+    nextHigherOrderSequence: 652973,
+
     // If the order was inserted at the top of the order book then an array of trades
     // will be returned. This array will still be set, but will be empty, if no actual 
     // trades were made
@@ -318,7 +324,7 @@ var delta = {
             commission: {
               // The amount of the order's bid currency credited to the commission account
               amount: '326.123588',
-              // The new level of funds in order's bid currency in the commission account
+              // The new level of funds in the order's bid currency in the commission account
               funds: '456432148131.45645645'
               // The reference associated with the commission calculation
               reference: '0.01%'
