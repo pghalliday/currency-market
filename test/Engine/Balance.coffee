@@ -73,9 +73,11 @@ describe 'Balance', ->
         account: new Account
           id: 'Peter'
         currency: 'EUR'
-      balance.deposit amount200
+      funds = balance.deposit amount200
+      funds.should.equal '200'
       balance.funds.compareTo(amount200).should.equal 0
-      balance.deposit amount150
+      funds = balance.deposit amount150
+      funds.should.equal '350'
       balance.funds.compareTo(amount350).should.equal 0
 
   describe '#lock', ->
@@ -85,9 +87,11 @@ describe 'Balance', ->
           id: 'Peter'
         currency: 'EUR'
       balance.deposit amount200
-      balance.lock amount50
+      lockedFunds = balance.lock amount50
+      lockedFunds.should.equal '50'
       balance.lockedFunds.compareTo(amount50).should.equal 0
-      balance.lock amount100
+      lockedFunds = balance.lock amount100
+      lockedFunds.should.equal '150'
       balance.lockedFunds.compareTo(amount150).should.equal 0
 
     it 'should throw an error if there are not enough funds available to satisfy the lock', ->
@@ -109,7 +113,8 @@ describe 'Balance', ->
         currency: 'EUR'
       balance.deposit amount200
       balance.lock amount200
-      balance.unlock amount50
+      lockedFunds = balance.unlock amount50
+      lockedFunds.should.equal '150'
       balance.lockedFunds.compareTo(amount150).should.equal 0
 
   describe '#applyOffer', ->
@@ -126,12 +131,16 @@ describe 'Balance', ->
       balance.lockedFunds.compareTo(amount150).should.equal 0
       balance.funds.compareTo(amount150).should.equal 0
       debit.amount.should.equal '50'
+      debit.funds.should.equal '150'
+      debit.lockedFunds.should.equal '150'
       debit = balance.applyOffer
         amount: amount50
         fundsUnlocked: amount100
       balance.lockedFunds.compareTo(amount50).should.equal 0
       balance.funds.compareTo(amount100).should.equal 0
       debit.amount.should.equal '50'
+      debit.funds.should.equal '100'
+      debit.lockedFunds.should.equal '50'
 
   describe '#applyBid', ->
     describe 'without commision', ->
@@ -145,6 +154,7 @@ describe 'Balance', ->
           timestamp: 1371737390976
         balance.funds.compareTo(amount50).should.equal 0
         credit.amount.should.equal '50'
+        credit.funds.should.equal '50'
         expect(credit.commission).to.not.be.ok
 
     describe 'with commision', ->
@@ -166,6 +176,7 @@ describe 'Balance', ->
           timestamp: 1371737390976
         balance.funds.compareTo(amount45).should.equal 0
         credit.amount.should.equal '45'
+        credit.funds.should.equal '45'
         credit.commission.amount.should.equal '5'
         credit.commission.reference.should.equal 'Flat 5'
         commissionAccount.getBalance('EUR').funds.compareTo(amount5).should.equal 0
@@ -179,9 +190,11 @@ describe 'Balance', ->
       balance.deposit amount200
       balance.lock amount50
       balance.lock amount100
-      balance.withdraw amount25
+      funds = balance.withdraw amount25
+      funds.should.equal '175'
       balance.funds.compareTo(amount175).should.equal 0
-      balance.withdraw amount25
+      funds = balance.withdraw amount25
+      funds.should.equal '150'
       balance.funds.compareTo(amount150).should.equal 0
 
     it 'should throw an error if the withdrawal amount is greater than the funds available taking into account the locked funds', ->

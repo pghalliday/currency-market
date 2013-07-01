@@ -436,7 +436,8 @@ describe 'Order', ->
     order.bidPrice.compareTo(amount100).should.equal 0
     order.bidAmount.compareTo(amount50).should.equal 0
     order.offerAmount.compareTo(amount5000).should.equal 0
-    expect(order.parent).to.not.be.ok
+    expect(order.higherParent).to.not.be.ok
+    expect(order.lowerParent).to.not.be.ok
     expect(order.lower).to.not.be.ok
     expect(order.higher).to.not.be.ok
     order = @peterOfferEUR
@@ -489,13 +490,21 @@ describe 'Order', ->
 
               expect(trade.left.remainder).to.not.be.ok
               trade.left.transaction.debit.amount.should.equal '200'
+              trade.left.transaction.debit.funds.should.equal '19800'
+              trade.left.transaction.debit.lockedFunds.should.equal '0'
               trade.left.transaction.credit.amount.should.equal '995'
+              trade.left.transaction.credit.funds.should.equal '995'
               trade.left.transaction.credit.commission.amount.should.equal '5'
+              trade.left.transaction.credit.commission.funds.should.equal '5'
               trade.left.transaction.credit.commission.reference.should.equal 'Paul commission level'
               expect(trade.right.remainder).to.not.be.ok
               trade.right.transaction.debit.amount.should.equal '1000'
+              trade.right.transaction.debit.funds.should.equal '99000'
+              trade.right.transaction.debit.lockedFunds.should.equal '0'
               trade.right.transaction.credit.amount.should.equal '199'
+              trade.right.transaction.credit.funds.should.equal '199'
               trade.right.transaction.credit.commission.amount.should.equal '1'
+              trade.right.transaction.credit.commission.funds.should.equal '1'
               trade.right.transaction.credit.commission.reference.should.equal 'Peter commission level'
 
           describe 'and the right order is offering more than the left order is bidding', ->
@@ -528,14 +537,22 @@ describe 'Order', ->
 
               expect(trade.left.remainder).to.not.be.ok
               trade.left.transaction.debit.amount.should.equal '100'
+              trade.left.transaction.debit.funds.should.equal '19900'
+              trade.left.transaction.debit.lockedFunds.should.equal '0'
               trade.left.transaction.credit.amount.should.equal '495'
+              trade.left.transaction.credit.funds.should.equal '495'
               trade.left.transaction.credit.commission.amount.should.equal '5'
+              trade.left.transaction.credit.commission.funds.should.equal '5'
               trade.left.transaction.credit.commission.reference.should.equal 'Paul commission level'
               trade.right.remainder.bidAmount.should.equal '100'
               trade.right.remainder.offerAmount.should.equal '500'
               trade.right.transaction.debit.amount.should.equal '500'
+              trade.right.transaction.debit.funds.should.equal '99500'
+              trade.right.transaction.debit.lockedFunds.should.equal '500'
               trade.right.transaction.credit.amount.should.equal '99'
+              trade.right.transaction.credit.funds.should.equal '99'
               trade.right.transaction.credit.commission.amount.should.equal '1'
+              trade.right.transaction.credit.commission.funds.should.equal '1'
               trade.right.transaction.credit.commission.reference.should.equal 'Peter commission level'
 
           describe 'and the right order is offering less than the left order is bidding', ->
@@ -569,13 +586,21 @@ describe 'Order', ->
               trade.left.remainder.bidAmount.should.equal '500'
               trade.left.remainder.offerAmount.should.equal '100'
               trade.left.transaction.debit.amount.should.equal '200'
+              trade.left.transaction.debit.funds.should.equal '19800'
+              trade.left.transaction.debit.lockedFunds.should.equal '100'
               trade.left.transaction.credit.amount.should.equal '995'
+              trade.left.transaction.credit.funds.should.equal '995'
               trade.left.transaction.credit.commission.amount.should.equal '5'
+              trade.left.transaction.credit.commission.funds.should.equal '5'
               trade.left.transaction.credit.commission.reference.should.equal 'Paul commission level'
               expect(trade.right.remainder).to.not.be.ok
               trade.right.transaction.debit.amount.should.equal '1000'
+              trade.right.transaction.debit.funds.should.equal '99000'
+              trade.right.transaction.debit.lockedFunds.should.equal '0'
               trade.right.transaction.credit.amount.should.equal '199'
+              trade.right.transaction.credit.funds.should.equal '199'
               trade.right.transaction.credit.commission.amount.should.equal '1'
+              trade.right.transaction.credit.commission.funds.should.equal '1'
               trade.right.transaction.credit.commission.reference.should.equal 'Peter commission level'
 
         describe 'and the left order is an offer', ->
@@ -609,13 +634,21 @@ describe 'Order', ->
 
               expect(trade.left.remainder).to.not.be.ok
               trade.left.transaction.debit.amount.should.equal '200'
+              trade.left.transaction.debit.funds.should.equal '19800'
+              trade.left.transaction.debit.lockedFunds.should.equal '0'
               trade.left.transaction.credit.amount.should.equal '995'
+              trade.left.transaction.credit.funds.should.equal '995'
               trade.left.transaction.credit.commission.amount.should.equal '5'
+              trade.left.transaction.credit.commission.funds.should.equal '5'
               trade.left.transaction.credit.commission.reference.should.equal 'Paul commission level'
               expect(trade.right.remainder).to.not.be.ok
               trade.right.transaction.debit.amount.should.equal '1000'
+              trade.right.transaction.debit.funds.should.equal '99000'
+              trade.right.transaction.debit.lockedFunds.should.equal '0'
               trade.right.transaction.credit.amount.should.equal '199'
+              trade.right.transaction.credit.funds.should.equal '199'
               trade.right.transaction.credit.commission.amount.should.equal '1'
+              trade.right.transaction.credit.commission.funds.should.equal '1'
               trade.right.transaction.credit.commission.reference.should.equal 'Peter commission level'
 
           describe 'and the right order is offering more than the left order is offering', ->
@@ -648,14 +681,22 @@ describe 'Order', ->
 
               expect(trade.left.remainder).to.not.be.ok
               trade.left.transaction.debit.amount.should.equal '100'
+              trade.left.transaction.debit.funds.should.equal '19900'
+              trade.left.transaction.debit.lockedFunds.should.equal '0'
               trade.left.transaction.credit.amount.should.equal '495'
+              trade.left.transaction.credit.funds.should.equal '495'
               trade.left.transaction.credit.commission.amount.should.equal '5'
+              trade.left.transaction.credit.commission.funds.should.equal '5'
               trade.left.transaction.credit.commission.reference.should.equal 'Paul commission level'
               trade.right.remainder.bidAmount.should.equal '100'
               trade.right.remainder.offerAmount.should.equal '500'
               trade.right.transaction.debit.amount.should.equal '500'
+              trade.right.transaction.debit.funds.should.equal '99500'
+              trade.right.transaction.debit.lockedFunds.should.equal '500'
               trade.right.transaction.credit.amount.should.equal '99'
+              trade.right.transaction.credit.funds.should.equal '99'
               trade.right.transaction.credit.commission.amount.should.equal '1'
+              trade.right.transaction.credit.commission.funds.should.equal '1'
               trade.right.transaction.credit.commission.reference.should.equal 'Peter commission level'
 
           describe 'and the right order is offering less than the left order is offering', ->
@@ -689,13 +730,21 @@ describe 'Order', ->
               trade.left.remainder.bidAmount.should.equal '500'
               trade.left.remainder.offerAmount.should.equal '100'
               trade.left.transaction.debit.amount.should.equal '200'
+              trade.left.transaction.debit.funds.should.equal '19800'
+              trade.left.transaction.debit.lockedFunds.should.equal '100'
               trade.left.transaction.credit.amount.should.equal '995'
+              trade.left.transaction.credit.funds.should.equal '995'
               trade.left.transaction.credit.commission.amount.should.equal '5'
+              trade.left.transaction.credit.commission.funds.should.equal '5'
               trade.left.transaction.credit.commission.reference.should.equal 'Paul commission level'
               expect(trade.right.remainder).to.not.be.ok
               trade.right.transaction.debit.amount.should.equal '1000'
+              trade.right.transaction.debit.funds.should.equal '99000'
+              trade.right.transaction.debit.lockedFunds.should.equal '0'
               trade.right.transaction.credit.amount.should.equal '199'
+              trade.right.transaction.credit.funds.should.equal '199'
               trade.right.transaction.credit.commission.amount.should.equal '1'
+              trade.right.transaction.credit.commission.funds.should.equal '1'
               trade.right.transaction.credit.commission.reference.should.equal 'Peter commission level'
 
       describe 'and the new (left) price is the better', ->
@@ -730,13 +779,21 @@ describe 'Order', ->
 
               expect(trade.left.remainder).to.not.be.ok
               trade.left.transaction.debit.amount.should.equal '200'
+              trade.left.transaction.debit.funds.should.equal '19800'
+              trade.left.transaction.debit.lockedFunds.should.equal '0'
               trade.left.transaction.credit.amount.should.equal '995'
+              trade.left.transaction.credit.funds.should.equal '995'
               trade.left.transaction.credit.commission.amount.should.equal '5'
+              trade.left.transaction.credit.commission.funds.should.equal '5'
               trade.left.transaction.credit.commission.reference.should.equal 'Paul commission level'
               expect(trade.right.remainder).to.not.be.ok
               trade.right.transaction.debit.amount.should.equal '1000'
+              trade.right.transaction.debit.funds.should.equal '99000'
+              trade.right.transaction.debit.lockedFunds.should.equal '0'
               trade.right.transaction.credit.amount.should.equal '199'
+              trade.right.transaction.credit.funds.should.equal '199'
               trade.right.transaction.credit.commission.amount.should.equal '1'
+              trade.right.transaction.credit.commission.funds.should.equal '1'
               trade.right.transaction.credit.commission.reference.should.equal 'Peter commission level'
 
           describe 'and the right order is offering more than the left order is offering multiplied by the right order price', ->
@@ -769,14 +826,22 @@ describe 'Order', ->
 
               expect(trade.left.remainder).to.not.be.ok
               trade.left.transaction.debit.amount.should.equal '100'
+              trade.left.transaction.debit.funds.should.equal '19900'
+              trade.left.transaction.debit.lockedFunds.should.equal '0'
               trade.left.transaction.credit.amount.should.equal '495'
+              trade.left.transaction.credit.funds.should.equal '495'
               trade.left.transaction.credit.commission.amount.should.equal '5'
+              trade.left.transaction.credit.commission.funds.should.equal '5'
               trade.left.transaction.credit.commission.reference.should.equal 'Paul commission level'
               trade.right.remainder.bidAmount.should.equal '100'
               trade.right.remainder.offerAmount.should.equal '500'
               trade.right.transaction.debit.amount.should.equal '500'
+              trade.right.transaction.debit.funds.should.equal '99500'
+              trade.right.transaction.debit.lockedFunds.should.equal '500'
               trade.right.transaction.credit.amount.should.equal '99'
+              trade.right.transaction.credit.funds.should.equal '99'
               trade.right.transaction.credit.commission.amount.should.equal '1'
+              trade.right.transaction.credit.commission.funds.should.equal '1'
               trade.right.transaction.credit.commission.reference.should.equal 'Peter commission level'
 
           describe 'and the right order is offering less than the left order is offering multiplied by the right order price', ->
@@ -810,13 +875,21 @@ describe 'Order', ->
               trade.left.remainder.bidAmount.should.equal '400'
               trade.left.remainder.offerAmount.should.equal '100'
               trade.left.transaction.debit.amount.should.equal '200'
+              trade.left.transaction.debit.funds.should.equal '19800'
+              trade.left.transaction.debit.lockedFunds.should.equal '100'
               trade.left.transaction.credit.amount.should.equal '995'
+              trade.left.transaction.credit.funds.should.equal '995'
               trade.left.transaction.credit.commission.amount.should.equal '5'
+              trade.left.transaction.credit.commission.funds.should.equal '5'
               trade.left.transaction.credit.commission.reference.should.equal 'Paul commission level'
               expect(trade.right.remainder).to.not.be.ok
               trade.right.transaction.debit.amount.should.equal '1000'
+              trade.right.transaction.debit.funds.should.equal '99000'
+              trade.right.transaction.debit.lockedFunds.should.equal '0'
               trade.right.transaction.credit.amount.should.equal '199'
+              trade.right.transaction.credit.funds.should.equal '199'
               trade.right.transaction.credit.commission.amount.should.equal '1'
+              trade.right.transaction.credit.commission.funds.should.equal '1'
               trade.right.transaction.credit.commission.reference.should.equal 'Peter commission level'
 
         describe 'and the left order is a bid', ->
@@ -850,13 +923,21 @@ describe 'Order', ->
 
               expect(trade.left.remainder).to.not.be.ok
               trade.left.transaction.debit.amount.should.equal '200'
+              trade.left.transaction.debit.funds.should.equal '19800'
+              trade.left.transaction.debit.lockedFunds.should.equal '0'
               trade.left.transaction.credit.amount.should.equal '995'
+              trade.left.transaction.credit.funds.should.equal '995'
               trade.left.transaction.credit.commission.amount.should.equal '5'
+              trade.left.transaction.credit.commission.funds.should.equal '5'
               trade.left.transaction.credit.commission.reference.should.equal 'Paul commission level'
               expect(trade.right.remainder).to.not.be.ok
               trade.right.transaction.debit.amount.should.equal '1000'
+              trade.right.transaction.debit.funds.should.equal '99000'
+              trade.right.transaction.debit.lockedFunds.should.equal '0'
               trade.right.transaction.credit.amount.should.equal '199'
+              trade.right.transaction.credit.funds.should.equal '199'
               trade.right.transaction.credit.commission.amount.should.equal '1'
+              trade.right.transaction.credit.commission.funds.should.equal '1'
               trade.right.transaction.credit.commission.reference.should.equal 'Peter commission level'
               
           describe 'and the right order is offering more than the left order is bidding', ->
@@ -889,14 +970,22 @@ describe 'Order', ->
 
               expect(trade.left.remainder).to.not.be.ok
               trade.left.transaction.debit.amount.should.equal '100'
+              trade.left.transaction.debit.funds.should.equal '19900'
+              trade.left.transaction.debit.lockedFunds.should.equal '0'
               trade.left.transaction.credit.amount.should.equal '495'
+              trade.left.transaction.credit.funds.should.equal '495'
               trade.left.transaction.credit.commission.amount.should.equal '5'
+              trade.left.transaction.credit.commission.funds.should.equal '5'
               trade.left.transaction.credit.commission.reference.should.equal 'Paul commission level'
               trade.right.remainder.bidAmount.should.equal '100'
               trade.right.remainder.offerAmount.should.equal '500'
               trade.right.transaction.debit.amount.should.equal '500'
+              trade.right.transaction.debit.funds.should.equal '99500'
+              trade.right.transaction.debit.lockedFunds.should.equal '500'
               trade.right.transaction.credit.amount.should.equal '99'
+              trade.right.transaction.credit.funds.should.equal '99'
               trade.right.transaction.credit.commission.amount.should.equal '1'
+              trade.right.transaction.credit.commission.funds.should.equal '1'
               trade.right.transaction.credit.commission.reference.should.equal 'Peter commission level'
 
           describe 'and the right order is offering less than the left order is bidding', ->
@@ -930,13 +1019,21 @@ describe 'Order', ->
               trade.left.remainder.bidAmount.should.equal '500'
               trade.left.remainder.offerAmount.should.equal '125'
               trade.left.transaction.debit.amount.should.equal '200'
+              trade.left.transaction.debit.funds.should.equal '19800'
+              trade.left.transaction.debit.lockedFunds.should.equal '125'
               trade.left.transaction.credit.amount.should.equal '995'
+              trade.left.transaction.credit.funds.should.equal '995'
               trade.left.transaction.credit.commission.amount.should.equal '5'
+              trade.left.transaction.credit.commission.funds.should.equal '5'
               trade.left.transaction.credit.commission.reference.should.equal 'Paul commission level'
               expect(trade.right.remainder).to.not.be.ok
               trade.right.transaction.debit.amount.should.equal '1000'
+              trade.right.transaction.debit.funds.should.equal '99000'
+              trade.right.transaction.debit.lockedFunds.should.equal '0'
               trade.right.transaction.credit.amount.should.equal '199'
+              trade.right.transaction.credit.funds.should.equal '199'
               trade.right.transaction.credit.commission.amount.should.equal '1'
+              trade.right.transaction.credit.commission.funds.should.equal '1'
               trade.right.transaction.credit.commission.reference.should.equal 'Peter commission level'
             
     describe 'where the existing (right) order is a bid', ->
@@ -976,13 +1073,21 @@ describe 'Order', ->
 
               expect(trade.left.remainder).to.not.be.ok
               trade.left.transaction.debit.amount.should.equal '200'
+              trade.left.transaction.debit.funds.should.equal '19800'
+              trade.left.transaction.debit.lockedFunds.should.equal '0'
               trade.left.transaction.credit.amount.should.equal '995'
+              trade.left.transaction.credit.funds.should.equal '995'
               trade.left.transaction.credit.commission.amount.should.equal '5'
+              trade.left.transaction.credit.commission.funds.should.equal '5'
               trade.left.transaction.credit.commission.reference.should.equal 'Paul commission level'
               expect(trade.right.remainder).to.not.be.ok
               trade.right.transaction.debit.amount.should.equal '1000'
+              trade.right.transaction.debit.funds.should.equal '99000'
+              trade.right.transaction.debit.lockedFunds.should.equal '0'
               trade.right.transaction.credit.amount.should.equal '199'
+              trade.right.transaction.credit.funds.should.equal '199'
               trade.right.transaction.credit.commission.amount.should.equal '1'
+              trade.right.transaction.credit.commission.funds.should.equal '1'
               trade.right.transaction.credit.commission.reference.should.equal 'Peter commission level'
 
           describe 'and the right order is bidding more than the left order is offering', ->
@@ -1015,14 +1120,22 @@ describe 'Order', ->
 
               expect(trade.left.remainder).to.not.be.ok
               trade.left.transaction.debit.amount.should.equal '100'
+              trade.left.transaction.debit.funds.should.equal '19900'
+              trade.left.transaction.debit.lockedFunds.should.equal '0'
               trade.left.transaction.credit.amount.should.equal '495'
+              trade.left.transaction.credit.funds.should.equal '495'
               trade.left.transaction.credit.commission.amount.should.equal '5'
+              trade.left.transaction.credit.commission.funds.should.equal '5'
               trade.left.transaction.credit.commission.reference.should.equal 'Paul commission level'
               trade.right.remainder.bidAmount.should.equal '100'
               trade.right.remainder.offerAmount.should.equal '500'
               trade.right.transaction.debit.amount.should.equal '500'
+              trade.right.transaction.debit.funds.should.equal '99500'
+              trade.right.transaction.debit.lockedFunds.should.equal '500'
               trade.right.transaction.credit.amount.should.equal '99'
+              trade.right.transaction.credit.funds.should.equal '99'
               trade.right.transaction.credit.commission.amount.should.equal '1'
+              trade.right.transaction.credit.commission.funds.should.equal '1'
               trade.right.transaction.credit.commission.reference.should.equal 'Peter commission level'
 
           describe 'and the right order is bidding less than the left order is offering', ->
@@ -1056,13 +1169,21 @@ describe 'Order', ->
               trade.left.remainder.bidAmount.should.equal '400'
               trade.left.remainder.offerAmount.should.equal '100'
               trade.left.transaction.debit.amount.should.equal '200'
+              trade.left.transaction.debit.funds.should.equal '19800'
+              trade.left.transaction.debit.lockedFunds.should.equal '100'
               trade.left.transaction.credit.amount.should.equal '995'
+              trade.left.transaction.credit.funds.should.equal '995'
               trade.left.transaction.credit.commission.amount.should.equal '5'
+              trade.left.transaction.credit.commission.funds.should.equal '5'
               trade.left.transaction.credit.commission.reference.should.equal 'Paul commission level'
               expect(trade.right.remainder).to.not.be.ok
               trade.right.transaction.debit.amount.should.equal '1000'
+              trade.right.transaction.debit.funds.should.equal '99000'
+              trade.right.transaction.debit.lockedFunds.should.equal '0'
               trade.right.transaction.credit.amount.should.equal '199'
+              trade.right.transaction.credit.funds.should.equal '199'
               trade.right.transaction.credit.commission.amount.should.equal '1'
+              trade.right.transaction.credit.commission.funds.should.equal '1'
               trade.right.transaction.credit.commission.reference.should.equal 'Peter commission level'
 
         describe 'and the left order is a bid', ->
@@ -1096,13 +1217,21 @@ describe 'Order', ->
 
               expect(trade.left.remainder).to.not.be.ok
               trade.left.transaction.debit.amount.should.equal '200'
+              trade.left.transaction.debit.funds.should.equal '19800'
+              trade.left.transaction.debit.lockedFunds.should.equal '0'
               trade.left.transaction.credit.amount.should.equal '995'
+              trade.left.transaction.credit.funds.should.equal '995'
               trade.left.transaction.credit.commission.amount.should.equal '5'
+              trade.left.transaction.credit.commission.funds.should.equal '5'
               trade.left.transaction.credit.commission.reference.should.equal 'Paul commission level'
               expect(trade.right.remainder).to.not.be.ok
               trade.right.transaction.debit.amount.should.equal '1000'
+              trade.right.transaction.debit.funds.should.equal '99000'
+              trade.right.transaction.debit.lockedFunds.should.equal '0'
               trade.right.transaction.credit.amount.should.equal '199'
+              trade.right.transaction.credit.funds.should.equal '199'
               trade.right.transaction.credit.commission.amount.should.equal '1'
+              trade.right.transaction.credit.commission.funds.should.equal '1'
               trade.right.transaction.credit.commission.reference.should.equal 'Peter commission level'
 
           describe 'and the right order is bidding more than the left order is bidding multiplied by the right order price', ->
@@ -1135,14 +1264,22 @@ describe 'Order', ->
 
               expect(trade.left.remainder).to.not.be.ok
               trade.left.transaction.debit.amount.should.equal '100'
+              trade.left.transaction.debit.funds.should.equal '19900'
+              trade.left.transaction.debit.lockedFunds.should.equal '0'
               trade.left.transaction.credit.amount.should.equal '495'
+              trade.left.transaction.credit.funds.should.equal '495'
               trade.left.transaction.credit.commission.amount.should.equal '5'
+              trade.left.transaction.credit.commission.funds.should.equal '5'
               trade.left.transaction.credit.commission.reference.should.equal 'Paul commission level'
               trade.right.remainder.bidAmount.should.equal '100'
               trade.right.remainder.offerAmount.should.equal '500'
               trade.right.transaction.debit.amount.should.equal '500'
+              trade.right.transaction.debit.funds.should.equal '99500'
+              trade.right.transaction.debit.lockedFunds.should.equal '500'
               trade.right.transaction.credit.amount.should.equal '99'
+              trade.right.transaction.credit.funds.should.equal '99'
               trade.right.transaction.credit.commission.amount.should.equal '1'
+              trade.right.transaction.credit.commission.funds.should.equal '1'
               trade.right.transaction.credit.commission.reference.should.equal 'Peter commission level'
               
           describe 'and the right order is bidding less than the left order is bidding multiplied by the right order price', ->
@@ -1175,13 +1312,21 @@ describe 'Order', ->
               trade.left.remainder.bidAmount.should.equal '500'
               trade.left.remainder.offerAmount.should.equal '125'
               trade.left.transaction.debit.amount.should.equal '200'
+              trade.left.transaction.debit.funds.should.equal '19800'
+              trade.left.transaction.debit.lockedFunds.should.equal '125'
               trade.left.transaction.credit.amount.should.equal '995'
+              trade.left.transaction.credit.funds.should.equal '995'
               trade.left.transaction.credit.commission.amount.should.equal '5'
+              trade.left.transaction.credit.commission.funds.should.equal '5'
               trade.left.transaction.credit.commission.reference.should.equal 'Paul commission level'
               expect(trade.right.remainder).to.not.be.ok
               trade.right.transaction.debit.amount.should.equal '1000'
+              trade.right.transaction.debit.funds.should.equal '99000'
+              trade.right.transaction.debit.lockedFunds.should.equal '0'
               trade.right.transaction.credit.amount.should.equal '199'
+              trade.right.transaction.credit.funds.should.equal '199'
               trade.right.transaction.credit.commission.amount.should.equal '1'
+              trade.right.transaction.credit.commission.funds.should.equal '1'
               trade.right.transaction.credit.commission.reference.should.equal 'Peter commission level'
 
   describe '#add', ->
@@ -1233,10 +1378,12 @@ describe 'Order', ->
           it 'should set the higher entry to the Order being added, set the parent on the added Order and return the next higher order or undefined if there is none', ->
             nextHigher = @bidOrder.add @higherBidOrder
             expect(nextHigher).to.not.be.ok
-            expect(@bidOrder.parent).to.not.be.ok
+            expect(@bidOrder.higherParent).to.not.be.ok
+            expect(@bidOrder.lowerParent).to.not.be.ok
             expect(@bidOrder.lower).to.not.be.ok
             @bidOrder.higher.should.equal @higherBidOrder
-            @higherBidOrder.parent.should.equal @bidOrder
+            expect(@higherBidOrder.higherParent).to.not.be.ok
+            @higherBidOrder.lowerParent.should.equal @bidOrder
             expect(@higherBidOrder.lower).to.not.be.ok
             expect(@higherBidOrder.higher).to.not.be.ok
 
@@ -1244,10 +1391,12 @@ describe 'Order', ->
           it 'should set the lower entry to the Order being added, set the parent on the added Order and return the next higher order or undefined if there is none', ->
             nextHigher = @bidOrder.add @equalBidOrder
             nextHigher.should.equal @bidOrder
-            expect(@bidOrder.parent).to.not.be.ok
+            expect(@bidOrder.higherParent).to.not.be.ok
+            expect(@bidOrder.lowerParent).to.not.be.ok
             @bidOrder.lower.should.equal @equalBidOrder
             expect(@bidOrder.higher).to.not.be.ok
-            @equalBidOrder.parent.should.equal @bidOrder
+            @equalBidOrder.higherParent.should.equal @bidOrder
+            expect(@equalBidOrder.lowerParent).to.not.be.ok
             expect(@equalBidOrder.lower).to.not.be.ok
             expect(@equalBidOrder.higher).to.not.be.ok
 
@@ -1281,10 +1430,12 @@ describe 'Order', ->
           it 'should set the higher entry to the Order being added, set the parent on the added Order and return the next higher order or undefined if there is none', ->
             nextHigher = @offerOrder.add @higherOfferOrder
             expect(nextHigher).to.not.be.ok
-            expect(@offerOrder.parent).to.not.be.ok
+            expect(@offerOrder.higherParent).to.not.be.ok
+            expect(@offerOrder.lowerParent).to.not.be.ok
             expect(@offerOrder.lower).to.not.be.ok
             @offerOrder.higher.should.equal @higherOfferOrder
-            @higherOfferOrder.parent.should.equal @offerOrder
+            expect(@higherOfferOrder.higherParent).to.not.be.ok
+            @higherOfferOrder.lowerParent.should.equal @offerOrder
             expect(@higherOfferOrder.lower).to.not.be.ok
             expect(@higherOfferOrder.higher).to.not.be.ok
 
@@ -1292,10 +1443,12 @@ describe 'Order', ->
           it 'should set the lower entry to the Order being added, set the parent on the added Order and return the next higher order or undefined if there is none', ->
             nextHigher = @offerOrder.add @equalOfferOrder
             nextHigher.should.equal @offerOrder
-            expect(@offerOrder.parent).to.not.be.ok
+            expect(@offerOrder.higherParent).to.not.be.ok
+            expect(@offerOrder.lowerParent).to.not.be.ok
             @offerOrder.lower.should.equal @equalOfferOrder
             expect(@offerOrder.higher).to.not.be.ok
-            @equalOfferOrder.parent.should.equal @offerOrder
+            @equalOfferOrder.higherParent.should.equal @offerOrder
+            expect(@equalOfferOrder.lowerParent).to.not.be.ok
             expect(@equalOfferOrder.lower).to.not.be.ok
             expect(@equalOfferOrder.higher).to.not.be.ok
 
@@ -1329,10 +1482,12 @@ describe 'Order', ->
           it 'should set the higher entry to the Order being added, set the parent on the added Order and return the next higher order or undefined if there is none', ->
             nextHigher = @bidOrder.add @higherOfferOrder
             expect(nextHigher).to.not.be.ok
-            expect(@bidOrder.parent).to.not.be.ok
+            expect(@bidOrder.higherParent).to.not.be.ok
+            expect(@bidOrder.lowerParent).to.not.be.ok
             expect(@bidOrder.lower).to.not.be.ok
             @bidOrder.higher.should.equal @higherOfferOrder
-            @higherOfferOrder.parent.should.equal @bidOrder
+            expect(@higherOfferOrder.higherParent).to.not.be.ok
+            @higherOfferOrder.lowerParent.should.equal @bidOrder
             expect(@higherOfferOrder.lower).to.not.be.ok
             expect(@higherOfferOrder.higher).to.not.be.ok
 
@@ -1340,10 +1495,12 @@ describe 'Order', ->
           it 'should set the lower entry to the Order being added, set the parent on the added Order and return the next higher order or undefined if there is none', ->
             nextHigher = @bidOrder.add @equalOfferOrder
             nextHigher.should.equal @bidOrder
-            expect(@bidOrder.parent).to.not.be.ok
+            expect(@bidOrder.higherParent).to.not.be.ok
+            expect(@bidOrder.lowerParent).to.not.be.ok
             @bidOrder.lower.should.equal @equalOfferOrder
             expect(@bidOrder.higher).to.not.be.ok
-            @equalOfferOrder.parent.should.equal @bidOrder
+            @equalOfferOrder.higherParent.should.equal @bidOrder
+            expect(@equalOfferOrder.lowerParent).to.not.be.ok
             expect(@equalOfferOrder.lower).to.not.be.ok
             expect(@equalOfferOrder.higher).to.not.be.ok
 
@@ -1377,10 +1534,12 @@ describe 'Order', ->
           it 'should set the higher entry to the Order being added, set the parent on the added Order and return the next higher order or undefined if there is none', ->
             nextHigher = @offerOrder.add @higherBidOrder
             expect(nextHigher).to.not.be.ok
-            expect(@offerOrder.parent).to.not.be.ok
+            expect(@offerOrder.higherParent).to.not.be.ok
+            expect(@offerOrder.lowerParent).to.not.be.ok
             expect(@offerOrder.lower).to.not.be.ok
             @offerOrder.higher.should.equal @higherBidOrder
-            @higherBidOrder.parent.should.equal @offerOrder
+            expect(@higherBidOrder.higherParent).to.not.be.ok
+            @higherBidOrder.lowerParent.should.equal @offerOrder
             expect(@higherBidOrder.lower).to.not.be.ok
             expect(@higherBidOrder.higher).to.not.be.ok
 
@@ -1388,10 +1547,12 @@ describe 'Order', ->
           it 'should set the lower entry to the Order being added, set the parent on the added Order and return the next higher order or undefined if there is none', ->
             nextHigher = @offerOrder.add @equalBidOrder
             nextHigher.should.equal @offerOrder
-            expect(@offerOrder.parent).to.not.be.ok
+            expect(@offerOrder.higherParent).to.not.be.ok
+            expect(@offerOrder.lowerParent).to.not.be.ok
             @offerOrder.lower.should.equal @equalBidOrder
             expect(@offerOrder.higher).to.not.be.ok
-            @equalBidOrder.parent.should.equal @offerOrder
+            @equalBidOrder.higherParent.should.equal @offerOrder
+            expect(@equalBidOrder.lowerParent).to.not.be.ok
             expect(@equalBidOrder.lower).to.not.be.ok
             expect(@equalBidOrder.higher).to.not.be.ok
 
@@ -1478,7 +1639,7 @@ describe 'Order', ->
         order = @bidOrder6.delete()
         order.should.equal @bidOrder5
         @bidOrder4.lower.should.equal @bidOrder3
-        @bidOrder5.parent.should.equal @bidOrder4
+        @bidOrder5.lowerParent.should.equal @bidOrder4
         @bidOrder4.higher.should.equal @bidOrder5
 
     describe 'an Order with a lower parent and a higher but no lower Order', ->
@@ -1489,7 +1650,7 @@ describe 'Order', ->
         order = @bidOrder6.delete()
         order.should.equal @bidOrder7
         @bidOrder4.lower.should.equal @bidOrder3
-        @bidOrder7.parent.should.equal @bidOrder4
+        @bidOrder7.lowerParent.should.equal @bidOrder4
         @bidOrder4.higher.should.equal @bidOrder7
 
     describe 'an Order with a lower parent and both higher and lower BookEntries', ->
@@ -1503,7 +1664,7 @@ describe 'Order', ->
         order = @bidOrder6.delete()
         order.should.equal @bidOrder7
         @bidOrder4.lower.should.equal @bidOrder3
-        @bidOrder7.parent.should.equal @bidOrder4
+        @bidOrder7.lowerParent.should.equal @bidOrder4
         @bidOrder4.higher.should.equal @bidOrder7
         addLowestSpy.should.have.been.calledWith @bidOrder5
 
@@ -1515,7 +1676,7 @@ describe 'Order', ->
         order = @bidOrder2.delete()
         order.should.equal @bidOrder1
         @bidOrder4.lower.should.equal @bidOrder1
-        @bidOrder1.parent.should.equal @bidOrder4
+        @bidOrder1.higherParent.should.equal @bidOrder4
         @bidOrder4.higher.should.equal @bidOrder5
 
     describe 'an Order with a higher parent and a higher but no lower Order', ->
@@ -1526,7 +1687,7 @@ describe 'Order', ->
         order = @bidOrder2.delete()
         order.should.equal @bidOrder3
         @bidOrder4.lower.should.equal @bidOrder3
-        @bidOrder3.parent.should.equal @bidOrder4
+        @bidOrder3.higherParent.should.equal @bidOrder4
         @bidOrder4.higher.should.equal @bidOrder5
 
     describe 'an Order with a higher parent and both higher and lower BookEntries', ->
@@ -1540,7 +1701,7 @@ describe 'Order', ->
         order = @bidOrder2.delete()
         order.should.equal @bidOrder3
         @bidOrder4.lower.should.equal @bidOrder3
-        @bidOrder3.parent.should.equal @bidOrder4
+        @bidOrder3.higherParent.should.equal @bidOrder4
         @bidOrder4.higher.should.equal @bidOrder5
         addLowestSpy.should.have.been.calledWith @bidOrder1
 
@@ -1549,14 +1710,14 @@ describe 'Order', ->
         @bidOrder4.add @bidOrder2
         order = @bidOrder4.delete()
         order.should.equal @bidOrder2
-        expect(@bidOrder2.parent).to.not.be.ok
+        expect(@bidOrder2.higherParent).to.not.be.ok
 
     describe 'an Order with no parent and a higher but no lower Order', ->
       it 'should return the higher Order', ->
         @bidOrder4.add @bidOrder6
         order = @bidOrder4.delete()
         order.should.equal @bidOrder6
-        expect(@bidOrder6.parent).to.not.be.ok
+        expect(@bidOrder6.lowerParent).to.not.be.ok
 
     describe 'an Order with no parent and both higher and lower BookEntries', ->
       it 'should call addLowest on the higher Order with the lower Order and return the higher Order', ->
@@ -1566,7 +1727,7 @@ describe 'Order', ->
         @bidOrder4.add @bidOrder6
         order = @bidOrder4.delete()
         order.should.equal @bidOrder6
-        expect(@bidOrder6.parent).to.not.be.ok
+        expect(@bidOrder6.lowerParent).to.not.be.ok
         addLowestSpy.should.have.been.calledWith @bidOrder2
 
   describe '#getHighest', ->

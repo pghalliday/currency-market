@@ -42,18 +42,18 @@ module.exports = class Engine
           account = @getAccount operation.account
           delta = 
             operation: operation
+            result: Object.create null
           if operation.deposit
             deposit = operation.deposit
-            account.deposit
+            delta.result.funds = account.deposit
               currency: deposit.currency
               amount: if deposit.amount then new Amount deposit.amount
           else if operation.withdraw
             withdraw = operation.withdraw
-            account.withdraw
+            delta.result.funds = account.withdraw
               currency: withdraw.currency
               amount: if withdraw.amount then new Amount withdraw.amount
           else if operation.submit
-            delta.result = Object.create null
             submit = operation.submit
             leftBook = @getBook submit.bidCurrency, submit.offerCurrency
             order = new Order
@@ -65,7 +65,7 @@ module.exports = class Engine
               bidAmount: if submit.bidAmount then new Amount submit.bidAmount
               offerPrice: if submit.offerPrice then new Amount submit.offerPrice
               offerAmount: if submit.offerAmount then new Amount submit.offerAmount
-            account.submit order
+            delta.result.lockedFunds = account.submit order
             nextHigher = leftBook.submit order
             if nextHigher
               delta.result.nextHigherOrderSequence = nextHigher.sequence
@@ -75,7 +75,8 @@ module.exports = class Engine
               rightBook = @getBook submit.offerCurrency, submit.bidCurrency
               @execute delta.result.trades, leftBook, rightBook
           else if operation.cancel
-            order = account.cancel operation.cancel.sequence
+            order = account.getOrder operation.cancel.sequence
+            lockedFunds = account.cancel order
             @getBook(order.bidBalance.currency, order.offerBalance.currency).cancel order
           else
             throw new Error 'Unknown operation'
@@ -90,8 +91,8 @@ module.exports = class Engine
 
   # Private method used by apply
   execute: (trades, leftBook, rightBook) =>
-    leftOrder = leftBook.next()
-    rightOrder = rightBook.next()
+    leftOrder = leftBook.highest
+    rightOrder = rightBook.highest
     if leftOrder && rightOrder
       # just added an order to the left book so the left order must be
       # the most recent addition if we get here. This means that we should

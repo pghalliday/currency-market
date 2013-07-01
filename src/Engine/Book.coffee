@@ -35,13 +35,13 @@ module.exports = class Book
     return nextHigher
   
   cancel: (order) =>
-    parent = order.parent
     newHead = order.delete()
 
     if @highest == order
       if newHead
         @highest = newHead.getHighest()
       else
+        parent = order.lowerParent
         if parent
           @highest = parent
         else

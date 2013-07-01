@@ -146,6 +146,7 @@ describe 'Engine', ->
         account.getBalance('EUR').funds.compareTo(amount5000).should.equal 0
         delta.sequence.should.equal 0
         delta.operation.should.equal operation
+        delta.result.funds.should.equal '5000'
         operation =
           reference: '550e8400-e29b-41d4-a716-446655440000'
           account: 'Peter'
@@ -158,6 +159,7 @@ describe 'Engine', ->
         account.getBalance('BTC').funds.compareTo(amount50).should.equal 0
         delta.operation.should.equal operation
         delta.sequence.should.equal 1
+        delta.result.funds.should.equal '50'
 
     describe 'withdraw', ->
       it 'should throw an error if no currency is supplied', ->
@@ -204,6 +206,7 @@ describe 'Engine', ->
         account.getBalance('BTC').funds.compareTo(amount150).should.equal 0
         delta.sequence.should.equal 1
         delta.operation.should.equal operation
+        delta.result.funds.should.equal '150'
         delta = @engine.apply
           reference: '550e8400-e29b-41d4-a716-446655440000'
           account: 'Peter'
@@ -214,6 +217,7 @@ describe 'Engine', ->
             amount: '75'
         account.getBalance('BTC').funds.compareTo(amount75).should.equal 0
         delta.sequence.should.equal 2
+        delta.result.funds.should.equal '75'
         expect =>            
           @engine.apply
             reference: '550e8400-e29b-41d4-a716-446655440000'
@@ -290,6 +294,7 @@ describe 'Engine', ->
         delta.sequence.should.equal 2
         delta.operation.should.equal operation
         expect(delta.result.nextHigherOrderSequence).to.not.be.ok
+        delta.result.lockedFunds.should.equal '50'
         delta.result.trades.should.have.length 0
         delta = @engine.apply
           reference: '550e8400-e29b-41d4-a716-446655440000'
@@ -304,6 +309,7 @@ describe 'Engine', ->
         @engine.getBook('BTC', 'EUR').next().sequence.should.equal 2
         delta.sequence.should.equal 3
         delta.result.nextHigherOrderSequence.should.equal 2
+        delta.result.lockedFunds.should.equal '100'
         expect(delta.result.trades).to.not.be.ok
         delta = @engine.apply
           reference: '550e8400-e29b-41d4-a716-446655440000'
@@ -318,6 +324,7 @@ describe 'Engine', ->
         @engine.getBook('EUR', 'BTC').next().sequence.should.equal 4
         delta.sequence.should.equal 4
         expect(delta.result.nextHigherOrderSequence).to.not.be.ok
+        delta.result.lockedFunds.should.equal '4950'
         delta.result.trades.should.have.length 0
 
       it 'should trade matching orders', ->
@@ -379,13 +386,21 @@ describe 'Engine', ->
         delta.result.trades.should.have.length 1
         expect(delta.result.trades[0].left.remainder).to.not.be.ok
         delta.result.trades[0].left.transaction.debit.amount.should.equal '200'
+        delta.result.trades[0].left.transaction.debit.funds.should.equal '200'
+        delta.result.trades[0].left.transaction.debit.lockedFunds.should.equal '0'
         delta.result.trades[0].left.transaction.credit.amount.should.equal '999'
+        delta.result.trades[0].left.transaction.credit.funds.should.equal '999'
         delta.result.trades[0].left.transaction.credit.commission.amount.should.equal '1'
+        delta.result.trades[0].left.transaction.credit.commission.funds.should.equal '1'
         delta.result.trades[0].left.transaction.credit.commission.reference.should.equal 'Flat 1'
         expect(delta.result.trades[0].right.remainder).to.not.be.ok
         delta.result.trades[0].right.transaction.debit.amount.should.equal '1000'
+        delta.result.trades[0].right.transaction.debit.funds.should.equal '1000'
+        delta.result.trades[0].right.transaction.debit.lockedFunds.should.equal '0'
         delta.result.trades[0].right.transaction.credit.amount.should.equal '199'
+        delta.result.trades[0].right.transaction.credit.funds.should.equal '199'
         delta.result.trades[0].right.transaction.credit.commission.amount.should.equal '1'
+        delta.result.trades[0].right.transaction.credit.commission.funds.should.equal '1'
         delta.result.trades[0].right.transaction.credit.commission.reference.should.equal 'Flat 1'
 
         expect(@engine.getAccount('Peter').orders[1]).to.not.be.ok

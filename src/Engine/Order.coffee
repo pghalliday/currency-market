@@ -241,14 +241,14 @@ module.exports = class Order
         nextHigher = @higher.add order, nextHigher
       else
         @higher = order
-        order.parent = @
+        order.lowerParent = @
     else
       if @lower
         nextHigher = @lower.add order, @
       else
         nextHigher = @
         @lower = order
-        order.parent = @
+        order.higherParent = @
     return nextHigher
 
   # private function only used by delete
@@ -257,44 +257,45 @@ module.exports = class Order
       @lower.addLowest order
     else
       @lower = order
-      order.parent = @
+      order.higherParent = @
 
   delete: =>
-    if @parent
-      if @parent.lower == @
-        if @higher
-          @parent.lower = @higher
-          @higher.parent = @parent
-          newHead = @higher
-          if @lower
-            @higher.addLowest @lower
-        else if @lower
-          @parent.lower = @lower
-          @lower.parent = @parent
-          newHead = @lower
-        else
-          delete @parent.lower
-      else
-        if @higher
-          @parent.higher = @higher
-          @higher.parent = @parent
-          newHead = @higher
-          if @lower
-            @higher.addLowest @lower
-        else if @lower
-          @parent.higher = @lower
-          @lower.parent = @parent
-          newHead = @lower
-        else
-          delete @parent.higher
-    else
+    if @higherParent
       if @higher
-        delete @higher.parent
+        @higherParent.lower = @higher
+        delete @higher.lowerParent
+        @higher.higherParent = @higherParent
         newHead = @higher
         if @lower
           @higher.addLowest @lower
       else if @lower
-        delete @lower.parent
+        @higherParent.lower = @lower
+        @lower.higherParent = @higherParent
+        newHead = @lower
+      else
+        delete @higherParent.lower
+    else if @lowerParent
+      if @higher
+        @lowerParent.higher = @higher
+        @higher.lowerParent = @lowerParent
+        newHead = @higher
+        if @lower
+          @higher.addLowest @lower
+      else if @lower
+        @lowerParent.higher = @lower
+        delete @lower.higherParent
+        @lower.lowerParent = @lowerParent
+        newHead = @lower
+      else
+        delete @lowerParent.higher
+    else
+      if @higher
+        delete @higher.lowerParent
+        newHead = @higher
+        if @lower
+          @higher.addLowest @lower
+      else if @lower
+        delete @lower.higherParent
         newHead = @lower
       else
         # do nothing, this is an orphan and will be garbage collected
@@ -322,11 +323,10 @@ module.exports = class Order
     return object
 
   nextParent: =>
-    if @parent
-      if @parent.higher == @
-        return @parent
-      else
-        return @parent.nextParent()
+    if @lowerParent
+      return @lowerParent
+    else if @higherParent
+      return @higherParent.nextParent()
 
   next: =>
     if @lower

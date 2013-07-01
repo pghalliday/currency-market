@@ -90,8 +90,10 @@ var engine = new engine({
 
       // Return an object containing the amount of commission to deduct as an Amount
       // instance and a reference for the commission rate/type being charged
-      // NB. It is best to avoid divisions when calculating commissions so as
-      // to avoid rounding errors
+      //
+      // Note that it's best to avoid divisions when calculating commissions so as
+      // to avoid rounding errors. Also, as the reference is intended be transmitted along
+      // with market deltas, it should be possible to convert it losslessly to and from JSON
       return {
         amount: amount.multiply(COMMISSION_RATE),
         reference: COMMISSION_RATE + '%'
@@ -153,9 +155,7 @@ var delta = {
       ...
     }
   },
-  // Only `submit` operations currently set the result field
-  // due to the complexity of the potential side effects from
-  // submitting orders
+  // Additional state change information
   result: {
     // Result properties
     ...
@@ -193,6 +193,10 @@ var delta = {
       currency: 'EUR',
       amount: '1000'
     }
+  },
+  result: {
+    // The new level of funds in the deposited currency
+    funds: '11000'
   }
 };
 ```
@@ -227,6 +231,10 @@ var delta = {
       currency: 'EUR',
       amount: '1000'
     }
+  },
+  result: {
+    // The new level of funds in the withdrawn currency
+    funds: '9000'
   }
 };
 ```
@@ -262,13 +270,10 @@ var delta = {
     }
   },
   result: {
-    // Note that only one of `nextHigherOrderSequence` or `trades` will be set
-
-    // If the order is not at the top of the order book then the sequence number
-    // of the next order above it is returned. This is a hint to optimize the
-    // insertion of the order into a `State` instance
-    nextHigherOrderSequence: 652973,
-
+    // The index of the order in the book it was inserted into
+    index: 0,
+    // The new level of locked funds in the order's offer currency
+    lockedFunds: '45685.1234',
     // If the order was inserted at the top of the order book then an array of trades
     // will be returned. This array will still be set, but will be empty, if no actual 
     // trades were made
@@ -298,15 +303,23 @@ var delta = {
           debit: {
             // The amount of the order's offer currency debited from the account
             amount: '6592.32697'
+            // The new level of funds in the debited currency
+            funds: '123498.132455'
+            // The new level of locked funds in the debited currency
+            lockedFunds: '38529.21558'
           },
           credit: {
             // The amount of the order's bid currency credited to the account
             amount: '326598.2356',
+            // The new level of funds in the credited currency
+            funds: '65489123.53658'
             // If the engine was instantiated without commission then the commission
             // field will not be set
             commission: {
               // The amount of the order's bid currency credited to the commission account
               amount: '326.123588',
+              // The new level of funds in order's bid currency in the commission account
+              funds: '456432148131.45645645'
               // The reference associated with the commission calculation
               reference: '0.01%'
             }
@@ -390,6 +403,12 @@ var delta = {
     cancel: {
       sequence: 615368
     }
+  },
+  result: {
+    // The index of the order in the book it is being removed from
+    index: 5,
+    // The new level of locked funds in the order's offer currency
+    lockedFunds: '5216.9584'
   }
 };
 ```

@@ -62,7 +62,8 @@ describe 'Account', ->
         book: book
         bidPrice: amount100
         bidAmount: amount10
-      account.submit order
+      lockedFunds = account.submit order
+      lockedFunds.should.equal '1000'
       account.orders[0].should.equal order
       account.getBalance('EUR').lockedFunds.compareTo(amount1000).should.equal 0
 
@@ -107,14 +108,34 @@ describe 'Account', ->
       account.complete order
       expect(account.orders[0]).to.not.be.ok
 
-  describe '#cancel', ->
+  describe '#getOrder', ->
     it 'should error if the order cannot be found', ->
       account = new Account
         id: 'Peter'
       expect ->
-        account.cancel 0
+        account.getOrder 0
       .to.throw 'Order cannot be found'
 
+    it 'should return the order with the given sequence number', ->
+      book = new Book
+        offerCurrency: 'EUR'
+        bidCurrency: 'BTC'
+      account = new Account
+        id: 'Peter'
+      account.deposit
+        currency: 'EUR'
+        amount: amount1000
+      order = new Order
+        sequence: 0
+        timestamp: 1371737390976
+        account: account
+        book: book
+        bidPrice: amount100
+        bidAmount: amount10
+      account.submit order
+      account.getOrder(0).should.equal order
+
+  describe '#cancel', ->
     it 'should delete the order from the orders collection, unlock the appropriate funds and return the order', ->
       book = new Book
         offerCurrency: 'EUR'
@@ -132,10 +153,11 @@ describe 'Account', ->
         bidPrice: amount100
         bidAmount: amount10
       account.submit order
-      cancelled = account.cancel 0
+      order = account.getOrder 0
+      lockedFunds = account.cancel order
+      lockedFunds.should.equal '0'
       expect(account.orders[0]).to.not.be.ok
       account.getBalance('EUR').lockedFunds.compareTo(Amount.ZERO).should.equal 0
-      cancelled.should.equal order
 
   describe '#getBalance', ->
     it 'should return a balance object associated with the given currency', ->
@@ -168,9 +190,10 @@ describe 'Account', ->
     it 'should add the deposited amount to the funds for the correct currency', ->
       account = new Account
         id: 'Peter'
-      account.deposit
+      funds = account.deposit
         currency: 'BTC'
         amount: amount50
+      funds.should.equal '50'
       account.getBalance('BTC').funds.compareTo(amount50).should.equal 0
 
   describe '#withdraw', ->
@@ -206,13 +229,15 @@ describe 'Account', ->
         book: book
         bidPrice: amount100
         bidAmount: amount5
-      account.withdraw
+      funds = account.withdraw
         currency: 'EUR'
         amount: amount250
+      funds.should.equal '750'
       account.getBalance('EUR').funds.compareTo(amount750).should.equal 0
-      account.withdraw
+      funds = account.withdraw
         currency: 'EUR'
         amount: amount250
+      funds.should.equal '500'
       account.getBalance('EUR').funds.compareTo(amount500).should.equal 0
 
     it 'should throw an error if the withdrawal amount is greater than the funds available', ->

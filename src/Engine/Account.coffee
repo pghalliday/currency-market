@@ -38,20 +38,23 @@ module.exports = class Account
       throw new Error 'Must supply a currency'
 
   submit: (order) =>
-    @getBalance(order.book.offerCurrency).lock order.offerAmount
+    lockedFunds = @getBalance(order.book.offerCurrency).lock order.offerAmount
     @orders[order.sequence] = order
+    return lockedFunds
 
   complete: (order) =>
     delete @orders[order.sequence]    
 
-  cancel: (sequence) =>
+  getOrder: (sequence) =>
     order = @orders[sequence]
-    if order
-      @getBalance(order.offerBalance.currency).unlock order.offerAmount
-      delete @orders[sequence]
-      return order
+    if !order
+      throw new Error 'Order cannot be found'
     else
-      throw new Error 'Order cannot be found'          
+      return order
+
+  cancel: (order) =>
+    delete @orders[order.sequence]
+    @getBalance(order.book.offerCurrency).unlock order.offerAmount
 
   export: =>
     object = Object.create null
