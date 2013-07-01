@@ -411,8 +411,6 @@ var delta = {
     }
   },
   result: {
-    // The index of the order in the book it is being removed from
-    index: 5,
     // The new level of locked funds in the order's offer currency
     lockedFunds: '5216.9584'
   }
