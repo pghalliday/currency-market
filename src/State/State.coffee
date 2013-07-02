@@ -8,6 +8,12 @@ module.exports = class State
       @nextSequence = state.nextDeltaSequence
       for id, account of state.accounts
         @accounts[id] = new Account account
+      for bidCurrency, books of state.books
+        for offerCurrency, book of books
+          for order in book
+            do (order) =>
+              @accounts[order.account].orders[order.sequence] = order
+              
 
   getAccount: (id) =>
     @accounts[id] = @accounts[id] || new Account()
@@ -20,7 +26,7 @@ module.exports = class State
       account = @getAccount(operation.account)
       deposit = operation.deposit
       if deposit
-        account.getBalance(deposit.currency).setFunds result.funds
+        account.getBalance(deposit.currency).funds = result.funds
       else
         throw new Error 'Unknown operation'
     else if delta.sequence > @nextSequence

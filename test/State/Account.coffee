@@ -6,10 +6,6 @@ Account = require '../../src/State/Account'
 Balance = require '../../src/State/Balance'
 
 describe 'Account', ->
-  it 'should instantiate', ->
-    account = new Account()
-    account.should.be.ok
-
   describe '#getBalance', ->
     it 'should create a new balance if it does not exist', ->
       account = new Account()
@@ -37,7 +33,7 @@ describe 'Account', ->
         'BTC':
           funds: '50'
           lockedFunds: '25'
-    account.getBalance('EUR').getFunds().should.equal '5000'
-    account.getBalance('EUR').getLockedFunds().should.equal '3000'
-    account.getBalance('BTC').getFunds().should.equal '50'
-    account.getBalance('BTC').getLockedFunds().should.equal '25'
+    account.getBalance('EUR').funds.should.equal '5000'
+    account.getBalance('EUR').lockedFunds.should.equal '3000'
+    account.getBalance('BTC').funds.should.equal '50'
+    account.getBalance('BTC').lockedFunds.should.equal '25'
