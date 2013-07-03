@@ -308,7 +308,7 @@ module.exports = class Order
       return @
 
   export: =>
-    object = Object.create null
+    object = {}
     object.sequence = @sequence
     object.timestamp = @timestamp
     object.account = @account.id

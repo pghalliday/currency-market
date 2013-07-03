@@ -7,8 +7,8 @@ module.exports = class Engine
   constructor: (params) ->
     @nextOperationSequence = 0
     @nextDeltaSequence = 0
-    @accounts = Object.create null
-    @books = Object.create null
+    @accounts = {}
+    @books = {}
     if params
       if params.commission
         @commission = 
@@ -26,7 +26,7 @@ module.exports = class Engine
   getBook: (bidCurrency, offerCurrency) =>
     books = @books[bidCurrency]
     if !books
-      @books[bidCurrency] = books = Object.create null
+      @books[bidCurrency] = books = {}
     book = books[offerCurrency]
     if !book
       books[offerCurrency] = book = new Book
@@ -42,7 +42,7 @@ module.exports = class Engine
           account = @getAccount operation.account
           delta = 
             operation: operation
-            result: Object.create null
+            result: {}
           if operation.deposit
             deposit = operation.deposit
             delta.result.funds = account.deposit
@@ -104,15 +104,15 @@ module.exports = class Engine
           @execute trades, leftBook, rightBook
 
   export: =>
-    object = Object.create null
+    object = {}
     object.nextOperationSequence = @nextOperationSequence
     object.nextDeltaSequence = @nextDeltaSequence
-    object.accounts = Object.create null
+    object.accounts = {}
     for id, account of @accounts
       object.accounts[id] = account.export()
-    object.books = Object.create null
+    object.books = {}
     for bidCurrency, books of @books
-      object.books[bidCurrency] = Object.create null
+      object.books[bidCurrency] = {}
       for offerCurrency, book of books
         object.books[bidCurrency][offerCurrency] = book.export()
     return object

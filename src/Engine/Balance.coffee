@@ -71,7 +71,7 @@ module.exports = class Balance
         funds: @funds.toString()
 
   export: =>
-    object = Object.create null
+    object = {}
     object.funds = @funds.toString()
     object.lockedFunds = @lockedFunds.toString()
     return object

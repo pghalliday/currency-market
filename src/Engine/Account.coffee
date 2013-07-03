@@ -3,11 +3,11 @@ Order = require './Order'
 
 module.exports = class Account
   constructor: (params) ->
-    @orders = Object.create null
+    @orders = {}
     if params && params.id
       @id = params.id
       @commission = params.commission
-      @balances = Object.create null
+      @balances = {}
     else
       throw new Error 'Account ID must be specified'
 
@@ -57,9 +57,9 @@ module.exports = class Account
     @getBalance(order.book.offerCurrency).unlock order.offerAmount
 
   export: =>
-    object = Object.create null
+    object = {}
     object.id = @id
-    object.balances = Object.create null
+    object.balances = {}
     for currency, balance of @balances
       object.balances[currency] = balance.export()
     return object

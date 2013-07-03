@@ -2,8 +2,8 @@ Balance = require './Balance'
 
 module.exports = class Account
   constructor: (account) ->
-    @balances = Object.create null
-    @orders = Object.create null
+    @balances = {}
+    @orders = {}
     if account
       for currency, balance of account.balances
         @balances[currency] = new Balance balance

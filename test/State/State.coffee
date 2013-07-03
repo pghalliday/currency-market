@@ -124,6 +124,48 @@ describe 'State', ->
       accountPaul = state.getAccount 'Paul'
       accountPaul.should.not.equal accountPeter
 
+  describe '#getBook', ->
+    it 'should error if no bid currency is supplied', ->
+      state = new State()
+      expect ->
+        book = state.getBook
+          offerCurrency: 'BTC'
+      .to.throw 'Must supply a bid currency'
+
+    it 'should error if no offer currency is supplied', ->
+      state = new State()
+      expect ->
+        book = state.getBook
+          bidCurrency: 'EUR'
+      .to.throw 'Must supply an offer currency'
+
+    it 'should create a new orders array if it does not exist', ->
+      state = new State()
+      book = state.getBook
+        bidCurrency: 'EUR'
+        offerCurrency: 'BTC'
+      book.should.have.length 0
+
+    it 'should return the corresponding orders array if it does exist', ->
+      state = new State()
+      book1 = state.getBook
+        bidCurrency: 'EUR'
+        offerCurrency: 'BTC'        
+      book2 = state.getBook
+        bidCurrency: 'EUR'
+        offerCurrency: 'BTC'        
+      book2.should.equal book1
+
+    it 'should return different arrays for different bid and offer currencies', ->
+      state = new State()
+      book1 = state.getBook
+        bidCurrency: 'EUR'
+        offerCurrency: 'BTC'        
+      book2 = state.getBook
+        bidCurrency: 'BTC'
+        offerCurrency: 'EUR'        
+      book2.should.not.equal book1
+
   it 'should instantiate from an engine state', ->
     state = new State @engine.export()
 
@@ -186,6 +228,22 @@ describe 'State', ->
     orderPaul7.bidCurrency.should.equal 'EUR'
     orderPaul7.bidPrice.should.equal '0.01'
     orderPaul7.bidAmount.should.equal '1000'
+
+    bookEURBTC = state.getBook
+      bidCurrency: 'EUR'
+      offerCurrency: 'BTC'
+
+    console.log bookEURBTC
+    bookEURBTC[0].should.equal orderPaul6
+    bookEURBTC[1].should.equal orderPaul7
+
+    bookBTCEUR = state.getBook
+      bidCurrency: 'BTC'
+      offerCurrency: 'EUR'
+
+    console.log bookBTCEUR
+    bookBTCEUR[0].should.equal orderPeter5
+    bookBTCEUR[1].should.equal orderPeter4
 
   describe '#apply', ->
     it 'should ignore deltas with a sequence lower than expected as such a delta will have already been applied', ->
