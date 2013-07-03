@@ -3,10 +3,10 @@ Account = require './Account'
 Amount = require '../Amount'
 Order = require './Order'
 Delta = require '../Delta'
-DepositResult = require '../Delta/DepositResult'
-WithdrawResult = require '../Delta/WithdrawResult'
-CancelResult = require '../Delta/CancelResult'
-CancelResult = require '../Delta/SubmitResult'
+DepositResult = require '../Delta/DepositDelta'
+WithdrawResult = require '../Delta/WithdrawDelta'
+CancelResult = require '../Delta/CancelDelta'
+CancelResult = require '../Delta/SubmitDelta'
 
 module.exports = class Engine
   constructor: (params) ->
@@ -67,77 +67,69 @@ module.exports = class Engine
     return book
 
   apply: (operation) =>
-    if typeof operation.sequence != 'undefined'
-      if operation.sequence == @nextOperationSequence
-        @nextOperationSequence++
-        if typeof operation.timestamp != 'undefined'
-          account = @getAccount operation.account
-          if operation.deposit
-            deposit = operation.deposit
-            delta = new Delta
-              sequence: @nextDeltaSequence
-              operation: operation
-              result: new DepositResult
-                funds: account.deposit
-                  currency: deposit.currency
-                  amount: if deposit.amount then new Amount deposit.amount
-          else if operation.withdraw
-            withdraw = operation.withdraw
-            delta = new Delta
-              sequence: @nextDeltaSequence
-              operation: operation
-              result: new WithdrawResult
-                funds: account.withdraw
-                  currency: withdraw.currency
-                  amount: if withdraw.amount then new Amount withdraw.amount
-          else if operation.submit
-            submit = operation.submit
-            leftBook = @getBook submit.bidCurrency, submit.offerCurrency
-            order = new Order
-              sequence: operation.sequence
-              timestamp: operation.timestamp
-              account: account
-              book: leftBook
-              bidPrice: if submit.bidPrice then new Amount submit.bidPrice
-              bidAmount: if submit.bidAmount then new Amount submit.bidAmount
-              offerPrice: if submit.offerPrice then new Amount submit.offerPrice
-              offerAmount: if submit.offerAmount then new Amount submit.offerAmount
-            lockedFunds = account.submit order
-            nextHigher = leftBook.submit order
-            if nextHigher
-              delta = new Delta
-                sequence: @nextDeltaSequence
-                operation: operation
-                result: 
-                  lockedFunds: lockedFunds
-                  nextHigherOrderSequence: nextHigher.sequence
-            else
-              # check the books to see if any orders can be executed
-              rightBook = @getBook submit.offerCurrency, submit.bidCurrency
-              delta = new Delta
-                sequence: @nextDeltaSequence
-                operation: operation
-                result: 
-                  lockedFunds: lockedFunds
-                  trades: @execute [], leftBook, rightBook
-          else if operation.cancel
-            order = account.getOrder operation.cancel.sequence
-            delta = new Delta
-              sequence: @nextDeltaSequence
-              operation: operation
-              result: new CancelResult
-                lockedFunds: account.cancel order
-            @getBook(order.bidBalance.currency, order.offerBalance.currency).cancel order
-          else
-            throw new Error 'Unknown operation'
-          @nextDeltaSequence++
-          return delta
+    if operation.sequence == @nextOperationSequence
+      @nextOperationSequence++
+      account = @getAccount operation.account
+      if operation.deposit
+        deposit = operation.deposit
+        delta = new Delta
+          sequence: @nextDeltaSequence
+          operation: operation
+          result: new DepositResult
+            funds: account.deposit
+              currency: deposit.currency
+              amount: if deposit.amount then new Amount deposit.amount
+      else if operation.withdraw
+        withdraw = operation.withdraw
+        delta = new Delta
+          sequence: @nextDeltaSequence
+          operation: operation
+          result: new WithdrawResult
+            funds: account.withdraw
+              currency: withdraw.currency
+              amount: if withdraw.amount then new Amount withdraw.amount
+      else if operation.submit
+        submit = operation.submit
+        leftBook = @getBook submit.bidCurrency, submit.offerCurrency
+        order = new Order
+          sequence: operation.sequence
+          timestamp: operation.timestamp
+          account: account
+          book: leftBook
+          bidPrice: if submit.bidPrice then new Amount submit.bidPrice
+          bidAmount: if submit.bidAmount then new Amount submit.bidAmount
+          offerPrice: if submit.offerPrice then new Amount submit.offerPrice
+          offerAmount: if submit.offerAmount then new Amount submit.offerAmount
+        lockedFunds = account.submit order
+        nextHigher = leftBook.submit order
+        if nextHigher
+          delta = new Delta
+            sequence: @nextDeltaSequence
+            operation: operation
+            result: 
+              lockedFunds: lockedFunds
+              nextHigherOrderSequence: nextHigher.sequence
         else
-          throw new Error 'Must supply a timestamp'
-      else
-        throw new Error 'Unexpected sequence number'
+          # check the books to see if any orders can be executed
+          rightBook = @getBook submit.offerCurrency, submit.bidCurrency
+          delta = new Delta
+            sequence: @nextDeltaSequence
+            operation: operation
+            result: 
+              lockedFunds: lockedFunds
+              trades: @execute [], leftBook, rightBook
+      else if operation.cancel
+        order = account.getOrder operation.cancel.sequence
+        delta = new Delta
+          sequence: @nextDeltaSequence
+          operation: operation
+          result: new CancelResult
+            lockedFunds: account.cancel order
+        @getBook(order.bidBalance.currency, order.offerBalance.currency).cancel order
+      @nextDeltaSequence++
+      return delta
     else
-      throw new Error 'Must supply a sequence number'
+      throw new Error 'Unexpected sequence number'
 
   # Private method used by apply
   execute: (trades, leftBook, rightBook) =>

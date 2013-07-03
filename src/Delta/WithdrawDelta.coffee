@@ -1,3 +1,3 @@
-module.exports = class DepositResult
+module.exports = class WithdrawDelta
   constructor: (params) ->
     @funds = params.funds

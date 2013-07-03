@@ -10,6 +10,7 @@ Engine = require '../../src/Engine'
 Book = require '../../src/Engine/Book'
 Account = require '../../src/Engine/Account'
 Amount = require '../../src/Amount'
+Operation = require '../../src/Operation'
 
 amountPoint2 = new Amount '0.2'
 amountPoint25 = new Amount '0.25'
@@ -65,50 +66,17 @@ describe 'Engine', ->
         calculate: @calculateCommission
 
   describe '#apply', ->
-    it 'should throw an error if no account is given', ->
-      expect =>
-        @engine.apply
-          reference: '550e8400-e29b-41d4-a716-446655440000'
-          sequence: 0
-          timestamp: 1371737390976
-      .to.throw 'Account ID must be specified'
-
-    it 'should throw an error if no sequence number is given', ->
-      expect =>
-        @engine.apply
-          reference: '550e8400-e29b-41d4-a716-446655440000'
-          account: 'Peter'
-          timestamp: 1371737390976
-      .to.throw 'Must supply a sequence number'
-
     it 'should throw an error if the sequence number is not expected', ->
       expect =>
-        @engine.apply
+        @engine.apply new Operation
           reference: '550e8400-e29b-41d4-a716-446655440000'
           account: 'Peter'
           sequence: 1
           timestamp: 1371737390976
-      .to.throw 'Unexpected sequence number'
-
-    it 'should throw an error if no timestamp is given', ->
-      expect =>
-        @engine.apply
-          reference: '550e8400-e29b-41d4-a716-446655440000'
-          account: 'Peter'
-          sequence: 0
-      .to.throw 'Must supply a timestamp'
-
-    it 'should throw an error if no known operation is specified', ->
-      expect =>
-        @engine.apply
-          reference: '550e8400-e29b-41d4-a716-446655440000'
-          account: 'Peter'
-          sequence: 0
-          timestamp: 1371737390976
-          unknown:
+          deposit:
             currency: 'EUR'
-            amount: '5000'
-      .to.throw 'Unknown operation'
+            amount: '1000' 
+      .to.throw 'Unexpected sequence number'
 
     describe 'deposit', ->
       it 'should throw an error if no currency is supplied', ->
