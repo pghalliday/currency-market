@@ -6,7 +6,7 @@ sinon = require 'sinon'
 sinonChai = require 'sinon-chai'
 chai.use sinonChai
 
-Engine = require '../../src/Engine/Engine'
+Engine = require '../../src/Engine'
 Book = require '../../src/Engine/Book'
 Account = require '../../src/Engine/Account'
 Amount = require '../../src/Amount'
@@ -951,7 +951,7 @@ describe 'Engine', ->
         commission:
           account: 'commission'
           calculate: @calculateCommission
-        json: JSON.stringify @engine
+        state: JSON.parse JSON.stringify @engine
       engine.nextOperationSequence.should.equal @engine.nextOperationSequence
       engine.nextDeltaSequence.should.equal @engine.nextDeltaSequence
       engine.apply

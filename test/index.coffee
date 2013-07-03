@@ -3,7 +3,7 @@ chai.should()
 expect = chai.expect
 assert = chai.assert
 
-CurrencyMarket = require '../src/'
+CurrencyMarket = require '../src'
 
 describe 'CurrencyMarket', ->
   describe '#Engine', ->

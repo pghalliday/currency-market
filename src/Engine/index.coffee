@@ -1,7 +1,12 @@
-Book = require('./Book')
-Account = require('./Account')
-Amount = require('../Amount')
-Order = require('./Order')
+Book = require './Book'
+Account = require './Account'
+Amount = require '../Amount'
+Order = require './Order'
+Delta = require '../Delta'
+DepositResult = require '../Delta/DepositResult'
+WithdrawResult = require '../Delta/WithdrawResult'
+CancelResult = require '../Delta/CancelResult'
+CancelResult = require '../Delta/SubmitResult'
 
 module.exports = class Engine
   constructor: (params) ->
@@ -14,15 +19,15 @@ module.exports = class Engine
         @commission = 
           account: @getAccount params.commission.account
           calculate: params.commission.calculate
-      if params.json
-        snapshot = JSON.parse params.json
-        for id, account of snapshot.accounts
+      if params.state
+        state = params.state
+        for id, account of state.accounts
           accountObject = @getAccount id
           for currency, balance of account.balances
             accountObject.deposit
               currency: currency
               amount: new Amount balance.funds
-        for bidCurrency, books of snapshot.books
+        for bidCurrency, books of state.books
           for offerCurrency, book of books
             for order in book
               do (order) =>
@@ -39,8 +44,8 @@ module.exports = class Engine
                   offerAmount: if order.offerAmount then new Amount order.offerAmount
                 account.submit orderObject
                 book.submit orderObject
-        @nextOperationSequence = snapshot.nextOperationSequence
-        @nextDeltaSequence = snapshot.nextDeltaSequence
+        @nextOperationSequence = state.nextOperationSequence
+        @nextDeltaSequence = state.nextDeltaSequence
 
   getAccount: (id) =>
     account = @accounts[id]
@@ -67,19 +72,24 @@ module.exports = class Engine
         @nextOperationSequence++
         if typeof operation.timestamp != 'undefined'
           account = @getAccount operation.account
-          delta = 
-            operation: operation
-            result: {}
           if operation.deposit
             deposit = operation.deposit
-            delta.result.funds = account.deposit
-              currency: deposit.currency
-              amount: if deposit.amount then new Amount deposit.amount
+            delta = new Delta
+              sequence: @nextDeltaSequence
+              operation: operation
+              result: new DepositResult
+                funds: account.deposit
+                  currency: deposit.currency
+                  amount: if deposit.amount then new Amount deposit.amount
           else if operation.withdraw
             withdraw = operation.withdraw
-            delta.result.funds = account.withdraw
-              currency: withdraw.currency
-              amount: if withdraw.amount then new Amount withdraw.amount
+            delta = new Delta
+              sequence: @nextDeltaSequence
+              operation: operation
+              result: new WithdrawResult
+                funds: account.withdraw
+                  currency: withdraw.currency
+                  amount: if withdraw.amount then new Amount withdraw.amount
           else if operation.submit
             submit = operation.submit
             leftBook = @getBook submit.bidCurrency, submit.offerCurrency
@@ -92,22 +102,35 @@ module.exports = class Engine
               bidAmount: if submit.bidAmount then new Amount submit.bidAmount
               offerPrice: if submit.offerPrice then new Amount submit.offerPrice
               offerAmount: if submit.offerAmount then new Amount submit.offerAmount
-            delta.result.lockedFunds = account.submit order
+            lockedFunds = account.submit order
             nextHigher = leftBook.submit order
             if nextHigher
-              delta.result.nextHigherOrderSequence = nextHigher.sequence
+              delta = new Delta
+                sequence: @nextDeltaSequence
+                operation: operation
+                result: 
+                  lockedFunds: lockedFunds
+                  nextHigherOrderSequence: nextHigher.sequence
             else
               # check the books to see if any orders can be executed
-              delta.result.trades = []
               rightBook = @getBook submit.offerCurrency, submit.bidCurrency
-              @execute delta.result.trades, leftBook, rightBook
+              delta = new Delta
+                sequence: @nextDeltaSequence
+                operation: operation
+                result: 
+                  lockedFunds: lockedFunds
+                  trades: @execute [], leftBook, rightBook
           else if operation.cancel
             order = account.getOrder operation.cancel.sequence
-            lockedFunds = account.cancel order
+            delta = new Delta
+              sequence: @nextDeltaSequence
+              operation: operation
+              result: new CancelResult
+                lockedFunds: account.cancel order
             @getBook(order.bidBalance.currency, order.offerBalance.currency).cancel order
           else
             throw new Error 'Unknown operation'
-          delta.sequence = @nextDeltaSequence++
+          @nextDeltaSequence++
           return delta
         else
           throw new Error 'Must supply a timestamp'
@@ -129,6 +152,7 @@ module.exports = class Engine
         trades.push trade
         if trade.left.remainder
           @execute trades, leftBook, rightBook
+    return trades
 
   toJSON: =>
     object =

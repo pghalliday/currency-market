@@ -2,9 +2,9 @@ chai = require 'chai'
 chai.should()
 expect = chai.expect
 
-State = require '../../src/State/State'
+State = require '../../src/State'
 Account = require '../../src/State/Account'
-Engine = require '../../src/Engine/Engine'
+Engine = require '../../src/Engine'
 Amount = require '../../src/Amount'
 
 describe 'State', ->
