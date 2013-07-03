@@ -70,8 +70,7 @@ module.exports = class Balance
         amount: params.amount.toString()
         funds: @funds.toString()
 
-  export: =>
-    object = {}
-    object.funds = @funds.toString()
-    object.lockedFunds = @lockedFunds.toString()
-    return object
+  toJSON: =>
+    object = 
+      funds: @funds
+      lockedFunds: @lockedFunds

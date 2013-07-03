@@ -132,13 +132,15 @@ describe 'Amount', ->
       amountRatio.compareTo(amount2Thirds).should.equal(0)
 
   describe '#toString', ->
-    it 'should return a string representation of the amount', ->
-      amount = new Amount('3.14')
-      amount.toString().should.equal('3.14')
-
-    it 'should retrun a string representation that is suitable for exporting and later importing amounts', ->
+    it 'should return a string that is suitable for exporting and later importing amounts', ->
       amount1 = new Amount('3.14')
       amount2 = new Amount amount1.toString()
+      amount1.compareTo(amount2).should.equal 0
+
+  describe 'JSON.stringify', ->
+    it 'should return a JSON string that is suitable for exporting and later importing amounts', ->
+      amount1 = new Amount('3.14')
+      amount2 = new Amount JSON.parse JSON.stringify amount1
       amount1.compareTo(amount2).should.equal 0
 
   describe 'ZERO', ->

@@ -304,8 +304,8 @@ describe 'Book', ->
       @book.cancel @order7
       expect(@book.next()).to.not.be.ok
 
-  describe '#export', ->
-    it 'should return a JSON stringifiable array containing a sorted list of orders in the book with the highest first', ->
+  describe 'JSON.stringify', ->
+    it 'should return a JSON string containing an array of orders in the book sorted by bid price with the highest first', ->
       #
       #                       1
       #                      / \
@@ -350,24 +350,24 @@ describe 'Book', ->
       @book.submit order14
       order15 = @newBid amount53
       @book.submit order15
-      json = JSON.stringify @book.export()
+      json = JSON.stringify @book
       array = JSON.parse json
       array.should.deep.equal [
-        order15.export()
-        order4.export()
-        order14.export()
-        order2.export()
-        order13.export()
-        order5.export()
-        order12.export()
-        order1.export()
-        order11.export()
-        order6.export()
-        order10.export()
-        order3.export()
-        order9.export()
-        order7.export()
-        order8.export()
+        JSON.parse JSON.stringify order15.toJSON()
+        JSON.parse JSON.stringify order4.toJSON()
+        JSON.parse JSON.stringify order14.toJSON()
+        JSON.parse JSON.stringify order2.toJSON()
+        JSON.parse JSON.stringify order13.toJSON()
+        JSON.parse JSON.stringify order5.toJSON()
+        JSON.parse JSON.stringify order12.toJSON()
+        JSON.parse JSON.stringify order1.toJSON()
+        JSON.parse JSON.stringify order11.toJSON()
+        JSON.parse JSON.stringify order6.toJSON()
+        JSON.parse JSON.stringify order10.toJSON()
+        JSON.parse JSON.stringify order3.toJSON()
+        JSON.parse JSON.stringify order9.toJSON()
+        JSON.parse JSON.stringify order7.toJSON()
+        JSON.parse JSON.stringify order8.toJSON()
       ]
 
 

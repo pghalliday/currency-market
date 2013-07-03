@@ -307,21 +307,6 @@ module.exports = class Order
     else
       return @
 
-  export: =>
-    object = {}
-    object.sequence = @sequence
-    object.timestamp = @timestamp
-    object.account = @account.id
-    object.bidCurrency = @book.bidCurrency
-    object.offerCurrency = @book.offerCurrency
-    if @bidPrice
-      object.bidPrice = @bidPrice.toString()
-      object.bidAmount = @bidAmount.toString()
-    else
-      object.offerPrice = @offerPrice.toString()
-      object.offerAmount = @offerAmount.toString()
-    return object
-
   nextParent: =>
     if @lowerParent
       return @lowerParent
@@ -334,3 +319,14 @@ module.exports = class Order
     else
       return @nextParent()
 
+  toJSON: =>
+    object =
+      sequence: @sequence
+      timestamp: @timestamp
+      account: @account.id
+      bidCurrency: @book.bidCurrency
+      offerCurrency: @book.offerCurrency
+      bidPrice: @bidPrice
+      bidAmount: if @bidPrice then @bidAmount
+      offerPrice: @offerPrice
+      offerAmount: if @offerPrice then @offerAmount

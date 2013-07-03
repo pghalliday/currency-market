@@ -56,10 +56,7 @@ module.exports = class Account
     delete @orders[order.sequence]
     @getBalance(order.book.offerCurrency).unlock order.offerAmount
 
-  export: =>
-    object = {}
-    object.id = @id
-    object.balances = {}
-    for currency, balance of @balances
-      object.balances[currency] = balance.export()
-    return object
+  toJSON: =>
+    object =
+      id: @id
+      balances: @balances

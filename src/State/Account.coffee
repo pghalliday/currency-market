@@ -10,3 +10,7 @@ module.exports = class Account
 
   getBalance: (currency) =>
     @balances[currency] = @balances[currency] || new Balance()
+
+  toJSON: =>
+    object = 
+      balances: @balances

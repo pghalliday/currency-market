@@ -1753,13 +1753,13 @@ describe 'Order', ->
         order2.getHighest = sinon.stub().returns 'stub'
         order1.getHighest().should.equal 'stub'
 
-  describe '#export', ->
-    it 'should return a JSON stringifiable object containing a snapshot of the order', ->
+  describe 'JSON.stringify', ->
+    it 'should return a JSON string containing a snapshot of the order', ->
       order = @paulBidEUR
         skipSubmit: true
         price: amount100
         amount: amount50
-      json = JSON.stringify order.export()
+      json = JSON.stringify order
       object = JSON.parse json
       order.sequence.should.equal object.sequence
       order.timestamp.should.equal object.timestamp
@@ -1774,7 +1774,7 @@ describe 'Order', ->
         skipSubmit: true
         price: amount100
         amount: amount50
-      json = JSON.stringify order.export()
+      json = JSON.stringify order
       object = JSON.parse json
       order.sequence.should.equal object.sequence
       order.timestamp.should.equal object.timestamp

@@ -45,7 +45,10 @@ module.exports = class Amount
       throw new Error 'Can only divide Amount objects'
 
   toString: =>
-    return @value.toString()
+    @value.toString()
+
+  toJSON: =>
+    @value.toString()
 
 Amount.ZERO = new Amount '0'
 Amount.ONE = new Amount '1'

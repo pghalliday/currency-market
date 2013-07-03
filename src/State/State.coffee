@@ -4,9 +4,9 @@ module.exports = class State
   constructor: (state) ->
     @accounts = {}
     @books = {}
-    @nextSequence = 0
+    @nextDeltaSequence = 0
     if state
-      @nextSequence = state.nextDeltaSequence
+      @nextDeltaSequence = state.nextDeltaSequence
       for id, account of state.accounts
         @accounts[id] = new Account account
       for bidCurrency, books of state.books
@@ -16,7 +16,7 @@ module.exports = class State
           for order in book
             do (order) =>
               @accounts[order.account].orders[order.sequence] = order
-              
+
   getAccount: (id) =>
     @accounts[id] = @accounts[id] || new Account()
 
@@ -36,8 +36,8 @@ module.exports = class State
       throw new Error 'Must supply a bid currency'
 
   apply: (delta) =>
-    if delta.sequence == @nextSequence
-      @nextSequence++
+    if delta.sequence == @nextDeltaSequence
+      @nextDeltaSequence++
       operation = delta.operation
       result = delta.result
       account = @getAccount(operation.account)
@@ -46,5 +46,5 @@ module.exports = class State
         account.getBalance(deposit.currency).funds = result.funds
       else
         throw new Error 'Unknown operation'
-    else if delta.sequence > @nextSequence
+    else if delta.sequence > @nextDeltaSequence
       throw new Error 'Unexpected delta'

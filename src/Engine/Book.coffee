@@ -56,7 +56,7 @@ module.exports = class Book
   next: =>
     @highest
 
-  export: =>
+  toJSON: =>
     next = @
     while next = next.next()
-      next.export()
+      next

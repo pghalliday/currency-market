@@ -18,6 +18,7 @@ amount1 = Amount.ONE
 amount3 = new Amount '3'
 amount4 = new Amount '4'
 amount5 = new Amount '5'
+amount9 = new Amount '9'
 amount10 = new Amount '10'
 amount20 = new Amount '20'
 amount50 = new Amount '50'
@@ -900,59 +901,7 @@ describe 'Engine', ->
       book3 = @engine.getBook 'BTC', 'EUR'
       book3.should.not.equal book1
 
-  describe '#export', ->
-    it 'should return a JSON stringifiable object containing a snapshot of the engine', ->
-      @engine.apply
-        reference: '550e8400-e29b-41d4-a716-446655440000'
-        account: 'Peter'
-        sequence: 0
-        timestamp: 1371737390976
-        deposit:
-          currency: 'EUR'
-          amount: '200'
-      @engine.apply
-        reference: '550e8400-e29b-41d4-a716-446655440000'
-        account: 'Paul'
-        sequence: 1
-        timestamp: 1371737390976
-        deposit:
-          currency: 'BTC'
-          amount: '4950'
-      @engine.apply
-        reference: '550e8400-e29b-41d4-a716-446655440000'
-        account: 'Peter'
-        sequence: 2
-        timestamp: 1371737390976
-        submit:
-          bidCurrency: 'BTC'
-          offerCurrency: 'EUR'
-          offerPrice: '100'
-          offerAmount: '50'
-      @engine.apply
-        reference: '550e8400-e29b-41d4-a716-446655440000'
-        account: 'Paul'
-        sequence: 3
-        timestamp: 1371737390976
-        submit:
-          bidCurrency: 'EUR'
-          offerCurrency: 'BTC'
-          bidPrice: '99'
-          bidAmount: '50'
-      json = JSON.stringify @engine.export()
-      object = JSON.parse json
-      object.nextOperationSequence.should.equal @engine.nextOperationSequence
-      object.nextDeltaSequence.should.equal @engine.nextDeltaSequence
-      for id, account of object.accounts
-        account.should.deep.equal @engine.getAccount(id).export()
-      for id of @engine.accounts
-        object.accounts[id].should.be.ok
-      for bidCurrency, books of object.books
-        for offerCurrency, book of books
-          book.should.deep.equal @engine.getBook(bidCurrency, offerCurrency).export()
-      for bidCurrency, books of @engine.books
-        for offerCurrency of books
-          object.books[bidCurrency][offerCurrency].should.be.ok
-
+  describe 'JSON.stringify', ->
     it 'should be possible to recreate an engine from an exported snapshot', ->
       @engine.apply
         reference: '550e8400-e29b-41d4-a716-446655440000'
@@ -998,8 +947,11 @@ describe 'Engine', ->
         deposit:
           currency: 'BTC'
           amount: '10'
-      engine = new Engine()
-      engine.import @engine.export()
+      engine = new Engine
+        commission:
+          account: 'commission'
+          calculate: @calculateCommission
+        json: JSON.stringify @engine
       engine.nextOperationSequence.should.equal @engine.nextOperationSequence
       engine.nextDeltaSequence.should.equal @engine.nextDeltaSequence
       engine.apply
@@ -1020,7 +972,7 @@ describe 'Engine', ->
           offerPrice: '100'
           offerAmount: '10'
       engine.getAccount('Peter').getBalance('EUR').funds.compareTo(Amount.ZERO).should.equal 0
-      engine.getAccount('Peter').getBalance('BTC').funds.compareTo(amount10).should.equal 0
-      engine.getAccount('Paul').getBalance('EUR').funds.compareTo(amount1000).should.equal 0
+      engine.getAccount('Peter').getBalance('BTC').funds.compareTo(amount9).should.equal 0
+      engine.getAccount('Paul').getBalance('EUR').funds.compareTo(amount999).should.equal 0
       engine.getAccount('Paul').getBalance('BTC').funds.compareTo(amount10).should.equal 0
 

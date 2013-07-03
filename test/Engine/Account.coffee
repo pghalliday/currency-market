@@ -263,8 +263,8 @@ describe 'Account', ->
       .to.throw 'Cannot withdraw funds that are not available'
       account.getBalance('EUR').funds.compareTo(amount1000).should.equal 0
 
-  describe '#export', ->
-    it 'should return a JSON stringifiable object containing a snapshot of the account', ->
+  describe 'JSON.stringify', ->
+    it 'should return a JSON string containing a snapshot of the account', ->
       book = new Book
         offerCurrency: 'EUR'
         bidCurrency: 'BTC'
@@ -287,11 +287,11 @@ describe 'Account', ->
         book: book
         bidPrice: amount100
         bidAmount: amount5
-      json = JSON.stringify account.export()
+      json = JSON.stringify account
       object = JSON.parse json
       object.id.should.equal account.id
       for currency, balance of object.balances
-        balance.should.deep.equal account.getBalance(currency).export()
+        balance.should.deep.equal JSON.parse JSON.stringify account.getBalance(currency).toJSON()
       for currency of account.balances
         object.balances[currency].should.be.ok
 

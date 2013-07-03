@@ -1,5 +1,4 @@
 module.exports = class Balance
-
   constructor: (params) ->
     @funds = '0'
     @lockedFunds = '0'

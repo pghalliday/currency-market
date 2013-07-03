@@ -209,8 +209,8 @@ describe 'Balance', ->
         balance.withdraw amount100
       .to.throw 'Cannot withdraw funds that are not available'
 
-  describe '#export', ->
-    it 'should return a JSON stringifiable object containing a snapshot of the balance', ->
+  describe 'JSON.stringify', ->
+    it 'should return a JSON string object containing a snapshot of the balance', ->
       balance = new Balance
         account: new Account
           id: 'Peter'
@@ -218,7 +218,7 @@ describe 'Balance', ->
       balance.deposit amount200
       balance.lock amount50
       balance.lock amount100
-      json = JSON.stringify balance.export()
+      json = JSON.stringify balance
       object = JSON.parse json
       balance.funds.compareTo(new Amount object.funds).should.equal 0
       balance.lockedFunds.compareTo(new Amount object.lockedFunds).should.equal 0

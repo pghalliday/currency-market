@@ -14,6 +14,33 @@ module.exports = class Engine
         @commission = 
           account: @getAccount params.commission.account
           calculate: params.commission.calculate
+      if params.json
+        snapshot = JSON.parse params.json
+        for id, account of snapshot.accounts
+          accountObject = @getAccount id
+          for currency, balance of account.balances
+            accountObject.deposit
+              currency: currency
+              amount: new Amount balance.funds
+        for bidCurrency, books of snapshot.books
+          for offerCurrency, book of books
+            for order in book
+              do (order) =>
+                account = @getAccount order.account
+                book = @getBook order.bidCurrency, order.offerCurrency
+                orderObject = new Order
+                  sequence: order.sequence
+                  timestamp: order.timestamp
+                  account: account
+                  book: book
+                  bidPrice: if order.bidPrice then new Amount order.bidPrice
+                  bidAmount: if order.bidAmount then new Amount order.bidAmount
+                  offerPrice: if order.offerPrice then new Amount order.offerPrice
+                  offerAmount: if order.offerAmount then new Amount order.offerAmount
+                account.submit orderObject
+                book.submit orderObject
+        @nextOperationSequence = snapshot.nextOperationSequence
+        @nextDeltaSequence = snapshot.nextDeltaSequence
 
   getAccount: (id) =>
     account = @accounts[id]
@@ -103,45 +130,11 @@ module.exports = class Engine
         if trade.left.remainder
           @execute trades, leftBook, rightBook
 
-  export: =>
-    object = {}
-    object.nextOperationSequence = @nextOperationSequence
-    object.nextDeltaSequence = @nextDeltaSequence
-    object.accounts = {}
-    for id, account of @accounts
-      object.accounts[id] = account.export()
-    object.books = {}
-    for bidCurrency, books of @books
-      object.books[bidCurrency] = {}
-      for offerCurrency, book of books
-        object.books[bidCurrency][offerCurrency] = book.export()
-    return object
-
-  import: (snapshot) =>
-    for id, account of snapshot.accounts
-      accountObject = @getAccount id
-      for currency, balance of account.balances
-        accountObject.deposit
-          currency: currency
-          amount: new Amount balance.funds
-    for bidCurrency, books of snapshot.books
-      for offerCurrency, book of books
-        for order in book
-          do (order) =>
-            account = @getAccount order.account
-            book = @getBook order.bidCurrency, order.offerCurrency
-            orderObject = new Order
-              sequence: order.sequence
-              timestamp: order.timestamp
-              account: account
-              book: book
-              bidPrice: if order.bidPrice then new Amount order.bidPrice
-              bidAmount: if order.bidAmount then new Amount order.bidAmount
-              offerPrice: if order.offerPrice then new Amount order.offerPrice
-              offerAmount: if order.offerAmount then new Amount order.offerAmount
-            account.submit orderObject
-            book.submit orderObject
-    @nextOperationSequence = snapshot.nextOperationSequence
-    @nextDeltaSequence = snapshot.nextDeltaSequence
+  toJSON: =>
+    object =
+      nextOperationSequence: @nextOperationSequence
+      nextDeltaSequence: @nextDeltaSequence
+      accounts: @accounts
+      books: @books
 
 

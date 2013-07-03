@@ -106,6 +106,81 @@ describe 'State', ->
       price: '0.01'
       amount: '1000'
 
+    @checkState = (state) =>
+      accountPeter = state.getAccount 'Peter'
+
+      balancePeterEUR = accountPeter.getBalance 'EUR'
+      balancePeterEUR.funds.should.equal '10000'
+      balancePeterEUR.lockedFunds.should.equal '7000'
+
+      balancePeterBTC = accountPeter.getBalance 'BTC'
+      balancePeterBTC.funds.should.equal '50'
+      balancePeterBTC.lockedFunds.should.equal '0'
+
+      ordersPeter = accountPeter.orders
+
+      orderPeter4 = ordersPeter[4]
+      orderPeter4.sequence.should.equal 4
+      orderPeter4.timestamp.should.equal 1371737390976 + 4
+      orderPeter4.account.should.equal 'Peter'
+      orderPeter4.offerCurrency.should.equal 'EUR'
+      orderPeter4.bidCurrency.should.equal 'BTC'
+      orderPeter4.offerPrice.should.equal '0.04'
+      orderPeter4.offerAmount.should.equal '5000'
+
+      orderPeter5 = ordersPeter[5]
+      orderPeter5.sequence.should.equal 5
+      orderPeter5.timestamp.should.equal 1371737390976 + 5
+      orderPeter5.account.should.equal 'Peter'
+      orderPeter5.offerCurrency.should.equal 'EUR'
+      orderPeter5.bidCurrency.should.equal 'BTC'
+      orderPeter5.offerPrice.should.equal '0.03'
+      orderPeter5.offerAmount.should.equal '2000'
+
+      accountPaul = state.getAccount 'Paul'
+
+      balancePaulEUR = accountPaul.getBalance 'EUR'
+      balancePaulEUR.funds.should.equal '2500'
+      balancePaulEUR.lockedFunds.should.equal '0'
+
+      balancePaulBTC = accountPaul.getBalance 'BTC'
+      balancePaulBTC.funds.should.equal '200'
+      balancePaulBTC.lockedFunds.should.equal '60'
+
+      ordersPaul = accountPaul.orders
+
+      orderPaul6 = ordersPaul[6]
+      orderPaul6.sequence.should.equal 6
+      orderPaul6.timestamp.should.equal 1371737390976 + 6
+      orderPaul6.account.should.equal 'Paul'
+      orderPaul6.offerCurrency.should.equal 'BTC'
+      orderPaul6.bidCurrency.should.equal 'EUR'
+      orderPaul6.bidPrice.should.equal '0.02'
+      orderPaul6.bidAmount.should.equal '2500'
+
+      orderPaul7 = ordersPaul[7]
+      orderPaul7.sequence.should.equal 7
+      orderPaul7.timestamp.should.equal 1371737390976 + 7
+      orderPaul7.account.should.equal 'Paul'
+      orderPaul7.offerCurrency.should.equal 'BTC'
+      orderPaul7.bidCurrency.should.equal 'EUR'
+      orderPaul7.bidPrice.should.equal '0.01'
+      orderPaul7.bidAmount.should.equal '1000'
+
+      bookEURBTC = state.getBook
+        bidCurrency: 'EUR'
+        offerCurrency: 'BTC'
+
+      bookEURBTC[0].should.equal orderPaul6
+      bookEURBTC[1].should.equal orderPaul7
+
+      bookBTCEUR = state.getBook
+        bidCurrency: 'BTC'
+        offerCurrency: 'EUR'
+
+      bookBTCEUR[0].should.equal orderPeter5
+      bookBTCEUR[1].should.equal orderPeter4
+
   describe '#getAccount', ->
     it 'should create a new account if it does not exist', ->
       state = new State()
@@ -167,83 +242,14 @@ describe 'State', ->
       book2.should.not.equal book1
 
   it 'should instantiate from an engine state', ->
-    state = new State @engine.export()
+    state = new State JSON.parse JSON.stringify @engine
+    @checkState state
 
-    accountPeter = state.getAccount 'Peter'
-
-    balancePeterEUR = accountPeter.getBalance 'EUR'
-    balancePeterEUR.funds.should.equal '10000'
-    balancePeterEUR.lockedFunds.should.equal '7000'
-
-    balancePeterBTC = accountPeter.getBalance 'BTC'
-    balancePeterBTC.funds.should.equal '50'
-    balancePeterBTC.lockedFunds.should.equal '0'
-
-    ordersPeter = accountPeter.orders
-
-    orderPeter4 = ordersPeter[4]
-    orderPeter4.sequence.should.equal 4
-    orderPeter4.timestamp.should.equal 1371737390976 + 4
-    orderPeter4.account.should.equal 'Peter'
-    orderPeter4.offerCurrency.should.equal 'EUR'
-    orderPeter4.bidCurrency.should.equal 'BTC'
-    orderPeter4.offerPrice.should.equal '0.04'
-    orderPeter4.offerAmount.should.equal '5000'
-
-    orderPeter5 = ordersPeter[5]
-    orderPeter5.sequence.should.equal 5
-    orderPeter5.timestamp.should.equal 1371737390976 + 5
-    orderPeter5.account.should.equal 'Peter'
-    orderPeter5.offerCurrency.should.equal 'EUR'
-    orderPeter5.bidCurrency.should.equal 'BTC'
-    orderPeter5.offerPrice.should.equal '0.03'
-    orderPeter5.offerAmount.should.equal '2000'
-
-    accountPaul = state.getAccount 'Paul'
-
-    balancePaulEUR = accountPaul.getBalance 'EUR'
-    balancePaulEUR.funds.should.equal '2500'
-    balancePaulEUR.lockedFunds.should.equal '0'
-
-    balancePaulBTC = accountPaul.getBalance 'BTC'
-    balancePaulBTC.funds.should.equal '200'
-    balancePaulBTC.lockedFunds.should.equal '60'
-
-    ordersPaul = accountPaul.orders
-
-    orderPaul6 = ordersPaul[6]
-    orderPaul6.sequence.should.equal 6
-    orderPaul6.timestamp.should.equal 1371737390976 + 6
-    orderPaul6.account.should.equal 'Paul'
-    orderPaul6.offerCurrency.should.equal 'BTC'
-    orderPaul6.bidCurrency.should.equal 'EUR'
-    orderPaul6.bidPrice.should.equal '0.02'
-    orderPaul6.bidAmount.should.equal '2500'
-
-    orderPaul7 = ordersPaul[7]
-    orderPaul7.sequence.should.equal 7
-    orderPaul7.timestamp.should.equal 1371737390976 + 7
-    orderPaul7.account.should.equal 'Paul'
-    orderPaul7.offerCurrency.should.equal 'BTC'
-    orderPaul7.bidCurrency.should.equal 'EUR'
-    orderPaul7.bidPrice.should.equal '0.01'
-    orderPaul7.bidAmount.should.equal '1000'
-
-    bookEURBTC = state.getBook
-      bidCurrency: 'EUR'
-      offerCurrency: 'BTC'
-
-    console.log bookEURBTC
-    bookEURBTC[0].should.equal orderPaul6
-    bookEURBTC[1].should.equal orderPaul7
-
-    bookBTCEUR = state.getBook
-      bidCurrency: 'BTC'
-      offerCurrency: 'EUR'
-
-    console.log bookBTCEUR
-    bookBTCEUR[0].should.equal orderPeter5
-    bookBTCEUR[1].should.equal orderPeter4
+  describe 'JSON.stringify', ->
+    it 'should be possible to instantiate an identical state from an exported JSON state', ->
+      state1 = new State JSON.parse JSON.stringify @engine
+      state2 = new State JSON.parse JSON.stringify state1
+      @checkState state2
 
   describe '#apply', ->
     it 'should ignore deltas with a sequence lower than expected as such a delta will have already been applied', ->
@@ -251,7 +257,7 @@ describe 'State', ->
         account: 'Peter'
         currency: 'EUR'
         amount: '5000'
-      state = new State @engine.export()
+      state = new State JSON.parse JSON.stringify @engine
       state.getAccount('Peter').getBalance('EUR').funds.should.equal '15000'
       state.apply delta
       state.getAccount('Peter').getBalance('EUR').funds.should.equal '15000'
@@ -261,7 +267,7 @@ describe 'State', ->
         account: 'Peter'
         currency: 'EUR'
         amount: '5000'
-      state = new State @engine.export()
+      state = new State JSON.parse JSON.stringify @engine
       # make a deposit but don't apply the delta
       @deposit
         account: 'Peter'
@@ -290,7 +296,7 @@ describe 'State', ->
 
     describe 'deposit delta', ->
       it 'should update the account balance accordingly', ->
-        state = new State @engine.export()
+        state = new State JSON.parse JSON.stringify @engine
         state.apply @deposit
           account: 'Peter'
           currency: 'EUR'

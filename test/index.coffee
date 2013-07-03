@@ -11,6 +11,11 @@ describe 'CurrencyMarket', ->
       engine = new CurrencyMarket.Engine()
       engine.should.be.an.instanceOf CurrencyMarket.Engine
 
+  describe '#State', ->
+    it 'should construct a state', ->
+      state = new CurrencyMarket.State()
+      state.should.be.an.instanceOf CurrencyMarket.State
+
   describe '#Amount', ->
     it 'should construct an Amount', ->
       amount = new CurrencyMarket.Amount '200'
