@@ -3,10 +3,6 @@ Account = require './Account'
 Amount = require '../Amount'
 Order = require './Order'
 Delta = require '../Delta'
-DepositResult = require '../Delta/DepositDelta'
-WithdrawResult = require '../Delta/WithdrawDelta'
-CancelResult = require '../Delta/CancelDelta'
-CancelResult = require '../Delta/SubmitDelta'
 
 module.exports = class Engine
   constructor: (params) ->
@@ -75,7 +71,7 @@ module.exports = class Engine
         delta = new Delta
           sequence: @nextDeltaSequence
           operation: operation
-          result: new DepositResult
+          result:
             funds: account.deposit
               currency: deposit.currency
               amount: if deposit.amount then new Amount deposit.amount
@@ -84,7 +80,7 @@ module.exports = class Engine
         delta = new Delta
           sequence: @nextDeltaSequence
           operation: operation
-          result: new WithdrawResult
+          result:
             funds: account.withdraw
               currency: withdraw.currency
               amount: if withdraw.amount then new Amount withdraw.amount
@@ -123,7 +119,7 @@ module.exports = class Engine
         delta = new Delta
           sequence: @nextDeltaSequence
           operation: operation
-          result: new CancelResult
+          result:
             lockedFunds: account.cancel order
         @getBook(order.bidBalance.currency, order.offerBalance.currency).cancel order
       @nextDeltaSequence++

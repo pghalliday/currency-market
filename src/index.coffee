@@ -1,3 +1,5 @@
 module.exports.Engine = require './Engine'
 module.exports.State = require './State'
+module.exports.Operation = require './Operation'
+module.exports.Delta = require './Delta'
 module.exports.Amount = require './Amount'

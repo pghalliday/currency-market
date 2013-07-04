@@ -1,4 +1,4 @@
-module.exports = class SubmitDelta
+module.exports = class Submit
   constructor: (params) ->
     @lockedFunds = params.lockedFunds
     @nextHigherOrderSequence = params.nextHigherOrderSequence
