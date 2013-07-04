@@ -7,6 +7,7 @@ Deposit = require '../../src/Operation/Deposit'
 Withdraw = require '../../src/Operation/Withdraw'
 Submit = require '../../src/Operation/Submit'
 Cancel = require '../../src/Operation/Cancel'
+Amount = require '../../src/Amount'
 
 describe 'Operation', ->
   it 'should error if no sequence is supplied', ->
@@ -17,7 +18,7 @@ describe 'Operation', ->
         account: 'Peter'
         deposit: 
           currency: 'EUR'
-          amount: '500'
+          amount: new Amount '500'
     .to.throw 'Must supply a sequence number'
 
   it 'should error if no timestamp is supplied', ->
@@ -28,7 +29,7 @@ describe 'Operation', ->
         account: 'Peter'
         deposit: 
           currency: 'EUR'
-          amount: '500'
+          amount: new Amount '500'
     .to.throw 'Must supply a timestamp'
 
   it 'should error if no account ID is supplied', ->
@@ -39,7 +40,7 @@ describe 'Operation', ->
         timestamp: 1371737390976
         deposit: 
           currency: 'EUR'
-          amount: '500'
+          amount: new Amount '500'
     .to.throw 'Must supply an account ID'
 
   it 'should error if an unknown operation is supplied', ->
@@ -61,14 +62,32 @@ describe 'Operation', ->
         account: 'Peter'
         deposit:
           currency: 'EUR'
-          amount: '500'
+          amount: new Amount '500'
       operation.reference.should.equal 'hello'
       operation.sequence.should.equal 0
       operation.timestamp.should.equal 1371737390976
       operation.account.should.equal 'Peter'
       operation.deposit.should.be.an.instanceOf Deposit
       operation.deposit.currency.should.equal 'EUR'
-      operation.deposit.amount.should.equal '500'
+      operation.deposit.amount.compareTo(new Amount '500').should.equal 0
+      operation = new Operation
+        json: JSON.stringify operation
+      operation.reference.should.equal 'hello'
+      operation.sequence.should.equal 0
+      operation.timestamp.should.equal 1371737390976
+      operation.account.should.equal 'Peter'
+      operation.deposit.should.be.an.instanceOf Deposit
+      operation.deposit.currency.should.equal 'EUR'
+      operation.deposit.amount.compareTo(new Amount '500').should.equal 0
+      operation = new Operation
+        exported: JSON.parse JSON.stringify operation
+      operation.reference.should.equal 'hello'
+      operation.sequence.should.equal 0
+      operation.timestamp.should.equal 1371737390976
+      operation.account.should.equal 'Peter'
+      operation.deposit.should.be.an.instanceOf Deposit
+      operation.deposit.currency.should.equal 'EUR'
+      operation.deposit.amount.compareTo(new Amount '500').should.equal 0
 
   describe 'of type withdraw', ->
     it 'should instantiate recording a supplied reference, sequence number, timestamp, account and instantiate a Withdraw', ->
@@ -79,14 +98,32 @@ describe 'Operation', ->
         account: 'Peter'
         withdraw:
           currency: 'EUR'
-          amount: '500'
+          amount: new Amount '500'
       operation.reference.should.equal 'hello'
       operation.sequence.should.equal 0
       operation.timestamp.should.equal 1371737390976
       operation.account.should.equal 'Peter'
       operation.withdraw.should.be.an.instanceOf Withdraw
       operation.withdraw.currency.should.equal 'EUR'
-      operation.withdraw.amount.should.equal '500'
+      operation.withdraw.amount.compareTo(new Amount '500').should.equal 0
+      operation = new Operation
+        json: JSON.stringify operation
+      operation.reference.should.equal 'hello'
+      operation.sequence.should.equal 0
+      operation.timestamp.should.equal 1371737390976
+      operation.account.should.equal 'Peter'
+      operation.withdraw.should.be.an.instanceOf Withdraw
+      operation.withdraw.currency.should.equal 'EUR'
+      operation.withdraw.amount.compareTo(new Amount '500').should.equal 0
+      operation = new Operation
+        exported: JSON.parse JSON.stringify operation
+      operation.reference.should.equal 'hello'
+      operation.sequence.should.equal 0
+      operation.timestamp.should.equal 1371737390976
+      operation.account.should.equal 'Peter'
+      operation.withdraw.should.be.an.instanceOf Withdraw
+      operation.withdraw.currency.should.equal 'EUR'
+      operation.withdraw.amount.compareTo(new Amount '500').should.equal 0
 
   describe 'of type submit', ->
     it 'should instantiate recording a supplied reference, sequence number, timestamp, account and instantiate a Submit', ->
@@ -98,8 +135,8 @@ describe 'Operation', ->
         submit:
           bidCurrency: 'EUR'
           offerCurrency: 'BTC'
-          bidPrice: '10'
-          bidAmount: '500'
+          bidPrice: new Amount '10'
+          bidAmount: new Amount '500'
       operation.reference.should.equal 'hello'
       operation.sequence.should.equal 0
       operation.timestamp.should.equal 1371737390976
@@ -107,8 +144,30 @@ describe 'Operation', ->
       operation.submit.should.be.an.instanceOf Submit
       operation.submit.bidCurrency.should.equal 'EUR'
       operation.submit.offerCurrency.should.equal 'BTC'
-      operation.submit.bidPrice.should.equal '10'
-      operation.submit.bidAmount.should.equal '500'
+      operation.submit.bidPrice.compareTo(new Amount '10').should.equal 0
+      operation.submit.bidAmount.compareTo(new Amount '500').should.equal 0
+      operation = new Operation
+        json: JSON.stringify operation
+      operation.reference.should.equal 'hello'
+      operation.sequence.should.equal 0
+      operation.timestamp.should.equal 1371737390976
+      operation.account.should.equal 'Peter'
+      operation.submit.should.be.an.instanceOf Submit
+      operation.submit.bidCurrency.should.equal 'EUR'
+      operation.submit.offerCurrency.should.equal 'BTC'
+      operation.submit.bidPrice.compareTo(new Amount '10').should.equal 0
+      operation.submit.bidAmount.compareTo(new Amount '500').should.equal 0
+      operation = new Operation
+        exported: JSON.parse JSON.stringify operation
+      operation.reference.should.equal 'hello'
+      operation.sequence.should.equal 0
+      operation.timestamp.should.equal 1371737390976
+      operation.account.should.equal 'Peter'
+      operation.submit.should.be.an.instanceOf Submit
+      operation.submit.bidCurrency.should.equal 'EUR'
+      operation.submit.offerCurrency.should.equal 'BTC'
+      operation.submit.bidPrice.compareTo(new Amount '10').should.equal 0
+      operation.submit.bidAmount.compareTo(new Amount '500').should.equal 0
 
   describe 'of type cancel', ->
     it 'should instantiate recording a supplied reference, sequence number, timestamp, account and instantiate a Cancel', ->
@@ -119,6 +178,22 @@ describe 'Operation', ->
         account: 'Peter'
         cancel:
           sequence: 10
+      operation.reference.should.equal 'hello'
+      operation.sequence.should.equal 0
+      operation.timestamp.should.equal 1371737390976
+      operation.account.should.equal 'Peter'
+      operation.cancel.should.be.an.instanceOf Cancel
+      operation.cancel.sequence.should.equal 10
+      operation = new Operation
+        json: JSON.stringify operation
+      operation.reference.should.equal 'hello'
+      operation.sequence.should.equal 0
+      operation.timestamp.should.equal 1371737390976
+      operation.account.should.equal 'Peter'
+      operation.cancel.should.be.an.instanceOf Cancel
+      operation.cancel.sequence.should.equal 10
+      operation = new Operation
+        exported: JSON.parse JSON.stringify operation
       operation.reference.should.equal 'hello'
       operation.sequence.should.equal 0
       operation.timestamp.should.equal 1371737390976

@@ -5,6 +5,23 @@ Cancel = require './Cancel'
 
 module.exports = class Operation
   constructor: (params) ->
+    exported = params.exported
+    if params.json
+      exported = JSON.parse params.json
+    if exported
+      params = exported
+      if params.deposit
+        params.deposit =
+          exported: params.deposit
+      if params.withdraw
+        params.withdraw =
+          exported: params.withdraw
+      if params.submit
+        params.submit =
+          exported: params.submit
+      if params.cancel
+        params.cancel =
+          exported: params.cancel
     @reference = params.reference
     @sequence = params.sequence
     if typeof @sequence == 'undefined'

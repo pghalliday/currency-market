@@ -2,9 +2,16 @@ Deposit = require './Deposit'
 Withdraw = require './Withdraw'
 Submit = require './Submit'
 Cancel = require './Cancel'
+Operation = require '../Operation'
 
 module.exports = class Delta
   constructor: (params) ->
+    if params.json
+      params = JSON.parse params.json
+      params.result = 
+        exported: params.result
+      params.operation = new Operation
+        exported: params.operation
     @sequence = params.sequence
     if typeof @sequence == 'undefined'
       throw new Error 'Must supply a sequence number'

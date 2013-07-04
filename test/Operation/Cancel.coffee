@@ -14,3 +14,7 @@ describe 'Cancel', ->
     cancel = new Cancel
       sequence: 0
     cancel.sequence.should.equal 0
+    cancel = new Cancel
+      exported: JSON.parse JSON.stringify cancel
+    cancel.sequence.should.equal 0
+

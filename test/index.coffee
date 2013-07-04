@@ -1,7 +1,5 @@
 chai = require 'chai'
 chai.should()
-expect = chai.expect
-assert = chai.assert
 
 CurrencyMarket = require '../src'
 Engine = CurrencyMarket.Engine
