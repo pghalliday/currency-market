@@ -15,8 +15,8 @@ module.exports = class Engine
         @commission = 
           account: @getAccount params.commission.account
           calculate: params.commission.calculate
-      if params.state
-        state = params.state
+      if params.json
+        state = JSON.parse params.json
         for id, account of state.accounts
           accountObject = @getAccount id
           for currency, balance of account.balances
@@ -72,18 +72,14 @@ module.exports = class Engine
           sequence: @nextDeltaSequence
           operation: operation
           result:
-            funds: account.deposit
-              currency: deposit.currency
-              amount: if deposit.amount then new Amount deposit.amount
+            funds: account.deposit deposit
       else if operation.withdraw
         withdraw = operation.withdraw
         delta = new Delta
           sequence: @nextDeltaSequence
           operation: operation
           result:
-            funds: account.withdraw
-              currency: withdraw.currency
-              amount: if withdraw.amount then new Amount withdraw.amount
+            funds: account.withdraw withdraw
       else if operation.submit
         submit = operation.submit
         leftBook = @getBook submit.bidCurrency, submit.offerCurrency
@@ -92,10 +88,10 @@ module.exports = class Engine
           timestamp: operation.timestamp
           account: account
           book: leftBook
-          bidPrice: if submit.bidPrice then new Amount submit.bidPrice
-          bidAmount: if submit.bidAmount then new Amount submit.bidAmount
-          offerPrice: if submit.offerPrice then new Amount submit.offerPrice
-          offerAmount: if submit.offerAmount then new Amount submit.offerAmount
+          bidPrice: submit.bidPrice
+          bidAmount: submit.bidAmount
+          offerPrice: submit.offerPrice
+          offerAmount: submit.offerAmount
         lockedFunds = account.submit order
         nextHigher = leftBook.submit order
         if nextHigher

@@ -18,7 +18,7 @@ All functions complete synchronously and throw errors if they fail.
 
 ### `Amount`
 
-`Amount` handles large numerical arithmetic accurately (unlike the built in Javascript number implementation). It is used for all internal numerical operations and is provided as a utility for applications to apply the same arimthmetic functionality in their own contexts. In particular it should be used in commission calculations.
+`Amount` handles large numerical arithmetic accurately (unlike the built in Javascript number implementation). It is used for all amount and price values and is provided as a utility for applications to apply the same arimthmetic functionality in their own contexts.
 
 `Amount` instances are immutable.
 
@@ -176,8 +176,7 @@ var delta  = engine.apply({
   // deposit 1000 Euros to account ID 'Peter'
   deposit: {
     currency: 'EUR',
-    // Strings are used for amounts and prices throughout to avoid issues with Javascript numbers
-    amount: '1000'
+    amount: new Amount('1000')
   }
 });
 
@@ -191,12 +190,12 @@ var delta = {
     timestamp: 1371737390976,
     deposit: {
       currency: 'EUR',
-      amount: '1000'
+      amount: new Amount('1000')
     }
   },
   result: {
     // The new level of funds in the deposited currency
-    funds: '11000'
+    funds: new Amount('11000')
   }
 };
 ```
@@ -214,8 +213,7 @@ var delta  = engine.apply({
   // withdraw 1000 Euros from account ID 'Peter'
   withdraw: {
     currency: 'EUR',
-    // Strings are used for amounts and prices throughout to avoid issues with Javascript numbers
-    amount: '1000'
+    amount: new Amount('1000')
   }
 });
 
@@ -229,12 +227,12 @@ var delta = {
     timestamp: 1371737390976,
     withdraw: {
       currency: 'EUR',
-      amount: '1000'
+      amount: new Amount('1000')
     }
   },
   result: {
     // The new level of funds in the withdrawn currency
-    funds: '9000'
+    funds: new Amount('9000')
   }
 };
 ```
@@ -271,7 +269,7 @@ var delta = {
   },
   result: {
     // The new level of locked funds in the order's offer currency
-    lockedFunds: '45685.1234',
+    lockedFunds: new Amount('45685.1234'),
 
     // Note that only one of `nextHigherOrderSequence` or `trades` will be set
 
@@ -299,33 +297,33 @@ var delta = {
         // will have a remainder if they completely satisfy each other
         remainder: {
           // The remaining bidAmount on the order
-          bidAmount: '12589.1335',
+          bidAmount: new Amount('12589.1335'),
           // The remaining offerAmount on the order
-          offerAmount: '3261.23'
+          offerAmount: new Amount('3261.23')
         },
         // The transaction fields signal by how much the account balances have changed
         // and how much commission was applied
         transaction: {
           debit: {
             // The amount of the order's offer currency debited from the account
-            amount: '6592.32697',
+            amount: new Amount('6592.32697'),
             // The new level of funds in the debited currency
-            funds: '123498.132455',
+            funds: new Amount('123498.132455'),
             // The new level of locked funds in the debited currency
-            lockedFunds: '38529.21558'
+            lockedFunds: new Amount('38529.21558')
           },
           credit: {
             // The amount of the order's bid currency credited to the account
-            amount: '326598.2356',
+            amount: new Amount('326598.2356'),
             // The new level of funds in the credited currency
-            funds: '65489123.53658',
+            funds: new Amount('65489123.53658'),
             // If the engine was instantiated without commission then the commission
             // field will not be set
             commission: {
               // The amount of the order's bid currency credited to the commission account
-              amount: '326.123588',
+              amount: new Amount('326.123588'),
               // The new level of funds in the order's bid currency in the commission account
-              funds: '456432148131.45645645',
+              funds: new Amount('456432148131.45645645'),
               // The reference associated with the commission calculation
               reference: '0.01%'
             }
@@ -356,9 +354,8 @@ var delta  = engine.apply({
   submit: {
     bidCurrency: 'BTC',
     offerCurrency: 'EUR',
-    // Strings are used for amounts and prices throughout to avoid issues with Javascript numbers
-    bidPrice: '100',
-    bidAmount: '10'
+    bidPrice: new Amount('100'),
+    bidAmount: new Amount('10')
   }
 });
 ```
@@ -375,9 +372,8 @@ var delta  = engine.apply({
   submit: {
     bidCurrency: 'BTC',
     offerCurrency: 'EUR',
-    // Strings are used for amounts and prices throughout to avoid issues with Javascript numbers
-    offerPrice: '0.01',
-    offerAmount: '1000'
+    offerPrice: new Amount('0.01'),
+    offerAmount: new Amount('1000')
   }
 });
 ```
@@ -412,7 +408,7 @@ var delta = {
   },
   result: {
     // The new level of locked funds in the order's offer currency
-    lockedFunds: '5216.9584'
+    lockedFunds: new Amount('5216.9584')
   }
 };
 ```

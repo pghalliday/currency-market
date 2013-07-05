@@ -489,22 +489,22 @@ describe 'Order', ->
               @order.offerAmount.compareTo(Amount.ZERO).should.equal 0
 
               expect(trade.left.remainder).to.not.be.ok
-              trade.left.transaction.debit.amount.should.equal '200'
-              trade.left.transaction.debit.funds.should.equal '19800'
-              trade.left.transaction.debit.lockedFunds.should.equal '0'
-              trade.left.transaction.credit.amount.should.equal '995'
-              trade.left.transaction.credit.funds.should.equal '995'
-              trade.left.transaction.credit.commission.amount.should.equal '5'
-              trade.left.transaction.credit.commission.funds.should.equal '5'
+              trade.left.transaction.debit.amount.compareTo(amount200).should.equal 0
+              trade.left.transaction.debit.funds.compareTo(amount19800).should.equal 0
+              trade.left.transaction.debit.lockedFunds.compareTo(Amount.ZERO).should.equal 0
+              trade.left.transaction.credit.amount.compareTo(amount995).should.equal 0
+              trade.left.transaction.credit.funds.compareTo(amount995).should.equal 0
+              trade.left.transaction.credit.commission.amount.compareTo(amount5).should.equal 0
+              trade.left.transaction.credit.commission.funds.compareTo(amount5).should.equal 0
               trade.left.transaction.credit.commission.reference.should.equal 'Paul commission level'
               expect(trade.right.remainder).to.not.be.ok
-              trade.right.transaction.debit.amount.should.equal '1000'
-              trade.right.transaction.debit.funds.should.equal '99000'
-              trade.right.transaction.debit.lockedFunds.should.equal '0'
-              trade.right.transaction.credit.amount.should.equal '199'
-              trade.right.transaction.credit.funds.should.equal '199'
-              trade.right.transaction.credit.commission.amount.should.equal '1'
-              trade.right.transaction.credit.commission.funds.should.equal '1'
+              trade.right.transaction.debit.amount.compareTo(amount1000).should.equal 0
+              trade.right.transaction.debit.funds.compareTo(amount99000).should.equal 0
+              trade.right.transaction.debit.lockedFunds.compareTo(Amount.ZERO).should.equal 0
+              trade.right.transaction.credit.amount.compareTo(amount199).should.equal 0
+              trade.right.transaction.credit.funds.compareTo(amount199).should.equal 0
+              trade.right.transaction.credit.commission.amount.compareTo(amount1).should.equal 0
+              trade.right.transaction.credit.commission.funds.compareTo(amount1).should.equal 0
               trade.right.transaction.credit.commission.reference.should.equal 'Peter commission level'
 
           describe 'and the right order is offering more than the left order is bidding', ->
@@ -536,23 +536,23 @@ describe 'Order', ->
               @order.offerAmount.compareTo(amount500).should.equal 0
 
               expect(trade.left.remainder).to.not.be.ok
-              trade.left.transaction.debit.amount.should.equal '100'
-              trade.left.transaction.debit.funds.should.equal '19900'
-              trade.left.transaction.debit.lockedFunds.should.equal '0'
-              trade.left.transaction.credit.amount.should.equal '495'
-              trade.left.transaction.credit.funds.should.equal '495'
-              trade.left.transaction.credit.commission.amount.should.equal '5'
-              trade.left.transaction.credit.commission.funds.should.equal '5'
+              trade.left.transaction.debit.amount.compareTo(amount100).should.equal 0
+              trade.left.transaction.debit.funds.compareTo(amount19900).should.equal 0
+              trade.left.transaction.debit.lockedFunds.compareTo(Amount.ZERO).should.equal 0
+              trade.left.transaction.credit.amount.compareTo(amount495).should.equal 0
+              trade.left.transaction.credit.funds.compareTo(amount495).should.equal 0
+              trade.left.transaction.credit.commission.amount.compareTo(amount5).should.equal 0
+              trade.left.transaction.credit.commission.funds.compareTo(amount5).should.equal 0
               trade.left.transaction.credit.commission.reference.should.equal 'Paul commission level'
-              trade.right.remainder.bidAmount.should.equal '100'
-              trade.right.remainder.offerAmount.should.equal '500'
-              trade.right.transaction.debit.amount.should.equal '500'
-              trade.right.transaction.debit.funds.should.equal '99500'
-              trade.right.transaction.debit.lockedFunds.should.equal '500'
-              trade.right.transaction.credit.amount.should.equal '99'
-              trade.right.transaction.credit.funds.should.equal '99'
-              trade.right.transaction.credit.commission.amount.should.equal '1'
-              trade.right.transaction.credit.commission.funds.should.equal '1'
+              trade.right.remainder.bidAmount.compareTo(amount100).should.equal 0
+              trade.right.remainder.offerAmount.compareTo(amount500).should.equal 0
+              trade.right.transaction.debit.amount.compareTo(amount500).should.equal 0
+              trade.right.transaction.debit.funds.compareTo(amount99500).should.equal 0
+              trade.right.transaction.debit.lockedFunds.compareTo(amount500).should.equal 0
+              trade.right.transaction.credit.amount.compareTo(amount99).should.equal 0
+              trade.right.transaction.credit.funds.compareTo(amount99).should.equal 0
+              trade.right.transaction.credit.commission.amount.compareTo(amount1).should.equal 0
+              trade.right.transaction.credit.commission.funds.compareTo(amount1).should.equal 0
               trade.right.transaction.credit.commission.reference.should.equal 'Peter commission level'
 
           describe 'and the right order is offering less than the left order is bidding', ->
@@ -583,24 +583,24 @@ describe 'Order', ->
               @order.bidAmount.compareTo(Amount.ZERO).should.equal 0
               @order.offerAmount.compareTo(Amount.ZERO).should.equal 0
 
-              trade.left.remainder.bidAmount.should.equal '500'
-              trade.left.remainder.offerAmount.should.equal '100'
-              trade.left.transaction.debit.amount.should.equal '200'
-              trade.left.transaction.debit.funds.should.equal '19800'
-              trade.left.transaction.debit.lockedFunds.should.equal '100'
-              trade.left.transaction.credit.amount.should.equal '995'
-              trade.left.transaction.credit.funds.should.equal '995'
-              trade.left.transaction.credit.commission.amount.should.equal '5'
-              trade.left.transaction.credit.commission.funds.should.equal '5'
+              trade.left.remainder.bidAmount.compareTo(amount500).should.equal 0
+              trade.left.remainder.offerAmount.compareTo(amount100).should.equal 0
+              trade.left.transaction.debit.amount.compareTo(amount200).should.equal 0
+              trade.left.transaction.debit.funds.compareTo(amount19800).should.equal 0
+              trade.left.transaction.debit.lockedFunds.compareTo(amount100).should.equal 0
+              trade.left.transaction.credit.amount.compareTo(amount995).should.equal 0
+              trade.left.transaction.credit.funds.compareTo(amount995).should.equal 0
+              trade.left.transaction.credit.commission.amount.compareTo(amount5).should.equal 0
+              trade.left.transaction.credit.commission.funds.compareTo(amount5).should.equal 0
               trade.left.transaction.credit.commission.reference.should.equal 'Paul commission level'
               expect(trade.right.remainder).to.not.be.ok
-              trade.right.transaction.debit.amount.should.equal '1000'
-              trade.right.transaction.debit.funds.should.equal '99000'
-              trade.right.transaction.debit.lockedFunds.should.equal '0'
-              trade.right.transaction.credit.amount.should.equal '199'
-              trade.right.transaction.credit.funds.should.equal '199'
-              trade.right.transaction.credit.commission.amount.should.equal '1'
-              trade.right.transaction.credit.commission.funds.should.equal '1'
+              trade.right.transaction.debit.amount.compareTo(amount1000).should.equal 0
+              trade.right.transaction.debit.funds.compareTo(amount99000).should.equal 0
+              trade.right.transaction.debit.lockedFunds.compareTo(Amount.ZERO).should.equal 0
+              trade.right.transaction.credit.amount.compareTo(amount199).should.equal 0
+              trade.right.transaction.credit.funds.compareTo(amount199).should.equal 0
+              trade.right.transaction.credit.commission.amount.compareTo(amount1).should.equal 0
+              trade.right.transaction.credit.commission.funds.compareTo(amount1).should.equal 0
               trade.right.transaction.credit.commission.reference.should.equal 'Peter commission level'
 
         describe 'and the left order is an offer', ->
@@ -633,22 +633,22 @@ describe 'Order', ->
               @order.offerAmount.compareTo(Amount.ZERO).should.equal 0
 
               expect(trade.left.remainder).to.not.be.ok
-              trade.left.transaction.debit.amount.should.equal '200'
-              trade.left.transaction.debit.funds.should.equal '19800'
-              trade.left.transaction.debit.lockedFunds.should.equal '0'
-              trade.left.transaction.credit.amount.should.equal '995'
-              trade.left.transaction.credit.funds.should.equal '995'
-              trade.left.transaction.credit.commission.amount.should.equal '5'
-              trade.left.transaction.credit.commission.funds.should.equal '5'
+              trade.left.transaction.debit.amount.compareTo(amount200).should.equal 0
+              trade.left.transaction.debit.funds.compareTo(amount19800).should.equal 0
+              trade.left.transaction.debit.lockedFunds.compareTo(Amount.ZERO).should.equal 0
+              trade.left.transaction.credit.amount.compareTo(amount995).should.equal 0
+              trade.left.transaction.credit.funds.compareTo(amount995).should.equal 0
+              trade.left.transaction.credit.commission.amount.compareTo(amount5).should.equal 0
+              trade.left.transaction.credit.commission.funds.compareTo(amount5).should.equal 0
               trade.left.transaction.credit.commission.reference.should.equal 'Paul commission level'
               expect(trade.right.remainder).to.not.be.ok
-              trade.right.transaction.debit.amount.should.equal '1000'
-              trade.right.transaction.debit.funds.should.equal '99000'
-              trade.right.transaction.debit.lockedFunds.should.equal '0'
-              trade.right.transaction.credit.amount.should.equal '199'
-              trade.right.transaction.credit.funds.should.equal '199'
-              trade.right.transaction.credit.commission.amount.should.equal '1'
-              trade.right.transaction.credit.commission.funds.should.equal '1'
+              trade.right.transaction.debit.amount.compareTo(amount1000).should.equal 0
+              trade.right.transaction.debit.funds.compareTo(amount99000).should.equal 0
+              trade.right.transaction.debit.lockedFunds.compareTo(Amount.ZERO).should.equal 0
+              trade.right.transaction.credit.amount.compareTo(amount199).should.equal 0
+              trade.right.transaction.credit.funds.compareTo(amount199).should.equal 0
+              trade.right.transaction.credit.commission.amount.compareTo(amount1).should.equal 0
+              trade.right.transaction.credit.commission.funds.compareTo(amount1).should.equal 0
               trade.right.transaction.credit.commission.reference.should.equal 'Peter commission level'
 
           describe 'and the right order is offering more than the left order is offering', ->
@@ -680,23 +680,23 @@ describe 'Order', ->
               @order.offerAmount.compareTo(amount500).should.equal 0
 
               expect(trade.left.remainder).to.not.be.ok
-              trade.left.transaction.debit.amount.should.equal '100'
-              trade.left.transaction.debit.funds.should.equal '19900'
-              trade.left.transaction.debit.lockedFunds.should.equal '0'
-              trade.left.transaction.credit.amount.should.equal '495'
-              trade.left.transaction.credit.funds.should.equal '495'
-              trade.left.transaction.credit.commission.amount.should.equal '5'
-              trade.left.transaction.credit.commission.funds.should.equal '5'
+              trade.left.transaction.debit.amount.compareTo(amount100).should.equal 0
+              trade.left.transaction.debit.funds.compareTo(amount19900).should.equal 0
+              trade.left.transaction.debit.lockedFunds.compareTo(Amount.ZERO).should.equal 0
+              trade.left.transaction.credit.amount.compareTo(amount495).should.equal 0
+              trade.left.transaction.credit.funds.compareTo(amount495).should.equal 0
+              trade.left.transaction.credit.commission.amount.compareTo(amount5).should.equal 0
+              trade.left.transaction.credit.commission.funds.compareTo(amount5).should.equal 0
               trade.left.transaction.credit.commission.reference.should.equal 'Paul commission level'
-              trade.right.remainder.bidAmount.should.equal '100'
-              trade.right.remainder.offerAmount.should.equal '500'
-              trade.right.transaction.debit.amount.should.equal '500'
-              trade.right.transaction.debit.funds.should.equal '99500'
-              trade.right.transaction.debit.lockedFunds.should.equal '500'
-              trade.right.transaction.credit.amount.should.equal '99'
-              trade.right.transaction.credit.funds.should.equal '99'
-              trade.right.transaction.credit.commission.amount.should.equal '1'
-              trade.right.transaction.credit.commission.funds.should.equal '1'
+              trade.right.remainder.bidAmount.compareTo(amount100).should.equal 0
+              trade.right.remainder.offerAmount.compareTo(amount500).should.equal 0
+              trade.right.transaction.debit.amount.compareTo(amount500).should.equal 0
+              trade.right.transaction.debit.funds.compareTo(amount99500).should.equal 0
+              trade.right.transaction.debit.lockedFunds.compareTo(amount500).should.equal 0
+              trade.right.transaction.credit.amount.compareTo(amount99).should.equal 0
+              trade.right.transaction.credit.funds.compareTo(amount99).should.equal 0
+              trade.right.transaction.credit.commission.amount.compareTo(amount1).should.equal 0
+              trade.right.transaction.credit.commission.funds.compareTo(amount1).should.equal 0
               trade.right.transaction.credit.commission.reference.should.equal 'Peter commission level'
 
           describe 'and the right order is offering less than the left order is offering', ->
@@ -727,24 +727,24 @@ describe 'Order', ->
               @order.bidAmount.compareTo(Amount.ZERO).should.equal 0
               @order.offerAmount.compareTo(Amount.ZERO).should.equal 0
 
-              trade.left.remainder.bidAmount.should.equal '500'
-              trade.left.remainder.offerAmount.should.equal '100'
-              trade.left.transaction.debit.amount.should.equal '200'
-              trade.left.transaction.debit.funds.should.equal '19800'
-              trade.left.transaction.debit.lockedFunds.should.equal '100'
-              trade.left.transaction.credit.amount.should.equal '995'
-              trade.left.transaction.credit.funds.should.equal '995'
-              trade.left.transaction.credit.commission.amount.should.equal '5'
-              trade.left.transaction.credit.commission.funds.should.equal '5'
+              trade.left.remainder.bidAmount.compareTo(amount500).should.equal 0
+              trade.left.remainder.offerAmount.compareTo(amount100).should.equal 0
+              trade.left.transaction.debit.amount.compareTo(amount200).should.equal 0
+              trade.left.transaction.debit.funds.compareTo(amount19800).should.equal 0
+              trade.left.transaction.debit.lockedFunds.compareTo(amount100).should.equal 0
+              trade.left.transaction.credit.amount.compareTo(amount995).should.equal 0
+              trade.left.transaction.credit.funds.compareTo(amount995).should.equal 0
+              trade.left.transaction.credit.commission.amount.compareTo(amount5).should.equal 0
+              trade.left.transaction.credit.commission.funds.compareTo(amount5).should.equal 0
               trade.left.transaction.credit.commission.reference.should.equal 'Paul commission level'
               expect(trade.right.remainder).to.not.be.ok
-              trade.right.transaction.debit.amount.should.equal '1000'
-              trade.right.transaction.debit.funds.should.equal '99000'
-              trade.right.transaction.debit.lockedFunds.should.equal '0'
-              trade.right.transaction.credit.amount.should.equal '199'
-              trade.right.transaction.credit.funds.should.equal '199'
-              trade.right.transaction.credit.commission.amount.should.equal '1'
-              trade.right.transaction.credit.commission.funds.should.equal '1'
+              trade.right.transaction.debit.amount.compareTo(amount1000).should.equal 0
+              trade.right.transaction.debit.funds.compareTo(amount99000).should.equal 0
+              trade.right.transaction.debit.lockedFunds.compareTo(Amount.ZERO).should.equal 0
+              trade.right.transaction.credit.amount.compareTo(amount199).should.equal 0
+              trade.right.transaction.credit.funds.compareTo(amount199).should.equal 0
+              trade.right.transaction.credit.commission.amount.compareTo(amount1).should.equal 0
+              trade.right.transaction.credit.commission.funds.compareTo(amount1).should.equal 0
               trade.right.transaction.credit.commission.reference.should.equal 'Peter commission level'
 
       describe 'and the new (left) price is the better', ->
@@ -778,22 +778,22 @@ describe 'Order', ->
               @order.offerAmount.compareTo(Amount.ZERO).should.equal 0
 
               expect(trade.left.remainder).to.not.be.ok
-              trade.left.transaction.debit.amount.should.equal '200'
-              trade.left.transaction.debit.funds.should.equal '19800'
-              trade.left.transaction.debit.lockedFunds.should.equal '0'
-              trade.left.transaction.credit.amount.should.equal '995'
-              trade.left.transaction.credit.funds.should.equal '995'
-              trade.left.transaction.credit.commission.amount.should.equal '5'
-              trade.left.transaction.credit.commission.funds.should.equal '5'
+              trade.left.transaction.debit.amount.compareTo(amount200).should.equal 0
+              trade.left.transaction.debit.funds.compareTo(amount19800).should.equal 0
+              trade.left.transaction.debit.lockedFunds.compareTo(Amount.ZERO).should.equal 0
+              trade.left.transaction.credit.amount.compareTo(amount995).should.equal 0
+              trade.left.transaction.credit.funds.compareTo(amount995).should.equal 0
+              trade.left.transaction.credit.commission.amount.compareTo(amount5).should.equal 0
+              trade.left.transaction.credit.commission.funds.compareTo(amount5).should.equal 0
               trade.left.transaction.credit.commission.reference.should.equal 'Paul commission level'
               expect(trade.right.remainder).to.not.be.ok
-              trade.right.transaction.debit.amount.should.equal '1000'
-              trade.right.transaction.debit.funds.should.equal '99000'
-              trade.right.transaction.debit.lockedFunds.should.equal '0'
-              trade.right.transaction.credit.amount.should.equal '199'
-              trade.right.transaction.credit.funds.should.equal '199'
-              trade.right.transaction.credit.commission.amount.should.equal '1'
-              trade.right.transaction.credit.commission.funds.should.equal '1'
+              trade.right.transaction.debit.amount.compareTo(amount1000).should.equal 0
+              trade.right.transaction.debit.funds.compareTo(amount99000).should.equal 0
+              trade.right.transaction.debit.lockedFunds.compareTo(Amount.ZERO).should.equal 0
+              trade.right.transaction.credit.amount.compareTo(amount199).should.equal 0
+              trade.right.transaction.credit.funds.compareTo(amount199).should.equal 0
+              trade.right.transaction.credit.commission.amount.compareTo(amount1).should.equal 0
+              trade.right.transaction.credit.commission.funds.compareTo(amount1).should.equal 0
               trade.right.transaction.credit.commission.reference.should.equal 'Peter commission level'
 
           describe 'and the right order is offering more than the left order is offering multiplied by the right order price', ->
@@ -825,23 +825,23 @@ describe 'Order', ->
               @order.offerAmount.compareTo(amount500).should.equal 0
 
               expect(trade.left.remainder).to.not.be.ok
-              trade.left.transaction.debit.amount.should.equal '100'
-              trade.left.transaction.debit.funds.should.equal '19900'
-              trade.left.transaction.debit.lockedFunds.should.equal '0'
-              trade.left.transaction.credit.amount.should.equal '495'
-              trade.left.transaction.credit.funds.should.equal '495'
-              trade.left.transaction.credit.commission.amount.should.equal '5'
-              trade.left.transaction.credit.commission.funds.should.equal '5'
+              trade.left.transaction.debit.amount.compareTo(amount100).should.equal 0
+              trade.left.transaction.debit.funds.compareTo(amount19900).should.equal 0
+              trade.left.transaction.debit.lockedFunds.compareTo(Amount.ZERO).should.equal 0
+              trade.left.transaction.credit.amount.compareTo(amount495).should.equal 0
+              trade.left.transaction.credit.funds.compareTo(amount495).should.equal 0
+              trade.left.transaction.credit.commission.amount.compareTo(amount5).should.equal 0
+              trade.left.transaction.credit.commission.funds.compareTo(amount5).should.equal 0
               trade.left.transaction.credit.commission.reference.should.equal 'Paul commission level'
-              trade.right.remainder.bidAmount.should.equal '100'
-              trade.right.remainder.offerAmount.should.equal '500'
-              trade.right.transaction.debit.amount.should.equal '500'
-              trade.right.transaction.debit.funds.should.equal '99500'
-              trade.right.transaction.debit.lockedFunds.should.equal '500'
-              trade.right.transaction.credit.amount.should.equal '99'
-              trade.right.transaction.credit.funds.should.equal '99'
-              trade.right.transaction.credit.commission.amount.should.equal '1'
-              trade.right.transaction.credit.commission.funds.should.equal '1'
+              trade.right.remainder.bidAmount.compareTo(amount100).should.equal 0
+              trade.right.remainder.offerAmount.compareTo(amount500).should.equal 0
+              trade.right.transaction.debit.amount.compareTo(amount500).should.equal 0
+              trade.right.transaction.debit.funds.compareTo(amount99500).should.equal 0
+              trade.right.transaction.debit.lockedFunds.compareTo(amount500).should.equal 0
+              trade.right.transaction.credit.amount.compareTo(amount99).should.equal 0
+              trade.right.transaction.credit.funds.compareTo(amount99).should.equal 0
+              trade.right.transaction.credit.commission.amount.compareTo(amount1).should.equal 0
+              trade.right.transaction.credit.commission.funds.compareTo(amount1).should.equal 0
               trade.right.transaction.credit.commission.reference.should.equal 'Peter commission level'
 
           describe 'and the right order is offering less than the left order is offering multiplied by the right order price', ->
@@ -872,24 +872,24 @@ describe 'Order', ->
               @order.bidAmount.compareTo(Amount.ZERO).should.equal 0
               @order.offerAmount.compareTo(Amount.ZERO).should.equal 0
 
-              trade.left.remainder.bidAmount.should.equal '400'
-              trade.left.remainder.offerAmount.should.equal '100'
-              trade.left.transaction.debit.amount.should.equal '200'
-              trade.left.transaction.debit.funds.should.equal '19800'
-              trade.left.transaction.debit.lockedFunds.should.equal '100'
-              trade.left.transaction.credit.amount.should.equal '995'
-              trade.left.transaction.credit.funds.should.equal '995'
-              trade.left.transaction.credit.commission.amount.should.equal '5'
-              trade.left.transaction.credit.commission.funds.should.equal '5'
+              trade.left.remainder.bidAmount.compareTo(amount400).should.equal 0
+              trade.left.remainder.offerAmount.compareTo(amount100).should.equal 0
+              trade.left.transaction.debit.amount.compareTo(amount200).should.equal 0
+              trade.left.transaction.debit.funds.compareTo(amount19800).should.equal 0
+              trade.left.transaction.debit.lockedFunds.compareTo(amount100).should.equal 0
+              trade.left.transaction.credit.amount.compareTo(amount995).should.equal 0
+              trade.left.transaction.credit.funds.compareTo(amount995).should.equal 0
+              trade.left.transaction.credit.commission.amount.compareTo(amount5).should.equal 0
+              trade.left.transaction.credit.commission.funds.compareTo(amount5).should.equal 0
               trade.left.transaction.credit.commission.reference.should.equal 'Paul commission level'
               expect(trade.right.remainder).to.not.be.ok
-              trade.right.transaction.debit.amount.should.equal '1000'
-              trade.right.transaction.debit.funds.should.equal '99000'
-              trade.right.transaction.debit.lockedFunds.should.equal '0'
-              trade.right.transaction.credit.amount.should.equal '199'
-              trade.right.transaction.credit.funds.should.equal '199'
-              trade.right.transaction.credit.commission.amount.should.equal '1'
-              trade.right.transaction.credit.commission.funds.should.equal '1'
+              trade.right.transaction.debit.amount.compareTo(amount1000).should.equal 0
+              trade.right.transaction.debit.funds.compareTo(amount99000).should.equal 0
+              trade.right.transaction.debit.lockedFunds.compareTo(Amount.ZERO).should.equal 0
+              trade.right.transaction.credit.amount.compareTo(amount199).should.equal 0
+              trade.right.transaction.credit.funds.compareTo(amount199).should.equal 0
+              trade.right.transaction.credit.commission.amount.compareTo(amount1).should.equal 0
+              trade.right.transaction.credit.commission.funds.compareTo(amount1).should.equal 0
               trade.right.transaction.credit.commission.reference.should.equal 'Peter commission level'
 
         describe 'and the left order is a bid', ->
@@ -922,22 +922,22 @@ describe 'Order', ->
               @order.offerAmount.compareTo(Amount.ZERO).should.equal 0
 
               expect(trade.left.remainder).to.not.be.ok
-              trade.left.transaction.debit.amount.should.equal '200'
-              trade.left.transaction.debit.funds.should.equal '19800'
-              trade.left.transaction.debit.lockedFunds.should.equal '0'
-              trade.left.transaction.credit.amount.should.equal '995'
-              trade.left.transaction.credit.funds.should.equal '995'
-              trade.left.transaction.credit.commission.amount.should.equal '5'
-              trade.left.transaction.credit.commission.funds.should.equal '5'
+              trade.left.transaction.debit.amount.compareTo(amount200).should.equal 0
+              trade.left.transaction.debit.funds.compareTo(amount19800).should.equal 0
+              trade.left.transaction.debit.lockedFunds.compareTo(Amount.ZERO).should.equal 0
+              trade.left.transaction.credit.amount.compareTo(amount995).should.equal 0
+              trade.left.transaction.credit.funds.compareTo(amount995).should.equal 0
+              trade.left.transaction.credit.commission.amount.compareTo(amount5).should.equal 0
+              trade.left.transaction.credit.commission.funds.compareTo(amount5).should.equal 0
               trade.left.transaction.credit.commission.reference.should.equal 'Paul commission level'
               expect(trade.right.remainder).to.not.be.ok
-              trade.right.transaction.debit.amount.should.equal '1000'
-              trade.right.transaction.debit.funds.should.equal '99000'
-              trade.right.transaction.debit.lockedFunds.should.equal '0'
-              trade.right.transaction.credit.amount.should.equal '199'
-              trade.right.transaction.credit.funds.should.equal '199'
-              trade.right.transaction.credit.commission.amount.should.equal '1'
-              trade.right.transaction.credit.commission.funds.should.equal '1'
+              trade.right.transaction.debit.amount.compareTo(amount1000).should.equal 0
+              trade.right.transaction.debit.funds.compareTo(amount99000).should.equal 0
+              trade.right.transaction.debit.lockedFunds.compareTo(Amount.ZERO).should.equal 0
+              trade.right.transaction.credit.amount.compareTo(amount199).should.equal 0
+              trade.right.transaction.credit.funds.compareTo(amount199).should.equal 0
+              trade.right.transaction.credit.commission.amount.compareTo(amount1).should.equal 0
+              trade.right.transaction.credit.commission.funds.compareTo(amount1).should.equal 0
               trade.right.transaction.credit.commission.reference.should.equal 'Peter commission level'
               
           describe 'and the right order is offering more than the left order is bidding', ->
@@ -969,23 +969,23 @@ describe 'Order', ->
               @order.offerAmount.compareTo(amount500).should.equal 0
 
               expect(trade.left.remainder).to.not.be.ok
-              trade.left.transaction.debit.amount.should.equal '100'
-              trade.left.transaction.debit.funds.should.equal '19900'
-              trade.left.transaction.debit.lockedFunds.should.equal '0'
-              trade.left.transaction.credit.amount.should.equal '495'
-              trade.left.transaction.credit.funds.should.equal '495'
-              trade.left.transaction.credit.commission.amount.should.equal '5'
-              trade.left.transaction.credit.commission.funds.should.equal '5'
+              trade.left.transaction.debit.amount.compareTo(amount100).should.equal 0
+              trade.left.transaction.debit.funds.compareTo(amount19900).should.equal 0
+              trade.left.transaction.debit.lockedFunds.compareTo(Amount.ZERO).should.equal 0
+              trade.left.transaction.credit.amount.compareTo(amount495).should.equal 0
+              trade.left.transaction.credit.funds.compareTo(amount495).should.equal 0
+              trade.left.transaction.credit.commission.amount.compareTo(amount5).should.equal 0
+              trade.left.transaction.credit.commission.funds.compareTo(amount5).should.equal 0
               trade.left.transaction.credit.commission.reference.should.equal 'Paul commission level'
-              trade.right.remainder.bidAmount.should.equal '100'
-              trade.right.remainder.offerAmount.should.equal '500'
-              trade.right.transaction.debit.amount.should.equal '500'
-              trade.right.transaction.debit.funds.should.equal '99500'
-              trade.right.transaction.debit.lockedFunds.should.equal '500'
-              trade.right.transaction.credit.amount.should.equal '99'
-              trade.right.transaction.credit.funds.should.equal '99'
-              trade.right.transaction.credit.commission.amount.should.equal '1'
-              trade.right.transaction.credit.commission.funds.should.equal '1'
+              trade.right.remainder.bidAmount.compareTo(amount100).should.equal 0
+              trade.right.remainder.offerAmount.compareTo(amount500).should.equal 0
+              trade.right.transaction.debit.amount.compareTo(amount500).should.equal 0
+              trade.right.transaction.debit.funds.compareTo(amount99500).should.equal 0
+              trade.right.transaction.debit.lockedFunds.compareTo(amount500).should.equal 0
+              trade.right.transaction.credit.amount.compareTo(amount99).should.equal 0
+              trade.right.transaction.credit.funds.compareTo(amount99).should.equal 0
+              trade.right.transaction.credit.commission.amount.compareTo(amount1).should.equal 0
+              trade.right.transaction.credit.commission.funds.compareTo(amount1).should.equal 0
               trade.right.transaction.credit.commission.reference.should.equal 'Peter commission level'
 
           describe 'and the right order is offering less than the left order is bidding', ->
@@ -1016,24 +1016,24 @@ describe 'Order', ->
               @order.bidAmount.compareTo(Amount.ZERO).should.equal 0
               @order.offerAmount.compareTo(Amount.ZERO).should.equal 0
 
-              trade.left.remainder.bidAmount.should.equal '500'
-              trade.left.remainder.offerAmount.should.equal '125'
-              trade.left.transaction.debit.amount.should.equal '200'
-              trade.left.transaction.debit.funds.should.equal '19800'
-              trade.left.transaction.debit.lockedFunds.should.equal '125'
-              trade.left.transaction.credit.amount.should.equal '995'
-              trade.left.transaction.credit.funds.should.equal '995'
-              trade.left.transaction.credit.commission.amount.should.equal '5'
-              trade.left.transaction.credit.commission.funds.should.equal '5'
+              trade.left.remainder.bidAmount.compareTo(amount500).should.equal 0
+              trade.left.remainder.offerAmount.compareTo(amount125).should.equal 0
+              trade.left.transaction.debit.amount.compareTo(amount200).should.equal 0
+              trade.left.transaction.debit.funds.compareTo(amount19800).should.equal 0
+              trade.left.transaction.debit.lockedFunds.compareTo(amount125).should.equal 0
+              trade.left.transaction.credit.amount.compareTo(amount995).should.equal 0
+              trade.left.transaction.credit.funds.compareTo(amount995).should.equal 0
+              trade.left.transaction.credit.commission.amount.compareTo(amount5).should.equal 0
+              trade.left.transaction.credit.commission.funds.compareTo(amount5).should.equal 0
               trade.left.transaction.credit.commission.reference.should.equal 'Paul commission level'
               expect(trade.right.remainder).to.not.be.ok
-              trade.right.transaction.debit.amount.should.equal '1000'
-              trade.right.transaction.debit.funds.should.equal '99000'
-              trade.right.transaction.debit.lockedFunds.should.equal '0'
-              trade.right.transaction.credit.amount.should.equal '199'
-              trade.right.transaction.credit.funds.should.equal '199'
-              trade.right.transaction.credit.commission.amount.should.equal '1'
-              trade.right.transaction.credit.commission.funds.should.equal '1'
+              trade.right.transaction.debit.amount.compareTo(amount1000).should.equal 0
+              trade.right.transaction.debit.funds.compareTo(amount99000).should.equal 0
+              trade.right.transaction.debit.lockedFunds.compareTo(Amount.ZERO).should.equal 0
+              trade.right.transaction.credit.amount.compareTo(amount199).should.equal 0
+              trade.right.transaction.credit.funds.compareTo(amount199).should.equal 0
+              trade.right.transaction.credit.commission.amount.compareTo(amount1).should.equal 0
+              trade.right.transaction.credit.commission.funds.compareTo(amount1).should.equal 0
               trade.right.transaction.credit.commission.reference.should.equal 'Peter commission level'
             
     describe 'where the existing (right) order is a bid', ->
@@ -1072,22 +1072,22 @@ describe 'Order', ->
               @order.offerAmount.compareTo(Amount.ZERO).should.equal 0
 
               expect(trade.left.remainder).to.not.be.ok
-              trade.left.transaction.debit.amount.should.equal '200'
-              trade.left.transaction.debit.funds.should.equal '19800'
-              trade.left.transaction.debit.lockedFunds.should.equal '0'
-              trade.left.transaction.credit.amount.should.equal '995'
-              trade.left.transaction.credit.funds.should.equal '995'
-              trade.left.transaction.credit.commission.amount.should.equal '5'
-              trade.left.transaction.credit.commission.funds.should.equal '5'
+              trade.left.transaction.debit.amount.compareTo(amount200).should.equal 0
+              trade.left.transaction.debit.funds.compareTo(amount19800).should.equal 0
+              trade.left.transaction.debit.lockedFunds.compareTo(Amount.ZERO).should.equal 0
+              trade.left.transaction.credit.amount.compareTo(amount995).should.equal 0
+              trade.left.transaction.credit.funds.compareTo(amount995).should.equal 0
+              trade.left.transaction.credit.commission.amount.compareTo(amount5).should.equal 0
+              trade.left.transaction.credit.commission.funds.compareTo(amount5).should.equal 0
               trade.left.transaction.credit.commission.reference.should.equal 'Paul commission level'
               expect(trade.right.remainder).to.not.be.ok
-              trade.right.transaction.debit.amount.should.equal '1000'
-              trade.right.transaction.debit.funds.should.equal '99000'
-              trade.right.transaction.debit.lockedFunds.should.equal '0'
-              trade.right.transaction.credit.amount.should.equal '199'
-              trade.right.transaction.credit.funds.should.equal '199'
-              trade.right.transaction.credit.commission.amount.should.equal '1'
-              trade.right.transaction.credit.commission.funds.should.equal '1'
+              trade.right.transaction.debit.amount.compareTo(amount1000).should.equal 0
+              trade.right.transaction.debit.funds.compareTo(amount99000).should.equal 0
+              trade.right.transaction.debit.lockedFunds.compareTo(Amount.ZERO).should.equal 0
+              trade.right.transaction.credit.amount.compareTo(amount199).should.equal 0
+              trade.right.transaction.credit.funds.compareTo(amount199).should.equal 0
+              trade.right.transaction.credit.commission.amount.compareTo(amount1).should.equal 0
+              trade.right.transaction.credit.commission.funds.compareTo(amount1).should.equal 0
               trade.right.transaction.credit.commission.reference.should.equal 'Peter commission level'
 
           describe 'and the right order is bidding more than the left order is offering', ->
@@ -1119,23 +1119,23 @@ describe 'Order', ->
               @order.offerAmount.compareTo(amount500).should.equal 0
 
               expect(trade.left.remainder).to.not.be.ok
-              trade.left.transaction.debit.amount.should.equal '100'
-              trade.left.transaction.debit.funds.should.equal '19900'
-              trade.left.transaction.debit.lockedFunds.should.equal '0'
-              trade.left.transaction.credit.amount.should.equal '495'
-              trade.left.transaction.credit.funds.should.equal '495'
-              trade.left.transaction.credit.commission.amount.should.equal '5'
-              trade.left.transaction.credit.commission.funds.should.equal '5'
+              trade.left.transaction.debit.amount.compareTo(amount100).should.equal 0
+              trade.left.transaction.debit.funds.compareTo(amount19900).should.equal 0
+              trade.left.transaction.debit.lockedFunds.compareTo(Amount.ZERO).should.equal 0
+              trade.left.transaction.credit.amount.compareTo(amount495).should.equal 0
+              trade.left.transaction.credit.funds.compareTo(amount495).should.equal 0
+              trade.left.transaction.credit.commission.amount.compareTo(amount5).should.equal 0
+              trade.left.transaction.credit.commission.funds.compareTo(amount5).should.equal 0
               trade.left.transaction.credit.commission.reference.should.equal 'Paul commission level'
-              trade.right.remainder.bidAmount.should.equal '100'
-              trade.right.remainder.offerAmount.should.equal '500'
-              trade.right.transaction.debit.amount.should.equal '500'
-              trade.right.transaction.debit.funds.should.equal '99500'
-              trade.right.transaction.debit.lockedFunds.should.equal '500'
-              trade.right.transaction.credit.amount.should.equal '99'
-              trade.right.transaction.credit.funds.should.equal '99'
-              trade.right.transaction.credit.commission.amount.should.equal '1'
-              trade.right.transaction.credit.commission.funds.should.equal '1'
+              trade.right.remainder.bidAmount.compareTo(amount100).should.equal 0
+              trade.right.remainder.offerAmount.compareTo(amount500).should.equal 0
+              trade.right.transaction.debit.amount.compareTo(amount500).should.equal 0
+              trade.right.transaction.debit.funds.compareTo(amount99500).should.equal 0
+              trade.right.transaction.debit.lockedFunds.compareTo(amount500).should.equal 0
+              trade.right.transaction.credit.amount.compareTo(amount99).should.equal 0
+              trade.right.transaction.credit.funds.compareTo(amount99).should.equal 0
+              trade.right.transaction.credit.commission.amount.compareTo(amount1).should.equal 0
+              trade.right.transaction.credit.commission.funds.compareTo(amount1).should.equal 0
               trade.right.transaction.credit.commission.reference.should.equal 'Peter commission level'
 
           describe 'and the right order is bidding less than the left order is offering', ->
@@ -1166,24 +1166,24 @@ describe 'Order', ->
               @order.bidAmount.compareTo(Amount.ZERO).should.equal 0
               @order.offerAmount.compareTo(Amount.ZERO).should.equal 0
 
-              trade.left.remainder.bidAmount.should.equal '400'
-              trade.left.remainder.offerAmount.should.equal '100'
-              trade.left.transaction.debit.amount.should.equal '200'
-              trade.left.transaction.debit.funds.should.equal '19800'
-              trade.left.transaction.debit.lockedFunds.should.equal '100'
-              trade.left.transaction.credit.amount.should.equal '995'
-              trade.left.transaction.credit.funds.should.equal '995'
-              trade.left.transaction.credit.commission.amount.should.equal '5'
-              trade.left.transaction.credit.commission.funds.should.equal '5'
+              trade.left.remainder.bidAmount.compareTo(amount400).should.equal 0
+              trade.left.remainder.offerAmount.compareTo(amount100).should.equal 0
+              trade.left.transaction.debit.amount.compareTo(amount200).should.equal 0
+              trade.left.transaction.debit.funds.compareTo(amount19800).should.equal 0
+              trade.left.transaction.debit.lockedFunds.compareTo(amount100).should.equal 0
+              trade.left.transaction.credit.amount.compareTo(amount995).should.equal 0
+              trade.left.transaction.credit.funds.compareTo(amount995).should.equal 0
+              trade.left.transaction.credit.commission.amount.compareTo(amount5).should.equal 0
+              trade.left.transaction.credit.commission.funds.compareTo(amount5).should.equal 0
               trade.left.transaction.credit.commission.reference.should.equal 'Paul commission level'
               expect(trade.right.remainder).to.not.be.ok
-              trade.right.transaction.debit.amount.should.equal '1000'
-              trade.right.transaction.debit.funds.should.equal '99000'
-              trade.right.transaction.debit.lockedFunds.should.equal '0'
-              trade.right.transaction.credit.amount.should.equal '199'
-              trade.right.transaction.credit.funds.should.equal '199'
-              trade.right.transaction.credit.commission.amount.should.equal '1'
-              trade.right.transaction.credit.commission.funds.should.equal '1'
+              trade.right.transaction.debit.amount.compareTo(amount1000).should.equal 0
+              trade.right.transaction.debit.funds.compareTo(amount99000).should.equal 0
+              trade.right.transaction.debit.lockedFunds.compareTo(Amount.ZERO).should.equal 0
+              trade.right.transaction.credit.amount.compareTo(amount199).should.equal 0
+              trade.right.transaction.credit.funds.compareTo(amount199).should.equal 0
+              trade.right.transaction.credit.commission.amount.compareTo(amount1).should.equal 0
+              trade.right.transaction.credit.commission.funds.compareTo(amount1).should.equal 0
               trade.right.transaction.credit.commission.reference.should.equal 'Peter commission level'
 
         describe 'and the left order is a bid', ->
@@ -1216,22 +1216,22 @@ describe 'Order', ->
               @order.offerAmount.compareTo(Amount.ZERO).should.equal 0
 
               expect(trade.left.remainder).to.not.be.ok
-              trade.left.transaction.debit.amount.should.equal '200'
-              trade.left.transaction.debit.funds.should.equal '19800'
-              trade.left.transaction.debit.lockedFunds.should.equal '0'
-              trade.left.transaction.credit.amount.should.equal '995'
-              trade.left.transaction.credit.funds.should.equal '995'
-              trade.left.transaction.credit.commission.amount.should.equal '5'
-              trade.left.transaction.credit.commission.funds.should.equal '5'
+              trade.left.transaction.debit.amount.compareTo(amount200).should.equal 0
+              trade.left.transaction.debit.funds.compareTo(amount19800).should.equal 0
+              trade.left.transaction.debit.lockedFunds.compareTo(Amount.ZERO).should.equal 0
+              trade.left.transaction.credit.amount.compareTo(amount995).should.equal 0
+              trade.left.transaction.credit.funds.compareTo(amount995).should.equal 0
+              trade.left.transaction.credit.commission.amount.compareTo(amount5).should.equal 0
+              trade.left.transaction.credit.commission.funds.compareTo(amount5).should.equal 0
               trade.left.transaction.credit.commission.reference.should.equal 'Paul commission level'
               expect(trade.right.remainder).to.not.be.ok
-              trade.right.transaction.debit.amount.should.equal '1000'
-              trade.right.transaction.debit.funds.should.equal '99000'
-              trade.right.transaction.debit.lockedFunds.should.equal '0'
-              trade.right.transaction.credit.amount.should.equal '199'
-              trade.right.transaction.credit.funds.should.equal '199'
-              trade.right.transaction.credit.commission.amount.should.equal '1'
-              trade.right.transaction.credit.commission.funds.should.equal '1'
+              trade.right.transaction.debit.amount.compareTo(amount1000).should.equal 0
+              trade.right.transaction.debit.funds.compareTo(amount99000).should.equal 0
+              trade.right.transaction.debit.lockedFunds.compareTo(Amount.ZERO).should.equal 0
+              trade.right.transaction.credit.amount.compareTo(amount199).should.equal 0
+              trade.right.transaction.credit.funds.compareTo(amount199).should.equal 0
+              trade.right.transaction.credit.commission.amount.compareTo(amount1).should.equal 0
+              trade.right.transaction.credit.commission.funds.compareTo(amount1).should.equal 0
               trade.right.transaction.credit.commission.reference.should.equal 'Peter commission level'
 
           describe 'and the right order is bidding more than the left order is bidding multiplied by the right order price', ->
@@ -1263,23 +1263,23 @@ describe 'Order', ->
               @order.offerAmount.compareTo(amount500).should.equal 0
 
               expect(trade.left.remainder).to.not.be.ok
-              trade.left.transaction.debit.amount.should.equal '100'
-              trade.left.transaction.debit.funds.should.equal '19900'
-              trade.left.transaction.debit.lockedFunds.should.equal '0'
-              trade.left.transaction.credit.amount.should.equal '495'
-              trade.left.transaction.credit.funds.should.equal '495'
-              trade.left.transaction.credit.commission.amount.should.equal '5'
-              trade.left.transaction.credit.commission.funds.should.equal '5'
+              trade.left.transaction.debit.amount.compareTo(amount100).should.equal 0
+              trade.left.transaction.debit.funds.compareTo(amount19900).should.equal 0
+              trade.left.transaction.debit.lockedFunds.compareTo(Amount.ZERO).should.equal 0
+              trade.left.transaction.credit.amount.compareTo(amount495).should.equal 0
+              trade.left.transaction.credit.funds.compareTo(amount495).should.equal 0
+              trade.left.transaction.credit.commission.amount.compareTo(amount5).should.equal 0
+              trade.left.transaction.credit.commission.funds.compareTo(amount5).should.equal 0
               trade.left.transaction.credit.commission.reference.should.equal 'Paul commission level'
-              trade.right.remainder.bidAmount.should.equal '100'
-              trade.right.remainder.offerAmount.should.equal '500'
-              trade.right.transaction.debit.amount.should.equal '500'
-              trade.right.transaction.debit.funds.should.equal '99500'
-              trade.right.transaction.debit.lockedFunds.should.equal '500'
-              trade.right.transaction.credit.amount.should.equal '99'
-              trade.right.transaction.credit.funds.should.equal '99'
-              trade.right.transaction.credit.commission.amount.should.equal '1'
-              trade.right.transaction.credit.commission.funds.should.equal '1'
+              trade.right.remainder.bidAmount.compareTo(amount100).should.equal 0
+              trade.right.remainder.offerAmount.compareTo(amount500).should.equal 0
+              trade.right.transaction.debit.amount.compareTo(amount500).should.equal 0
+              trade.right.transaction.debit.funds.compareTo(amount99500).should.equal 0
+              trade.right.transaction.debit.lockedFunds.compareTo(amount500).should.equal 0
+              trade.right.transaction.credit.amount.compareTo(amount99).should.equal 0
+              trade.right.transaction.credit.funds.compareTo(amount99).should.equal 0
+              trade.right.transaction.credit.commission.amount.compareTo(amount1).should.equal 0
+              trade.right.transaction.credit.commission.funds.compareTo(amount1).should.equal 0
               trade.right.transaction.credit.commission.reference.should.equal 'Peter commission level'
               
           describe 'and the right order is bidding less than the left order is bidding multiplied by the right order price', ->
@@ -1309,24 +1309,24 @@ describe 'Order', ->
               @order.bidAmount.compareTo(Amount.ZERO).should.equal 0
               @order.offerAmount.compareTo(Amount.ZERO).should.equal 0
 
-              trade.left.remainder.bidAmount.should.equal '500'
-              trade.left.remainder.offerAmount.should.equal '125'
-              trade.left.transaction.debit.amount.should.equal '200'
-              trade.left.transaction.debit.funds.should.equal '19800'
-              trade.left.transaction.debit.lockedFunds.should.equal '125'
-              trade.left.transaction.credit.amount.should.equal '995'
-              trade.left.transaction.credit.funds.should.equal '995'
-              trade.left.transaction.credit.commission.amount.should.equal '5'
-              trade.left.transaction.credit.commission.funds.should.equal '5'
+              trade.left.remainder.bidAmount.compareTo(amount500).should.equal 0
+              trade.left.remainder.offerAmount.compareTo(amount125).should.equal 0
+              trade.left.transaction.debit.amount.compareTo(amount200).should.equal 0
+              trade.left.transaction.debit.funds.compareTo(amount19800).should.equal 0
+              trade.left.transaction.debit.lockedFunds.compareTo(amount125).should.equal 0
+              trade.left.transaction.credit.amount.compareTo(amount995).should.equal 0
+              trade.left.transaction.credit.funds.compareTo(amount995).should.equal 0
+              trade.left.transaction.credit.commission.amount.compareTo(amount5).should.equal 0
+              trade.left.transaction.credit.commission.funds.compareTo(amount5).should.equal 0
               trade.left.transaction.credit.commission.reference.should.equal 'Paul commission level'
               expect(trade.right.remainder).to.not.be.ok
-              trade.right.transaction.debit.amount.should.equal '1000'
-              trade.right.transaction.debit.funds.should.equal '99000'
-              trade.right.transaction.debit.lockedFunds.should.equal '0'
-              trade.right.transaction.credit.amount.should.equal '199'
-              trade.right.transaction.credit.funds.should.equal '199'
-              trade.right.transaction.credit.commission.amount.should.equal '1'
-              trade.right.transaction.credit.commission.funds.should.equal '1'
+              trade.right.transaction.debit.amount.compareTo(amount1000).should.equal 0
+              trade.right.transaction.debit.funds.compareTo(amount99000).should.equal 0
+              trade.right.transaction.debit.lockedFunds.compareTo(Amount.ZERO).should.equal 0
+              trade.right.transaction.credit.amount.compareTo(amount199).should.equal 0
+              trade.right.transaction.credit.funds.compareTo(amount199).should.equal 0
+              trade.right.transaction.credit.commission.amount.compareTo(amount1).should.equal 0
+              trade.right.transaction.credit.commission.funds.compareTo(amount1).should.equal 0
               trade.right.transaction.credit.commission.reference.should.equal 'Peter commission level'
 
   describe '#add', ->

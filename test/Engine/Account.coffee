@@ -63,7 +63,7 @@ describe 'Account', ->
         bidPrice: amount100
         bidAmount: amount10
       lockedFunds = account.submit order
-      lockedFunds.should.equal '1000'
+      lockedFunds.compareTo(amount1000).should.equal 0
       account.orders[0].should.equal order
       account.getBalance('EUR').lockedFunds.compareTo(amount1000).should.equal 0
 
@@ -155,7 +155,7 @@ describe 'Account', ->
       account.submit order
       order = account.getOrder 0
       lockedFunds = account.cancel order
-      lockedFunds.should.equal '0'
+      lockedFunds.compareTo(Amount.ZERO).should.equal 0
       expect(account.orders[0]).to.not.be.ok
       account.getBalance('EUR').lockedFunds.compareTo(Amount.ZERO).should.equal 0
 
@@ -193,7 +193,7 @@ describe 'Account', ->
       funds = account.deposit
         currency: 'BTC'
         amount: amount50
-      funds.should.equal '50'
+      funds.compareTo(amount50).should.equal 0
       account.getBalance('BTC').funds.compareTo(amount50).should.equal 0
 
   describe '#withdraw', ->
@@ -232,12 +232,12 @@ describe 'Account', ->
       funds = account.withdraw
         currency: 'EUR'
         amount: amount250
-      funds.should.equal '750'
+      funds.compareTo(amount750).should.equal 0
       account.getBalance('EUR').funds.compareTo(amount750).should.equal 0
       funds = account.withdraw
         currency: 'EUR'
         amount: amount250
-      funds.should.equal '500'
+      funds.compareTo(amount500).should.equal 0
       account.getBalance('EUR').funds.compareTo(amount500).should.equal 0
 
     it 'should throw an error if the withdrawal amount is greater than the funds available', ->

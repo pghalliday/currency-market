@@ -4,6 +4,7 @@ expect = chai.expect
 
 Account = require '../../src/State/Account'
 Balance = require '../../src/State/Balance'
+Amount = require '../../src/Amount'
 
 describe 'Account', ->
   describe '#getBalance', ->
@@ -29,11 +30,11 @@ describe 'Account', ->
       account = new Account()
       account.orders['hello'] = 'hello'
       balanceEUR = account.getBalance 'EUR'
-      balanceEUR.funds = '5000'
-      balanceEUR.lockedFunds = '3000'
+      balanceEUR.funds = new Amount '5000'
+      balanceEUR.lockedFunds = new Amount '3000'
       balanceBTC = account.getBalance 'BTC'
-      balanceBTC.funds = '50'
-      balanceBTC.lockedFunds = '25'
+      balanceBTC.funds = new Amount '50'
+      balanceBTC.lockedFunds = new Amount '25'
       @snapshot = JSON.parse JSON.stringify account
 
     it 'should return a JSON string with a snapshot of the account balances without orders', ->
@@ -41,8 +42,8 @@ describe 'Account', ->
 
     it 'should be possible to instantiate an account with the same balances from the snapshot', ->
       account = new Account @snapshot
-      account.getBalance('EUR').funds.should.equal '5000'
-      account.getBalance('EUR').lockedFunds.should.equal '3000'
-      account.getBalance('BTC').funds.should.equal '50'
-      account.getBalance('BTC').lockedFunds.should.equal '25'
+      account.getBalance('EUR').funds.compareTo(new Amount '5000').should.equal 0
+      account.getBalance('EUR').lockedFunds.compareTo(new Amount '3000').should.equal 0
+      account.getBalance('BTC').funds.compareTo(new Amount '50').should.equal 0
+      account.getBalance('BTC').lockedFunds.compareTo(new Amount '25').should.equal 0
       account.orders.should.deep.equal {}

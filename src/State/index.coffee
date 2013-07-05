@@ -1,21 +1,31 @@
 Account = require './Account'
+Amount = require '../Amount'
+
+convert = (order) ->
+  order.bidPrice = if order.bidPrice then new Amount order.bidPrice
+  order.bidAmount = if order.bidAmount then new Amount order.bidAmount
+  order.offerPrice = if order.offerPrice then new Amount order.offerPrice
+  order.offerAmount = if order.offerAmount then new Amount order.offerAmount
 
 module.exports = class State
-  constructor: (state) ->
+  constructor: (params) ->
     @accounts = {}
     @books = {}
     @nextDeltaSequence = 0
-    if state
-      @nextDeltaSequence = state.nextDeltaSequence
-      for id, account of state.accounts
+    if params
+      json = params.json
+      if json
+        params = JSON.parse json
+      @nextDeltaSequence = params.nextDeltaSequence
+      for id, account of params.accounts
         @accounts[id] = new Account account
-      for bidCurrency, books of state.books
+      for bidCurrency, books of params.books
         booksWithBidCurrency = @getBooks bidCurrency
         for offerCurrency, book of books
           booksWithBidCurrency[offerCurrency] = book
           for order in book
-            do (order) =>
-              @accounts[order.account].orders[order.sequence] = order
+            convert order
+            @accounts[order.account].orders[order.sequence] = order
 
   getAccount: (id) =>
     @accounts[id] = @accounts[id] || new Account()
@@ -42,8 +52,11 @@ module.exports = class State
       result = delta.result
       account = @getAccount(operation.account)
       deposit = operation.deposit
+      withdraw = operation.withdraw
       if deposit
         account.getBalance(deposit.currency).funds = result.funds
+      else if withdraw
+        account.getBalance(withdraw.currency).funds = result.funds
       else
         throw new Error 'Unknown operation'
     else if delta.sequence > @nextDeltaSequence

@@ -18,7 +18,6 @@ module.exports = class Balance
 
   deposit: (amount) =>
     @funds = @funds.add amount
-    return @funds.toString()
 
   withdraw: (amount) =>
     newFunds = @funds.subtract amount
@@ -26,7 +25,6 @@ module.exports = class Balance
       throw new Error('Cannot withdraw funds that are not available')
     else
       @funds = newFunds
-      return @funds.toString()
 
   lock: (amount) =>
     newLockedFunds = @lockedFunds.add amount
@@ -34,19 +32,17 @@ module.exports = class Balance
       throw new Error('Cannot lock funds that are not available')
     else
       @lockedFunds = newLockedFunds
-      return @lockedFunds.toString() 
 
   unlock: (amount) =>
     @lockedFunds = @lockedFunds.subtract amount
-    return @lockedFunds.toString()
 
   applyOffer: (params) =>
     @lockedFunds = @lockedFunds.subtract params.fundsUnlocked
     @funds = @funds.subtract params.amount
     debit = 
-      amount: params.amount.toString()
-      funds: @funds.toString()
-      lockedFunds: @lockedFunds.toString()
+      amount: params.amount
+      funds: @funds
+      lockedFunds: @lockedFunds
 
   applyBid: (params) =>
     if @commissionBalance
@@ -58,17 +54,17 @@ module.exports = class Balance
       amount = params.amount.subtract commission.amount
       @funds = @funds.add amount
       credit =
-        amount: amount.toString()
-        funds: @funds.toString()
+        amount: amount
+        funds: @funds
         commission:
-          amount: commission.amount.toString()
+          amount: commission.amount
           funds: @commissionBalance.deposit commission.amount
           reference: commission.reference
     else
       @funds = @funds.add params.amount
       credit =
-        amount: params.amount.toString()
-        funds: @funds.toString()
+        amount: params.amount
+        funds: @funds
 
   toJSON: =>
     object = 

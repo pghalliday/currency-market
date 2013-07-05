@@ -1,7 +1,9 @@
+Amount = require '../Amount'
+
 module.exports = class Balance
   constructor: (params) ->
-    @funds = '0'
-    @lockedFunds = '0'
+    @funds = Amount.ZERO
+    @lockedFunds = Amount.ZERO
     if params
-      @funds = params.funds
-      @lockedFunds = params.lockedFunds
+      @funds = new Amount params.funds
+      @lockedFunds = new Amount params.lockedFunds

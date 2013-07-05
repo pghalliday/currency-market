@@ -64,8 +64,8 @@ module.exports = class Order
     @bidAmount = @offerAmount.multiply @offerPrice
     delta =
       remainder:
-        bidAmount: @bidAmount.toString()
-        offerAmount: @offerAmount.toString()
+        bidAmount: @bidAmount
+        offerAmount: @offerAmount
       transaction:
         credit: @bidBalance.applyBid
           amount: bidAmount
@@ -81,8 +81,8 @@ module.exports = class Order
     @offerAmount = newOfferAmount
     delta =
       remainder:
-        bidAmount: @bidAmount.toString()
-        offerAmount: @offerAmount.toString()
+        bidAmount: @bidAmount
+        offerAmount: @offerAmount
       transaction:
         credit: @bidBalance.applyBid
           amount: bidAmount
