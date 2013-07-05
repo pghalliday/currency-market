@@ -82,4 +82,5 @@ describe 'Submit', ->
     trades = submit.trades
     trades.should.have.length 2
     trades[0].left.remainder.bidAmount.compareTo(new Amount '12589.1335').should.equal 0
+    trades[1].right.transaction.credit.commission.funds.compareTo(new Amount '456432148131.45645645').should.equal 0
 
