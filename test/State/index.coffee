@@ -81,7 +81,7 @@ describe 'State', ->
     @deposit
       account: 'Paul'
       currency: 'BTC'
-      amount: '200'
+      amount: '1000'
     @submitOffer
       account: 'Peter'
       offerCurrency: 'EUR'
@@ -145,7 +145,7 @@ describe 'State', ->
       balancePaulEUR.lockedFunds.compareTo(Amount.ZERO).should.equal 0
 
       balancePaulBTC = accountPaul.getBalance 'BTC'
-      balancePaulBTC.funds.compareTo(new Amount '200').should.equal 0
+      balancePaulBTC.funds.compareTo(new Amount '1000').should.equal 0
       balancePaulBTC.lockedFunds.compareTo(new Amount '60').should.equal 0
 
       ordersPaul = accountPaul.orders
@@ -341,43 +341,67 @@ describe 'State', ->
         state.getAccount('Peter').getBalance('EUR').funds.compareTo(new Amount '9700').should.equal 0
 
     describe 'submit delta', ->
-      it.skip 'should update the account balance accordingly', ->
+      it 'should update the state accordingly', ->
         state = state = new State
           json: JSON.stringify @engine
-        state.apply @withdraw
-          account: 'Peter'
-          currency: 'EUR'
-          amount: '100'
-        state.getAccount('Peter').getBalance('EUR').funds.compareTo(new Amount '9900').should.equal 0
-        state.apply @withdraw
-          account: 'Peter'
-          currency: 'EUR'
-          amount: '150'
-        state.getAccount('Peter').getBalance('EUR').funds.compareTo(new Amount '9750').should.equal 0
-        state.apply @withdraw
-          account: 'Peter'
-          currency: 'EUR'
-          amount: '50'
-        state.getAccount('Peter').getBalance('EUR').funds.compareTo(new Amount '9700').should.equal 0
+        # submit a bid somewhere in a book but not at the top
+        state.apply @submitBid
+          account: 'Paul'
+          offerCurrency: 'BTC'
+          bidCurrency: 'EUR'
+          price: '0.015'
+          amount: '1000'
+        order = state.getAccount('Paul').orders[8]
+        balance = state.getAccount('Paul').getBalance('BTC')
+        balance.lockedFunds.compareTo(new Amount '75').should.equal 0
+        order.sequence.should.equal 8
+        order.timestamp.should.equal 1371737390976 + 8
+        order.account.should.equal 'Paul'
+        order.offerCurrency.should.equal 'BTC'
+        order.bidCurrency.should.equal 'EUR'
+        order.bidPrice.compareTo(new Amount '0.015').should.equal 0
+        order.bidAmount.compareTo(new Amount '1000').should.equal 0
+        bookEURBTC = state.getBook
+          bidCurrency: 'EUR'
+          offerCurrency: 'BTC'
+        bookEURBTC[1].should.equal order
+        # submit a bid at the top of it's book that will not match any orders from the opposing book
+        state.apply @submitBid
+          account: 'Paul'
+          offerCurrency: 'BTC'
+          bidCurrency: 'EUR'
+          price: '0.025'
+          amount: '500'
+        order = state.getAccount('Paul').orders[9]
+        balance = state.getAccount('Paul').getBalance('BTC')
+        balance.lockedFunds.compareTo(new Amount '87.5').should.equal 0
+        order.sequence.should.equal 9
+        order.timestamp.should.equal 1371737390976 + 9
+        order.account.should.equal 'Paul'
+        order.offerCurrency.should.equal 'BTC'
+        order.bidCurrency.should.equal 'EUR'
+        order.bidPrice.compareTo(new Amount '0.025').should.equal 0
+        order.bidAmount.compareTo(new Amount '500').should.equal 0
+        bookEURBTC = state.getBook
+          bidCurrency: 'EUR'
+          offerCurrency: 'BTC'
+        bookEURBTC[0].should.equal order
+        # submit a bid at the top of it's book that will match 1 and a bit orders from the opposing book
+        state.apply @submitBid
+          account: 'Paul'
+          offerCurrency: 'BTC'
+          bidCurrency: 'EUR'
+          price: '0.04'
+          amount: '6000'
+        # TODO: check the state
 
     describe 'cancel delta', ->
-      it.skip 'should update the account balance accordingly', ->
+      it.skip 'should update the state accordingly', ->
         state = state = new State
           json: JSON.stringify @engine
-        state.apply @withdraw
+        state.apply @cancel
           account: 'Peter'
-          currency: 'EUR'
-          amount: '100'
-        state.getAccount('Peter').getBalance('EUR').funds.compareTo(new Amount '9900').should.equal 0
-        state.apply @withdraw
-          account: 'Peter'
-          currency: 'EUR'
-          amount: '150'
-        state.getAccount('Peter').getBalance('EUR').funds.compareTo(new Amount '9750').should.equal 0
-        state.apply @withdraw
-          account: 'Peter'
-          currency: 'EUR'
-          amount: '50'
-        state.getAccount('Peter').getBalance('EUR').funds.compareTo(new Amount '9700').should.equal 0
-
-
+          sequence: 4
+        state.apply @cancel
+          account: 'Paul'
+          sequence: 6

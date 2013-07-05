@@ -53,10 +53,34 @@ module.exports = class State
       account = @getAccount(operation.account)
       deposit = operation.deposit
       withdraw = operation.withdraw
+      submit = operation.submit
       if deposit
         account.getBalance(deposit.currency).funds = result.funds
       else if withdraw
         account.getBalance(withdraw.currency).funds = result.funds
+      else if submit
+        order =
+          sequence: operation.sequence
+          timestamp: operation.timestamp
+          account: operation.account
+          bidCurrency: submit.bidCurrency
+          offerCurrency: submit.offerCurrency
+          bidPrice: submit.bidPrice
+          bidAmount: submit.bidAmount
+          offerPrice: submit.offerPrice
+          offerAmount: submit.offerAmount
+        account.orders[order.sequence] = order
+        account.getBalance(order.offerCurrency).lockedFunds = result.lockedFunds
+        book = @getBook
+          bidCurrency: order.bidCurrency
+          offerCurrency: order.offerCurrency
+        nextHigherOrderSequence = result.nextHigherOrderSequence
+        if typeof nextHigherOrderSequence != 'undefined'
+          for before, index in book
+            if before.sequence == nextHigherOrderSequence
+              book.splice index + 1, 0, order
+        else
+          book.splice 0, 0, order
       else
         throw new Error 'Unknown operation'
     else if delta.sequence > @nextDeltaSequence
