@@ -114,31 +114,44 @@ If an operation fails for any reason (eg. not enough funds) then an error will b
 All operations follow the same pattern
 
 ```Javascript
-
 try {
-  var delta  = engine.apply({
-    // Application specified reference that is returned untouched with the operation details included in the delta.
-    // Care should be taken to ensure that this too can be converted to and from JSON
-    reference: '550e8400-e29b-41d4-a716-446655440000',
-    // The ID of the account submitting the operation
-    account: 'Peter',
-    // The operation sequence number. These must be consecutive for consecutive operations
-    sequence: 123456,
-    // The timestamp for the operation as a Unix time since epoch in milliseconds
-    timestamp: 1371737390976,
-    // The operation details, the name of this property will determine the type of the operation
-    // and what additional fields need to be supplied
-    operationType: {
-      // Operation parameters
-      ...
-    }
-  });
+  var delta  = engine.apply(new Operation({
+    // Operation parameters
+    ...
+  }));
 } catch(error) {
   // Possible errors will include invalid parameters or insufficient funds to complete the operation
   ...
 }
+```
 
-// The returned delta will have the following structure
+#### `JSON.stringify`
+
+Engines can be converted to and from JSON
+
+```Javascript
+var json = JSON.stringify(engine);
+var engine = new Engine({
+  commission: {
+    account: 'commission',
+    calculate: function(params) {
+      return {
+        amount: amount.multiply(COMMISSION_RATE),
+        reference: COMMISSION_RATE + '%'
+      };
+    }
+  },
+  json: json
+});
+```
+
+### `Delta`
+
+`Delta` instances are returned by `Engine` instances after successfully applying operations. They can be converted to JSON, transmitted, reconstructed from JSON and applied to `State` instances.
+
+All deltas follow this pattern
+
+```Javascript
 var delta = {
   // The delta sequence number. These will be generated consecutively by the engine
   // for successful operations. As such they will not be synchronized with operation sequence
@@ -146,14 +159,8 @@ var delta = {
   sequence: 45632,
   // The operation parameters as supplied to the `apply` method
   operation: {
-    reference: '550e8400-e29b-41d4-a716-446655440000',
-    account: 'Peter',
-    sequence: 123456,
-    timestamp: 1371737390976,
-    operationType: {
-      // Operation parameters
-      ...
-    }
+    // An `Operation` instance
+    ...
   },
   // Additional state change information
   result: {
@@ -163,12 +170,49 @@ var delta = {
 };
 ```
 
-##### `deposit` operation
+#### `JSON.stringify`
+
+Deltas can be converted to and from JSON
+
+```Javascript
+var json = JSON.stringify(delta);
+var delta = new Delta({
+  json: json
+});
+```
+
+### `Operation`
+
+`Operation` instances are submitted to `Engine` instances to apply operations. They can be converted to JSON, transmitted and reconstructed from JSON
+
+All operations follow this pattern
+
+```Javascript
+var operation = new Operation({
+  // Application specified reference that is returned untouched with the operation details included in the delta.
+  // Care should be taken to ensure that this too can be converted to and from JSON
+  reference: '550e8400-e29b-41d4-a716-446655440000',
+  // The ID of the account submitting the operation
+  account: 'Peter',
+  // The operation sequence number. These must be consecutive for consecutive operations
+  sequence: 123456,
+  // The timestamp for the operation as a Unix time since epoch in milliseconds
+  timestamp: 1371737390976,
+  // The operation details, the name of this property will determine the type of the operation
+  // and what additional fields need to be supplied
+  operationType: {
+    // Operation parameters
+    ...
+  }
+});
+```
+
+#### `deposit` operation
 
 Deposit funds into an account
 
 ```Javascript
-var delta  = engine.apply({
+var operation  = new Operation({
   reference: '550e8400-e29b-41d4-a716-446655440000',
   account: 'Peter',
   sequence: 4562312,
@@ -180,19 +224,10 @@ var delta  = engine.apply({
   }
 });
 
-// The returned delta will have the following structure
+// The resulting delta will have the following structure
 var delta = {
   sequence: 35489,
-  operation: {
-    reference: '550e8400-e29b-41d4-a716-446655440000',
-    account: 'Peter',
-    sequence: 4562312,
-    timestamp: 1371737390976,
-    deposit: {
-      currency: 'EUR',
-      amount: new Amount('1000')
-    }
-  },
+  operation: operation,
   result: {
     // The new level of funds in the deposited currency
     funds: new Amount('11000')
@@ -200,12 +235,12 @@ var delta = {
 };
 ```
 
-##### `withdraw` operation
+#### `withdraw` operation
 
 Withdraw funds from an account
 
 ```Javascript
-var delta  = engine.apply({
+var operation  = new Operation({
   reference: '550e8400-e29b-41d4-a716-446655440000',
   account: 'Peter',
   sequence: 789652,
@@ -217,19 +252,10 @@ var delta  = engine.apply({
   }
 });
 
-// The returned delta will have the following structure
+// The resulting delta will have the following structure
 var delta = {
   sequence: 45872,
-  operation: {
-    reference: '550e8400-e29b-41d4-a716-446655440000',
-    account: 'Peter',
-    sequence: 789652,
-    timestamp: 1371737390976,
-    withdraw: {
-      currency: 'EUR',
-      amount: new Amount('1000')
-    }
-  },
+  operation: operation,
   result: {
     // The new level of funds in the withdrawn currency
     funds: new Amount('9000')
@@ -237,12 +263,12 @@ var delta = {
 };
 ```
 
-##### `submit` operation
+#### `submit` operation
 
 Submit orders to the market. Both bid and offer orders can be submitted and follow this pattern
 
 ```Javascript
-var delta  = engine.apply({
+var operation  = new Operation({
   reference: '550e8400-e29b-41d4-a716-446655440000',
   account: 'Peter',
   sequence: 654895,
@@ -254,19 +280,10 @@ var delta  = engine.apply({
   }
 });
 
-// The returned delta will have the following structure
+// The resulting delta will have the following structure
 var delta = {
   sequence: 98546,
-  operation: {
-    reference: '550e8400-e29b-41d4-a716-446655440000',
-    account: 'Peter',
-    sequence: 654895,
-    timestamp: 1371737390976,
-    submit: {
-      // order parameters
-      ...
-    }
-  },
+  operation: operation,
   result: {
     // The new level of locked funds in the order's offer currency
     lockedFunds: new Amount('45685.1234'),
@@ -342,13 +359,13 @@ var delta = {
 };
 ```
 
-###### Bid orders
+##### Bid orders
 
 ```Javascript
-var delta  = engine.apply({
+var operation  = new Operation({
   reference: '550e8400-e29b-41d4-a716-446655440000',
   account: 'Peter',
-  sequence: 0,
+  sequence: 65498,
   timestamp: 1371737390976,
   // Place a bid for 10 BTC offering 100 Euros per BTC
   submit: {
@@ -360,13 +377,13 @@ var delta  = engine.apply({
 });
 ```
 
-###### Offer orders
+##### Offer orders
 
 ```Javascript
-var delta  = engine.apply({
+var operation  = new Operation({
   reference: '550e8400-e29b-41d4-a716-446655440000',
   account: 'Peter',
-  sequence: 0,
+  sequence: 329801,
   timestamp: 1371737390976,
   // Place an offer of 1000 EUR bidding 0.01 BTC per EUR
   submit: {
@@ -378,12 +395,12 @@ var delta  = engine.apply({
 });
 ```
 
-##### `cancel` operation
+#### `cancel` operation
 
 Orders can be cancelled using the cancel operation.
 
 ```Javascript
-var delta  = engine.apply({
+var operation  = new Operation({
   reference: '550e8400-e29b-41d4-a716-446655440000',
   account: 'Peter',
   sequence: 625879,
@@ -394,18 +411,10 @@ var delta  = engine.apply({
   }
 });
 
-// The returned delta will have the following structure
+// The resulting delta will have the following structure
 var delta = {
   sequence: 35489,
-  operation: {
-    reference: '550e8400-e29b-41d4-a716-446655440000',
-    account: 'Peter',
-    sequence: 4562312,
-    timestamp: 1371737390976,
-    cancel: {
-      sequence: 615368
-    }
-  },
+  operation: operation,
   result: {
     // The new level of locked funds in the order's offer currency
     lockedFunds: new Amount('5216.9584')
@@ -413,20 +422,15 @@ var delta = {
 };
 ```
 
-#### `export` method
+#### `JSON.stringify`
 
-The `export` method is used to export the current state of the market as an object that can be converted to and from JSON and used to reinitialise another `Engine` instance in the same state or initialize a synchronized `State` instance
-
-```Javascript
-var exported = engine.export();
-```
-
-#### `import` method
-
-The `import` method is used to import a previously exported state
+Operations can be converted to and from JSON
 
 ```Javascript
-engine.import(exported);
+var json = JSON.stringify(operation);
+var operation = new Operation({
+  json: json
+});
 ```
 
 ### `State`
@@ -441,14 +445,11 @@ var State = require('currency-market').State;
 
 // instantiate a state
 var state = new State();
-```
 
-#### `import` method
-
-The `import` method is used to import a previously exported state, either from another `State` instance or an `Engine` instance
-
-```Javascript
-state.import(exported);
+// instantiate a state from JSON stringified engine
+var state = new State({
+  json: JSON.stringify(engine)
+});
 ```
 
 #### `apply` method
@@ -464,12 +465,15 @@ try {
 }
 ```
 
-#### `export` method
+#### `JSON.stringify`
 
-The `export` method is used to export the current state of the market as an object that can be converted to and from JSON and used to reinitialise another `State` instance in the same state
+States can be converted to and from JSON
 
 ```Javascript
-var exported = state.export();
+var json = JSON.stringify(state);
+var state = new State({
+  json: json
+});
 ```
 
 ## Roadmap
