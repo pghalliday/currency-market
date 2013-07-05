@@ -301,16 +301,16 @@ var delta = {
           // The remaining bidAmount on the order
           bidAmount: '12589.1335',
           // The remaining offerAmount on the order
-          offerAmount: '3261.23',
+          offerAmount: '3261.23'
         },
         // The transaction fields signal by how much the account balances have changed
         // and how much commission was applied
         transaction: {
           debit: {
             // The amount of the order's offer currency debited from the account
-            amount: '6592.32697'
+            amount: '6592.32697',
             // The new level of funds in the debited currency
-            funds: '123498.132455'
+            funds: '123498.132455',
             // The new level of locked funds in the debited currency
             lockedFunds: '38529.21558'
           },
@@ -318,14 +318,14 @@ var delta = {
             // The amount of the order's bid currency credited to the account
             amount: '326598.2356',
             // The new level of funds in the credited currency
-            funds: '65489123.53658'
+            funds: '65489123.53658',
             // If the engine was instantiated without commission then the commission
             // field will not be set
             commission: {
               // The amount of the order's bid currency credited to the commission account
               amount: '326.123588',
               // The new level of funds in the order's bid currency in the commission account
-              funds: '456432148131.45645645'
+              funds: '456432148131.45645645',
               // The reference associated with the commission calculation
               reference: '0.01%'
             }
