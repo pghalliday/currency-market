@@ -4,9 +4,14 @@ module.exports = (grunt) ->
       build: ['lib']
       coverage: ['lib-cov']
     coffee:
-      compile:
+      build:
         expand: true 
-        src: ['src/**/*.coffee', 'test/**/*.coffee', 'perf/**/*.coffee']
+        src: ['src/**/*.coffee', 'test/**/*.coffee']
+        dest: 'lib'
+        ext: '.js'
+      perf:
+        expand: true 
+        src: ['perf/**/*.coffee']
         dest: 'lib'
         ext: '.js'
     copy:
@@ -45,7 +50,7 @@ module.exports = (grunt) ->
   grunt.registerTask 'build', [
     'clean:build'
     'copy:build'
-    'coffee'
+    'coffee:build'
   ]
 
   grunt.registerTask 'coverage', [
@@ -53,6 +58,16 @@ module.exports = (grunt) ->
     'build'
     'copy:coverage'
     'blanket:coverage'
+  ]
+
+  grunt.registerTask 'runperf', ->
+    require('./lib/perf').run()
+    require('./lib/perf/sequence').run()
+
+  grunt.registerTask 'perf', [
+    'build'
+    'coffee:perf'
+    'runperf'
   ]
 
   grunt.registerTask 'default', [

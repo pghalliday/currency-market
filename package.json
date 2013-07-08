@@ -26,8 +26,9 @@
     "node": ">= 0.10.4"
   },
   "scripts": {
-    "prepublish": "grunt",
+    "prepublish": "grunt build",
     "test": "grunt",
+    "perf": "grunt perf",
     "travis-cov": {
       "threshold": 100
     }

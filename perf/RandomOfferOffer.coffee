@@ -3,29 +3,28 @@
 # balances (by withdrawing and depositing) and set new orders
 # the number of trades may vary
 
-Market = require '../src/Market'
-Account = require '../src/Account'
-Amount = require '../src/Amount'
-Order = require '../src/Order'
+Engine = require('../src').Engine
+Amount = require('../src').Amount
+Operation = require('../src').Operation
 
 # randgen library gives me a poisson distribution function
 poisson = require('randgen').rpoisson
 
-transactionId = 100000
-nextTransactionId = ->
-  return transactionId++
-
-TIMESTAMP = '1366758222'
+COMMISSION_RATE = new Amount '0.001'
 
 module.exports = class RandomOfferOffer
   constructor: (params) ->
+    @operationSequence = 0
+    @timestamp = 1371737390976
+    @account = 0
     @iterations = [1..params.iterations]
     @accounts = []
-    @market = new Market
-      currencies: [
-        'EUR'
-        'BTC'
-      ]
+    @engine = new Engine
+      commission:
+        account: 'commission'
+        calculate: (params) ->
+          amount: params.amount.multiply COMMISSION_RATE
+          reference: '0.1%'
 
     # create the accounts and the random parameters in advance
     # so as not to skew the timings
@@ -33,7 +32,7 @@ module.exports = class RandomOfferOffer
     # random parameters around the given means
     @randomParameters = Object.create null
     [1..params.accounts].forEach =>
-      accountId = nextTransactionId()
+      accountId = @nextAccount()
       @randomParameters[accountId] = []
       @iterations.forEach (iteration) =>
         price = poisson params.price
@@ -48,121 +47,104 @@ module.exports = class RandomOfferOffer
           offerAmount1: offerAmount1
           offerPrice2: offerPrice2
           offerAmount2: offerAmount2
-      @accounts.push @market.getAccount(accountId)
+      @accounts.push @engine.getAccount(accountId)
 
     @trades = 0
-    @market.on 'trade', (trade) =>
-      @trades++
-
     @deposits = 0
-    @market.on 'deposit', (deposit) =>
-      @deposits++
-
     @withdrawals = 0
-    @market.on 'withdrawal', (withdrawal) =>
-      @withdrawals++
-
     @orders = 0
-    @market.on 'order', (order) =>
-      @orders++
-
     @cancellations = 0
-    @market.on 'cancellation', (cancellation) =>
-      @cancellations++
+
+  nextSequence: =>
+    @operationSequence++
+
+  nextTimestamp: =>
+    @timestamp++
+
+  nextAccount: =>
+    'Account' + @account++
 
   execute: =>
     startTime = process.hrtime()
     @iterations.forEach (iteration) =>
       # cancel all the outstanding orders
       @accounts.forEach (account) =>
-        eurOffers = account.getBalance('EUR').offers
-        btcOffers = account.getBalance('BTC').offers
-        for id, order of eurOffers
-          @market.cancel
-            id: nextTransactionId()
-            timestamp: TIMESTAMP
-            order: order
-        for id, order of btcOffers
-          @market.cancel
-            id: nextTransactionId()
-            timestamp: TIMESTAMP
-            order: order
+        orders = account.orders
+        for sequence of orders
+          @cancellations++
+          @engine.apply new Operation
+            reference: 'hello'
+            sequence: @nextSequence()
+            timestamp: @nextTimestamp()
+            account: account.id
+            cancel:
+              sequence: sequence
 
       # withdraw funds, make deposits and place new orders
       @accounts.forEach (account) =>
         accountId = account.id
         parameters = @randomParameters[accountId][iteration]
-        #
-        # If you see an error then uncomment this to capture code to reproduce it
-        #
-        # console.log '@market.deposit'
-        # console.log '  id: \'' + nextTransactionId() + '\''
-        # console.log '  timestamp: \'' + TIMESTAMP + '\''
-        # console.log '  account: \'' + accountId + '\''
-        # console.log '  currency: \'EUR\''
-        # console.log '  amount: new Amount \'' + parameters.offerAmount1 + '\''
-        # console.log '@market.submit new Order'
-        # console.log '  id: \'' + nextTransactionId() + '\''
-        # console.log '  timestamp: \'' + TIMESTAMP + '\''
-        # console.log '  account: \'' + accountId + '\''
-        # console.log '  bidCurrency: \'BTC\''
-        # console.log '  offerCurrency: \'EUR\''
-        # console.log '  offerPrice: new Amount \'' + parameters.offerPrice1 + '\''
-        # console.log '  offerAmount: new Amount \'' + parameters.offerAmount1 + '\''
-        # console.log '@market.deposit'
-        # console.log '  id: \'' + nextTransactionId() + '\''
-        # console.log '  timestamp: \'' + TIMESTAMP + '\''
-        # console.log '  account: \'' + accountId + '\''
-        # console.log '  currency: \'BTC\''
-        # console.log '  amount: new Amount \'' + parameters.offerAmount2 + '\''
-        # console.log '@market.submit new Order'
-        # console.log '  id: \'' + nextTransactionId() + '\''
-        # console.log '  timestamp: \'' + TIMESTAMP + '\''
-        # console.log '  account: \'' + accountId + '\''
-        # console.log '  bidCurrency: \'EUR\''
-        # console.log '  offerCurrency: \'BTC\''
-        # console.log '  offerPrice: new Amount \'' + parameters.offerPrice2 + '\''
-        # console.log '  offerAmount: new Amount \'' + parameters.offerAmount2 + '\''
-        #
-        @market.withdraw
-          id: nextTransactionId()
-          timestamp: TIMESTAMP
+        @withdrawals++
+        @engine.apply new Operation
+          reference: 'hello'
+          sequence: @nextSequence()
+          timestamp: @nextTimestamp()
           account: accountId
-          currency: 'EUR'
-          amount: account.balances['EUR'].funds
-        @market.withdraw
-          id: nextTransactionId()
-          timestamp: TIMESTAMP
+          withdraw:
+            currency: 'EUR'
+            amount: account.getBalance('EUR').funds
+        @withdrawals++
+        @engine.apply new Operation
+          reference: 'hello'
+          sequence: @nextSequence()
+          timestamp: @nextTimestamp()
           account: accountId
-          currency: 'BTC'
-          amount: account.balances['BTC'].funds
-        @market.deposit
-          id: nextTransactionId()
-          timestamp: TIMESTAMP
+          withdraw:
+            currency: 'BTC'
+            amount: account.getBalance('BTC').funds
+        @deposits++
+        @engine.apply new Operation
+          reference: 'hello'
+          sequence: @nextSequence()
+          timestamp: @nextTimestamp()
           account: accountId
-          currency: 'EUR'
-          amount: parameters.offerAmount1
-        @market.submit new Order
-          id: nextTransactionId()
-          timestamp: TIMESTAMP
+          deposit:
+            currency: 'EUR'
+            amount: parameters.offerAmount1
+        @orders++
+        delta = @engine.apply new Operation
+          reference: 'hello'
+          sequence: @nextSequence()
+          timestamp: @nextTimestamp()
           account: accountId
-          bidCurrency: 'BTC'
-          offerCurrency: 'EUR'
-          offerPrice: parameters.offerPrice1
-          offerAmount: parameters.offerAmount1
-        @market.deposit
-          id: nextTransactionId()
-          timestamp: TIMESTAMP
+          submit:
+            bidCurrency: 'BTC'
+            offerCurrency: 'EUR'
+            offerPrice: parameters.offerPrice1
+            offerAmount: parameters.offerAmount1
+        if delta.result.trades
+          @trades += delta.result.trades.length
+        @deposits++
+        @engine.apply new Operation
+          reference: 'hello'
+          sequence: @nextSequence()
+          timestamp: @nextTimestamp()
           account: accountId
-          currency: 'BTC'
-          amount: parameters.offerAmount2
-        @market.submit new Order
-          id: nextTransactionId()
-          timestamp: TIMESTAMP
+          deposit:
+            currency: 'BTC'
+            amount: parameters.offerAmount2
+        @orders++
+        delta = @engine.apply new Operation
+          reference: 'hello'
+          sequence: @nextSequence()
+          timestamp: @nextTimestamp()
           account: accountId
-          bidCurrency: 'EUR'
-          offerCurrency: 'BTC'
-          offerPrice: parameters.offerPrice2
-          offerAmount: parameters.offerAmount2
+          submit:
+            bidCurrency: 'EUR'
+            offerCurrency: 'BTC'
+            offerPrice: parameters.offerPrice2
+            offerAmount: parameters.offerAmount2
+        if delta.result.trades
+          @trades += delta.result.trades.length
 
     @time = process.hrtime startTime

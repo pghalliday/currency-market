@@ -1,44 +1,55 @@
 # This test does trades in pairs to push funds around a circle of accounts
 
-Market = require '../src/Market'
-Account = require '../src/Account'
-Amount = require '../src/Amount'
-Order = require '../src/Order'
-
-transactionId = 100000
-nextTransactionId = ->
-  return transactionId++
-
-TIMESTAMP = '1366758222'
+Engine = require('../src').Engine
+Amount = require('../src').Amount
+Operation = require('../src').Operation
 
 module.exports = class PassItOn
   constructor: (params) ->
+    @operationSequence = 0
+    @timestamp = 1371737390976
+    @account = 0
     @iterations = [1..params.iterations]
     @accounts = []
-    @market = new Market()
+    @engine = new Engine
+      commission:
+        account: 'commission'
+        calculate: ->
+          amount: Amount.ZERO
+          reference: 'No commission'
     [1..params.accounts].forEach (index) =>
-      accountId = nextTransactionId()
+      accountId = @nextAccount()
       if index == 1
         # first account gets the EUR to pass round
-        @market.deposit
-          id: nextTransactionId()
-          timestamp: TIMESTAMP
+        @engine.apply new Operation
+          reference: 'hello'
+          sequence: @nextSequence()
+          timestamp: @nextTimestamp()
           account: accountId
-          currency: 'EUR'
-          amount: new Amount '5000'
+          deposit:
+            currency: 'EUR'
+            amount: new Amount '5000'
       else
         # other accounts get BTC
-        @market.deposit
-          id: nextTransactionId()
-          timestamp: TIMESTAMP
+        @engine.apply new Operation
+          reference: 'hello'
+          sequence: @nextSequence()
+          timestamp: @nextTimestamp()
           account: accountId
-          currency: 'BTC'
-          amount: new Amount '50'
+          deposit:
+            currency: 'BTC'
+            amount: new Amount '50'
       @accounts.push accountId
-
     @trades = 0
-    @market.on 'trade', (trade) =>
-      @trades++
+
+  nextSequence: =>
+    @operationSequence++
+
+  nextTimestamp: =>
+    @timestamp++
+
+  nextAccount: =>
+    'Account' + @account++
 
   execute: =>
     startTime = process.hrtime()
@@ -48,39 +59,51 @@ module.exports = class PassItOn
       @accounts.forEach (accountId) =>
         if lastAccount
           # fulfill the order from the last account
-          @market.submit new Order
-            id: nextTransactionId()
-            timestamp: TIMESTAMP
+          delta = @engine.apply new Operation
+            reference: 'hello'
+            sequence: @nextSequence()
+            timestamp: @nextTimestamp()
             account: accountId
-            bidCurrency: 'EUR'
-            offerCurrency: 'BTC'
-            offerPrice: new Amount '100'
-            offerAmount: new Amount '50'          
+            submit:
+              bidCurrency: 'EUR'
+              offerCurrency: 'BTC'
+              offerPrice: new Amount '100'
+              offerAmount: new Amount '50'
+          if delta.result.trades
+            @trades += delta.result.trades.length
         else
           # record this as the first account so we can complete the circle
           firstAccount = accountId
 
         # order some BTC
-        @market.submit new Order
-          id: nextTransactionId()
-          timestamp: TIMESTAMP
+        delta = @engine.apply new Operation
+          reference: 'hello'
+          sequence: @nextSequence()
+          timestamp: @nextTimestamp()
           account: accountId
-          bidCurrency: 'BTC'
-          offerCurrency: 'EUR'
-          bidPrice: new Amount '100'
-          bidAmount: new Amount '50'
+          submit:
+            bidCurrency: 'BTC'
+            offerCurrency: 'EUR'
+            bidPrice: new Amount '100'
+            bidAmount: new Amount '50'
+        if delta.result.trades
+          @trades += delta.result.trades.length
 
         # set the last account
         lastAccount = accountId
 
       # now we can complete the circle and give the EUR back to the first account
-      @market.submit new Order
-        id: nextTransactionId()
-        timestamp: TIMESTAMP
+      delta = @engine.apply new Operation
+        reference: 'hello'
+        sequence: @nextSequence()
+        timestamp: @nextTimestamp()
         account: firstAccount
-        bidCurrency: 'EUR'
-        offerCurrency: 'BTC'
-        offerPrice: new Amount '100'
-        offerAmount: new Amount '50'          
+        submit:
+          bidCurrency: 'EUR'
+          offerCurrency: 'BTC'
+          offerPrice: new Amount '100'
+          offerAmount: new Amount '50'          
+      if delta.result.trades
+        @trades += delta.result.trades.length
 
     @time = process.hrtime startTime
