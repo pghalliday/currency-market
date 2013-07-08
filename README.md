@@ -12,6 +12,154 @@ A synchronous implementation of a limit order based currency market
 npm install currency-market
 ```
 
+## Usage
+
+The `currency-market` package is intended to be used by a system of components that need to be synchronized. Those components are
+
+- A number of front ends that generate operations and allow the state of the market to be queried
+- An operation hub that accepts the operations and ensures they are submitted to order matching engines in a reproducible order
+- A number of identical order matching engines that process the operations and calculate the new state of the market for each one
+- A delta hub that receives the market state deltas and distributes them to the front ends
+
+On intialization
+
+- Engines will be constructed (perhaps from a previous engine state) and when requested will send the state to the delta hub
+
+```Javascript
+var Engine = require('currency-market').Engine;
+var Amount = require('currency-market').Amount;
+
+var engine = new Engine({
+  commission: {
+    account: 'commission'
+    calculate: function(params) {
+      return {
+        amount: Amount.ONE,
+        reference: 'Flat 1'
+      };
+    }
+  },
+  json: previousEngineState  
+});
+
+...
+
+sendStateToDeltaHub(JSON.stringify(engine));
+```
+
+- The delta hub will request the state from an engine and forward that to the front ends when they start up
+
+```Javascript
+var State = require('currency-market').State;
+
+getStateFromEngine(function(receivedEngineState){
+  var state = new State({
+    commission: {
+      account: 'commission'
+    },
+    json: receivedEngineState  
+  });
+});
+
+...
+
+sendStateToFrontEnd(JSON.stringify(state));
+```
+
+- Front ends will request the state and then construct a state from the JSON state they receive from the delta hub
+
+```Javascript
+var State = require('currency-market').State;
+
+getStateFromDeltaHub(function(receivedState){
+  var state = new State({
+    commission: {
+      account: 'commission'
+    },
+    json: receivedState
+  });
+});
+```
+
+Then the life cycle of an operation is as follows
+
+- A front end constructs an operation and sends it to an operation hub
+
+```Javascript
+var Operation = require('currency-market').Operation;
+var Amount = require('currency-market').Amount;
+
+var operation = new Operation({
+  reference: '550e8400-e29b-41d4-a716-446655440000',
+  account: 'Peter',
+  deposit: {
+    currency: 'EUR',
+    amount: new Amount '500'
+  }
+});
+
+sendToOperationHub(JSON.stringify(operation));
+```
+
+- The operation hub receives the operation, accepts it with a seqence number and timestamp and forwards it to the engine instances
+
+```Javascript
+var Operation = require('currency-market').Operation;
+
+var operation = new Operation({
+  json: receivedJSON  
+});
+
+operation.accept({
+  sequence: 654852,
+  timestamp: 1371737390976
+});
+
+sendToEngines(JSON.stringify(operation));
+```
+
+- The engines receive the operation, process it and send market state deltas to the delta hub
+
+```Javascript
+var Operation = require('currency-market').Operation;
+
+var operation = new Operation({
+  json: receivedJSON  
+});
+
+delta = engine.apply(operation);
+
+sendToDeltaHub(JSON.stringify(delta));
+```
+
+- The delta hub receives the deltas, processes the first of each one it receives to update its own state and sends that delta on to the front ends
+
+```Javascript
+var Delta = require('currency-market').Delta;
+
+var delta = new Delta({
+  json: receivedJSON  
+});
+
+state.apply(delta);
+
+sendToFrontEnds(JSON.stringify(delta));
+```
+
+- The front ends receive the deltas and apply them to their own state so that they can respond to queries with the new information
+
+```Javascript
+var Delta = require('currency-market').Delta;
+
+var delta = new Delta({
+  json: receivedJSON  
+});
+
+state.apply(delta);
+
+var funds = state.getAccount('Peter').getBalance('EUR').funds
+```
+
 ## API
 
 All functions complete synchronously and throw errors if they fail.
@@ -52,20 +200,21 @@ amount200.compareTo(amount1000) < 0;
 amount200.compareTo(amount200) == 0;
 
 // 2 Identity constants are defined
-var Amount.ZERO = new Amount('0');
-var Amount.ONE = new Amount('1');
+var zero = Amount.ZERO;
+var one = Amount.ONE;
 ```
 
 ### `Engine`
+
+```javascript
+var Engine = require('currency-market').Engine;
+```
 
 `Engine` instances accept operations and return deltas that can be applied to simplified `State` instances.
 
 #### Constructor
 
 ```javascript
-var Engine = require('currency-market').Engine;
-var Amount = require('currency-market').Amount;
-
 // Define a commission rate of 0.5%
 var COMMISSION_RATE = new Amount('0.005');
 
@@ -111,7 +260,7 @@ Operations and deltas can be converted losslessly to and from JSON for transmiss
 
 If an operation fails for any reason (eg. not enough funds) then an error will be thrown.
 
-All operations follow the same pattern
+Only operations that have been accepted using the `Operation.accept` method can be applied to an `Engine` instance.
 
 ```Javascript
 try {
@@ -147,27 +296,26 @@ var engine = new Engine({
 
 ### `Delta`
 
+```javascript
+var Delta = require('currency-market').Delta;
+```
+
 `Delta` instances are returned by `Engine` instances after successfully applying operations. They can be converted to JSON, transmitted, reconstructed from JSON and applied to `State` instances.
 
-All deltas follow this pattern
+All deltas have the following properties
 
 ```Javascript
-var delta = {
-  // The delta sequence number. These will be generated consecutively by the engine
-  // for successful operations. As such they will not be synchronized with operation sequence
-  // numbers due to the possibility of operations throwing errors
-  sequence: 45632,
-  // The operation parameters as supplied to the `apply` method
-  operation: {
-    // An `Operation` instance
-    ...
-  },
-  // Additional state change information
-  result: {
-    // Result properties
-    ...
-  }
-};
+// The delta sequence number. These will be generated consecutively by the engine
+// for successful operations. As such they will not be synchronized with operation sequence
+// numbers due to the possibility of operations throwing errors
+var sequence = delta.sequence;
+
+// The operation instance as supplied to the `apply` method
+var operation = delta.operation;
+
+// Additional state change information in a format specific to the operation type
+var result = delta.result;
+
 ```
 
 #### `JSON.stringify`
@@ -183,6 +331,10 @@ var delta = new Delta({
 
 ### `Operation`
 
+```javascript
+var Operation = require('currency-market').Operation;
+```
+
 `Operation` instances are submitted to `Engine` instances to apply operations. They can be converted to JSON, transmitted and reconstructed from JSON
 
 All operations follow this pattern
@@ -194,16 +346,25 @@ var operation = new Operation({
   reference: '550e8400-e29b-41d4-a716-446655440000',
   // The ID of the account submitting the operation
   account: 'Peter',
-  // The operation sequence number. These must be consecutive for consecutive operations
-  sequence: 123456,
-  // The timestamp for the operation as a Unix time since epoch in milliseconds
-  timestamp: 1371737390976,
   // The operation details, the name of this property will determine the type of the operation
   // and what additional fields need to be supplied
   operationType: {
     // Operation parameters
     ...
   }
+});
+```
+
+#### `accept` method
+
+Operations must be accepted before they can be applied to an `Engine` instance to ensure they are associated with a sequence number and a timestamp
+
+```Javascript
+operation.accept({
+  // The operation sequence number. These must be consecutive for consecutive operations
+  sequence: 123456,
+  // The timestamp for the operation as a Unix time since epoch in milliseconds
+  timestamp: 1371737390976
 });
 ```
 
@@ -215,8 +376,6 @@ Deposit funds into an account
 var operation  = new Operation({
   reference: '550e8400-e29b-41d4-a716-446655440000',
   account: 'Peter',
-  sequence: 4562312,
-  timestamp: 1371737390976,
   // deposit 1000 Euros to account ID 'Peter'
   deposit: {
     currency: 'EUR',
@@ -224,15 +383,10 @@ var operation  = new Operation({
   }
 });
 
-// The resulting delta will have the following structure
-var delta = {
-  sequence: 35489,
-  operation: operation,
-  result: {
-    // The new level of funds in the deposited currency
-    funds: new Amount('11000')
-  }
-};
+// On successful application the `delta.result` will have the following fields
+
+// The new level of funds in the deposited currency as an `Amount` instance
+var funds = delta.result.funds
 ```
 
 #### `withdraw` operation
@@ -243,8 +397,6 @@ Withdraw funds from an account
 var operation  = new Operation({
   reference: '550e8400-e29b-41d4-a716-446655440000',
   account: 'Peter',
-  sequence: 789652,
-  timestamp: 1371737390976,
   // withdraw 1000 Euros from account ID 'Peter'
   withdraw: {
     currency: 'EUR',
@@ -252,15 +404,10 @@ var operation  = new Operation({
   }
 });
 
-// The resulting delta will have the following structure
-var delta = {
-  sequence: 45872,
-  operation: operation,
-  result: {
-    // The new level of funds in the withdrawn currency
-    funds: new Amount('9000')
-  }
-};
+// On successful application the `delta.result` will have the following fields
+
+// The new level of funds in the deposited currency as an `Amount` instance
+var funds = delta.result.funds
 ```
 
 #### `submit` operation
@@ -271,8 +418,6 @@ Submit orders to the market. Both bid and offer orders can be submitted and foll
 var operation  = new Operation({
   reference: '550e8400-e29b-41d4-a716-446655440000',
   account: 'Peter',
-  sequence: 654895,
-  timestamp: 1371737390976,
   // Place a bid order for 10 BTC offering 100 Euros per BTC
   submit: {
     // order parameters
@@ -280,83 +425,88 @@ var operation  = new Operation({
   }
 });
 
-// The resulting delta will have the following structure
-var delta = {
-  sequence: 98546,
-  operation: operation,
-  result: {
-    // The new level of locked funds in the order's offer currency
-    lockedFunds: new Amount('45685.1234'),
+// On successful application the `delta.result` will have the following fields
 
-    // Note that only one of `nextHigherOrderSequence` or `trades` will be set
+// The new level of locked funds in the order's offer currency
+var lockedFunds = delta.result.lockedFunds
 
-    // If the order is not at the top of the order book then the sequence number
-    // of the next order above it is returned. This is a hint to optimize the
-    // insertion of the order into a `State` instance
-    nextHigherOrderSequence: 652973,
+// Note that only one of `nextHigherOrderSequence` or `trades` will be set
 
-    // If the order was inserted at the top of the order book then an array of trades
-    // will be returned. This array will still be set, but will be empty, if no actual 
-    // trades were made
-    //
-    // Note that the price at which any trade was executed will be given by the bid or
-    // offer price associated with the `right` order and that the volume traded in each
-    // currency is most easily referenced by the debit amounts associated with the `left`
-    // and `right` accounts in their respective order's offer currencies
-    trades: [{
-      // `left` gives the changes to be applied to the order that was submitted and the
-      // account that submitted it
-      left: {
-        // Only one of `left` or `right` will have a remainder and this
-        // signals the amount of the order that has not yet been executed.
-        // When no remainder is specified it signals that the order was
-        // completely executed. It is possible that neither `left` nor `right`
-        // will have a remainder if they completely satisfy each other
-        remainder: {
-          // The remaining bidAmount on the order
-          bidAmount: new Amount('12589.1335'),
-          // The remaining offerAmount on the order
-          offerAmount: new Amount('3261.23')
-        },
-        // The transaction fields signal by how much the account balances have changed
-        // and how much commission was applied
-        transaction: {
-          debit: {
-            // The amount of the order's offer currency debited from the account
-            amount: new Amount('6592.32697'),
-            // The new level of funds in the debited currency
-            funds: new Amount('123498.132455'),
-            // The new level of locked funds in the debited currency
-            lockedFunds: new Amount('38529.21558')
-          },
-          credit: {
-            // The amount of the order's bid currency credited to the account
-            amount: new Amount('326598.2356'),
-            // The new level of funds in the credited currency
-            funds: new Amount('65489123.53658'),
-            // If the engine was instantiated without commission then the commission
-            // field will not be set
-            commission: {
-              // The amount of the order's bid currency credited to the commission account
-              amount: new Amount('326.123588'),
-              // The new level of funds in the order's bid currency in the commission account
-              funds: new Amount('456432148131.45645645'),
-              // The reference associated with the commission calculation
-              reference: '0.01%'
-            }
-          }
-        }
-      },
-      // `right` gives the changes to be applied to the order that was matched and the
-      // account that submitted it. This order will always be the order that is currently
-      // at the top of the opposing order book to that which the submitted order was added
-      right: {
-        // The fields that can be set are the same as for `left`
-        ...
-      }
-    }, ...]
-  }
-};
+// If the order is not at the top of the order book then the sequence number
+// of the next order above it is returned. This is a hint to optimize the
+// insertion of the order into a `State` instance
+var nextHigherOrderSequence = delta.result.nextHigherOrderSequence;
+
+// If the order was inserted at the top of the order book then an array of trades
+// will be returned. This array will still be set, but will be empty, if no actual 
+// trades were made
+//
+// Note that the price at which any trade was executed will be given by the bid or
+// offer price associated with the `right` order and that the volume traded in each
+// currency is most easily referenced by the debit amounts associated with the `left`
+// and `right` accounts in their respective order's offer currencies
+var trades = delta.result.trades;
+
+  // `left` gives the changes to be applied to the order that was submitted and the
+  // account that submitted it
+  var left = trades[0].left;
+
+    // Only one of `left` or `right` will have a remainder and this
+    // signals the amount of the order that has not yet been executed.
+    // When no remainder is specified it signals that the order was
+    // completely executed. It is possible that neither `left` nor `right`
+    // will have a remainder if they completely satisfy each other
+    var remainder = left.remainder;
+
+      // The remaining bidAmount on the order
+      var bidAmount = remainder.bidAmount;
+
+      // The remaining offerAmount on the order
+      var offerAmount = remainder.offerAmount;
+
+    // The transaction fields signal by how much the account balances have changed
+    // and how much commission was applied
+    var transaction = left.transaction;
+
+      // The changes applied to the balance being debited
+      var debit = transaction.debit;
+
+        // The amount of the order's offer currency debited from the account
+        var amount = debit.amount;
+
+        // The new level of funds in the debited currency
+        var funds = debit.funds;
+
+        // The new level of locked funds in the debited currency
+        var lockedFunds = debit.lockedFunds;
+
+      // The changes applied to the balances being credited
+      var credit = transaction.credit;
+
+        // The amount of the order's bid currency credited to the account
+        var amount = credit.amount;
+
+        // The new level of funds in the credited currency
+        var funds = credit.funds;
+
+        // If the engine was instantiated with commission then the commission
+        // field will be set
+        var commission = credit.commission;
+
+          // The amount of the order's bid currency credited to the commission account
+          var amount = commission.amount;
+
+          // The new level of funds in the order's bid currency in the commission account
+          var funds = commission.funds;
+
+          // The reference associated with the commission calculation
+          var reference = commission.reference;
+
+  // `right` gives the changes to be applied to the order that was matched and the
+  // account that submitted it. This order will always be the order that is currently
+  // at the top of the opposing order book to that which the submitted order was added.
+  // The fields that can be set are the same as for `left`
+  var right = trades[0].right;
 ```
 
 ##### Bid orders
@@ -365,8 +515,6 @@ var delta = {
 var operation  = new Operation({
   reference: '550e8400-e29b-41d4-a716-446655440000',
   account: 'Peter',
-  sequence: 65498,
-  timestamp: 1371737390976,
   // Place a bid for 10 BTC offering 100 Euros per BTC
   submit: {
     bidCurrency: 'BTC',
@@ -383,8 +531,6 @@ var operation  = new Operation({
 var operation  = new Operation({
   reference: '550e8400-e29b-41d4-a716-446655440000',
   account: 'Peter',
-  sequence: 329801,
-  timestamp: 1371737390976,
   // Place an offer of 1000 EUR bidding 0.01 BTC per EUR
   submit: {
     bidCurrency: 'BTC',
@@ -403,23 +549,16 @@ Orders can be cancelled using the cancel operation.
 var operation  = new Operation({
   reference: '550e8400-e29b-41d4-a716-446655440000',
   account: 'Peter',
-  sequence: 625879,
-  timestamp: 1371737390976,
   // Cancel the order submitted by acount ID 'Peter' with operation sequence 615368 
   cancel: {
     sequence: 615368
   }
 });
 
-// The resulting delta will have the following structure
-var delta = {
-  sequence: 35489,
-  operation: operation,
-  result: {
-    // The new level of locked funds in the order's offer currency
-    lockedFunds: new Amount('5216.9584')
-  }
-};
+// On successful application the `delta.result` will have the following fields
+
+// The new level of locked funds in the order's offer currency
+var lockedFunds = delta.result.lockedFunds;
 ```
 
 #### `JSON.stringify`
@@ -435,14 +574,15 @@ var operation = new Operation({
 
 ### `State`
 
-`State` instances provide simplified access to a market state. They do not contain the logic for matching orders but do accept `Engine` generated deltas to keep them synchronized with `Engine` instances
+```javascript
+var State = require('currency-market').State;
+```
 
+`State` instances provide simplified access to a market state. They do not contain the logic for matching orders but do accept `Engine` generated deltas to keep them synchronized with `Engine` instances
 
 #### Constructor
 
 ```javascript
-var State = require('currency-market').State;
-
 // instantiate a state
 var state = new State({
   commission:
@@ -562,7 +702,6 @@ The `Balance` class gives access to the levels of funds and locked funds (when o
 var funds = balance.funds;
 var lockedFunds = balance.lockedFunds;
 ```
-
 
 ## Roadmap
 

@@ -10,34 +10,10 @@ Cancel = require '../../src/Operation/Cancel'
 Amount = require '../../src/Amount'
 
 describe 'Operation', ->
-  it 'should error if no sequence is supplied', ->
-    expect ->
-      operation = new Operation
-        reference: 'hello'
-        timestamp: 1371737390976
-        account: 'Peter'
-        deposit: 
-          currency: 'EUR'
-          amount: new Amount '500'
-    .to.throw 'Must supply a sequence number'
-
-  it 'should error if no timestamp is supplied', ->
-    expect ->
-      operation = new Operation
-        reference: 'hello'
-        sequence: 0
-        account: 'Peter'
-        deposit: 
-          currency: 'EUR'
-          amount: new Amount '500'
-    .to.throw 'Must supply a timestamp'
-
   it 'should error if no account ID is supplied', ->
     expect ->
       operation = new Operation
         reference: 'hello'
-        sequence: 0
-        timestamp: 1371737390976
         deposit: 
           currency: 'EUR'
           amount: new Amount '500'
@@ -47,8 +23,6 @@ describe 'Operation', ->
     expect ->
       operation = new Operation
         reference: 'hello'
-        sequence: 0
-        timestamp: 1371737390976
         account: 'Peter'
         unknown: 'blah blah'
     .to.throw 'Unknown operation'
@@ -57,15 +31,11 @@ describe 'Operation', ->
     it 'should instantiate recording a supplied reference, sequence number, timestamp, account and instantiate a Deposit', ->
       operation = new Operation
         reference: 'hello'
-        sequence: 0
-        timestamp: 1371737390976
         account: 'Peter'
         deposit:
           currency: 'EUR'
           amount: new Amount '500'
       operation.reference.should.equal 'hello'
-      operation.sequence.should.equal 0
-      operation.timestamp.should.equal 1371737390976
       operation.account.should.equal 'Peter'
       operation.deposit.should.be.an.instanceOf Deposit
       operation.deposit.currency.should.equal 'EUR'
@@ -73,8 +43,6 @@ describe 'Operation', ->
       operation = new Operation
         json: JSON.stringify operation
       operation.reference.should.equal 'hello'
-      operation.sequence.should.equal 0
-      operation.timestamp.should.equal 1371737390976
       operation.account.should.equal 'Peter'
       operation.deposit.should.be.an.instanceOf Deposit
       operation.deposit.currency.should.equal 'EUR'
@@ -82,8 +50,6 @@ describe 'Operation', ->
       operation = new Operation
         exported: JSON.parse JSON.stringify operation
       operation.reference.should.equal 'hello'
-      operation.sequence.should.equal 0
-      operation.timestamp.should.equal 1371737390976
       operation.account.should.equal 'Peter'
       operation.deposit.should.be.an.instanceOf Deposit
       operation.deposit.currency.should.equal 'EUR'
@@ -93,15 +59,11 @@ describe 'Operation', ->
     it 'should instantiate recording a supplied reference, sequence number, timestamp, account and instantiate a Withdraw', ->
       operation = new Operation
         reference: 'hello'
-        sequence: 0
-        timestamp: 1371737390976
         account: 'Peter'
         withdraw:
           currency: 'EUR'
           amount: new Amount '500'
       operation.reference.should.equal 'hello'
-      operation.sequence.should.equal 0
-      operation.timestamp.should.equal 1371737390976
       operation.account.should.equal 'Peter'
       operation.withdraw.should.be.an.instanceOf Withdraw
       operation.withdraw.currency.should.equal 'EUR'
@@ -109,8 +71,6 @@ describe 'Operation', ->
       operation = new Operation
         json: JSON.stringify operation
       operation.reference.should.equal 'hello'
-      operation.sequence.should.equal 0
-      operation.timestamp.should.equal 1371737390976
       operation.account.should.equal 'Peter'
       operation.withdraw.should.be.an.instanceOf Withdraw
       operation.withdraw.currency.should.equal 'EUR'
@@ -118,8 +78,6 @@ describe 'Operation', ->
       operation = new Operation
         exported: JSON.parse JSON.stringify operation
       operation.reference.should.equal 'hello'
-      operation.sequence.should.equal 0
-      operation.timestamp.should.equal 1371737390976
       operation.account.should.equal 'Peter'
       operation.withdraw.should.be.an.instanceOf Withdraw
       operation.withdraw.currency.should.equal 'EUR'
@@ -129,8 +87,6 @@ describe 'Operation', ->
     it 'should instantiate recording a supplied reference, sequence number, timestamp, account and instantiate a Submit', ->
       operation = new Operation
         reference: 'hello'
-        sequence: 0
-        timestamp: 1371737390976
         account: 'Peter'
         submit:
           bidCurrency: 'EUR'
@@ -138,8 +94,6 @@ describe 'Operation', ->
           bidPrice: new Amount '10'
           bidAmount: new Amount '500'
       operation.reference.should.equal 'hello'
-      operation.sequence.should.equal 0
-      operation.timestamp.should.equal 1371737390976
       operation.account.should.equal 'Peter'
       operation.submit.should.be.an.instanceOf Submit
       operation.submit.bidCurrency.should.equal 'EUR'
@@ -149,8 +103,6 @@ describe 'Operation', ->
       operation = new Operation
         json: JSON.stringify operation
       operation.reference.should.equal 'hello'
-      operation.sequence.should.equal 0
-      operation.timestamp.should.equal 1371737390976
       operation.account.should.equal 'Peter'
       operation.submit.should.be.an.instanceOf Submit
       operation.submit.bidCurrency.should.equal 'EUR'
@@ -160,8 +112,6 @@ describe 'Operation', ->
       operation = new Operation
         exported: JSON.parse JSON.stringify operation
       operation.reference.should.equal 'hello'
-      operation.sequence.should.equal 0
-      operation.timestamp.should.equal 1371737390976
       operation.account.should.equal 'Peter'
       operation.submit.should.be.an.instanceOf Submit
       operation.submit.bidCurrency.should.equal 'EUR'
@@ -173,30 +123,68 @@ describe 'Operation', ->
     it 'should instantiate recording a supplied reference, sequence number, timestamp, account and instantiate a Cancel', ->
       operation = new Operation
         reference: 'hello'
-        sequence: 0
-        timestamp: 1371737390976
         account: 'Peter'
         cancel:
           sequence: 10
       operation.reference.should.equal 'hello'
-      operation.sequence.should.equal 0
-      operation.timestamp.should.equal 1371737390976
       operation.account.should.equal 'Peter'
       operation.cancel.should.be.an.instanceOf Cancel
       operation.cancel.sequence.should.equal 10
       operation = new Operation
         json: JSON.stringify operation
       operation.reference.should.equal 'hello'
-      operation.sequence.should.equal 0
-      operation.timestamp.should.equal 1371737390976
       operation.account.should.equal 'Peter'
       operation.cancel.should.be.an.instanceOf Cancel
       operation.cancel.sequence.should.equal 10
       operation = new Operation
         exported: JSON.parse JSON.stringify operation
       operation.reference.should.equal 'hello'
-      operation.sequence.should.equal 0
-      operation.timestamp.should.equal 1371737390976
       operation.account.should.equal 'Peter'
       operation.cancel.should.be.an.instanceOf Cancel
       operation.cancel.sequence.should.equal 10
+
+  describe '#accept', ->
+    it 'should error if no sequence is supplied', ->
+      operation = new Operation
+        reference: 'hello'
+        account: 'Peter'
+        deposit: 
+          currency: 'EUR'
+          amount: new Amount '500'
+      expect ->
+        operation.accept
+          timestamp: 1371737390976
+      .to.throw 'Must supply a sequence number'
+
+    it 'should error if no timestamp is supplied', ->
+      operation = new Operation
+        reference: 'hello'
+        account: 'Peter'
+        deposit: 
+          currency: 'EUR'
+          amount: new Amount '500'
+      expect ->
+        operation.accept
+          sequence: 0
+      .to.throw 'Must supply a timestamp'
+
+    it 'should set the sequence number and timestamp', ->
+      operation = new Operation
+        reference: 'hello'
+        account: 'Peter'
+        deposit:
+          currency: 'EUR'
+          amount: new Amount '500'
+      operation.accept
+        sequence: 0
+        timestamp: 1371737390976
+      operation.sequence.should.equal 0
+      operation.timestamp.should.equal 1371737390976
+      operation = new Operation
+        json: JSON.stringify operation
+      operation.sequence.should.equal 0
+      operation.timestamp.should.equal 1371737390976
+      operation = new Operation
+        exported: JSON.parse JSON.stringify operation
+      operation.sequence.should.equal 0
+      operation.timestamp.should.equal 1371737390976

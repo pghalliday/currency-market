@@ -19,29 +19,41 @@ describe 'CurrencyMarket', ->
     engine = new Engine
       commission: commission
     
+    # new operation
     operation = new Operation
       reference: 'hello'
-      sequence: 0
-      timestamp: 1371737390976
       account: 'Peter'
       deposit:
         currency: 'EUR'
         amount: new Amount '500'
 
-    # simulate transmiting the operation as JSON
+    # simulate transmiting the operation as JSON to an operation hub
+    operation = new Operation
+      json: JSON.stringify operation
+    operation.accept
+      sequence: 0
+      timestamp: 1371737390976
+
+    # simulate transmiting the operation as JSON to an engine
     engine.apply new Operation
       json: JSON.stringify operation
 
+    # new operation
     operation = new Operation
       reference: 'hello'
-      sequence: 1
-      timestamp: 1371737390976
       account: 'Paul'
       deposit:
         currency: 'BTC'
         amount: new Amount '50'
 
-    # simulate transmiting the operation as JSON
+    # simulate transmiting the operation as JSON to an operation hub
+    operation = new Operation
+      json: JSON.stringify operation
+    operation.accept
+      sequence: 1
+      timestamp: 1371737390976
+
+    # simulate transmiting the operation as JSON to an engine
     engine.apply new Operation
       json: JSON.stringify operation
 
@@ -55,10 +67,9 @@ describe 'CurrencyMarket', ->
       commission: commission
       json: JSON.stringify engine
 
+    # new operation
     operation = new Operation
       reference: 'hello'
-      sequence: 2
-      timestamp: 1371737390976
       account: 'Peter'
       submit:
         bidCurrency: 'BTC'
@@ -66,7 +77,14 @@ describe 'CurrencyMarket', ->
         offerPrice: new Amount '0.1'
         offerAmount: new Amount '500'
 
-    # simulate transmiting the operation as JSON
+    # simulate transmiting the operation as JSON to an operation hub
+    operation = new Operation
+      json: JSON.stringify operation
+    operation.accept
+      sequence: 2
+      timestamp: 1371737390976
+
+    # simulate transmiting the operation as JSON to an engine
     delta = engine.apply new Operation
       json: JSON.stringify operation
 
@@ -74,10 +92,9 @@ describe 'CurrencyMarket', ->
     state.apply new Delta
       json: JSON.stringify delta
 
+    # new operation
     operation = new Operation
       reference: 'hello'
-      sequence: 3
-      timestamp: 1371737390976
       account: 'Paul'
       submit:
         bidCurrency: 'EUR'
@@ -85,7 +102,14 @@ describe 'CurrencyMarket', ->
         offerPrice: new Amount '10'
         offerAmount: new Amount '50'
 
-    # simulate transmiting the operation as JSON
+    # simulate transmiting the operation as JSON to an operation hub
+    operation = new Operation
+      json: JSON.stringify operation
+    operation.accept
+      sequence: 3
+      timestamp: 1371737390976
+
+    # simulate transmiting the operation as JSON to an engine
     delta = engine.apply new Operation
       json: JSON.stringify operation
 

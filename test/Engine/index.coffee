@@ -66,6 +66,28 @@ describe 'Engine', ->
         calculate: @calculateCommission
 
   describe '#apply', ->
+    it 'should throw an error if no sequence number is supplied', ->
+      expect =>
+        @engine.apply new Operation
+          reference: '550e8400-e29b-41d4-a716-446655440000'
+          account: 'Peter'
+          timestamp: 1371737390976
+          deposit:
+            currency: 'EUR'
+            amount: amount1000
+      .to.throw 'Operation must have been accepted'
+
+    it 'should throw an error if no timestamp is supplied', ->
+      expect =>
+        @engine.apply new Operation
+          reference: '550e8400-e29b-41d4-a716-446655440000'
+          account: 'Peter'
+          sequence: 0
+          deposit:
+            currency: 'EUR'
+            amount: amount1000
+      .to.throw 'Operation must have been accepted'
+
     it 'should throw an error if the sequence number is not expected', ->
       expect =>
         @engine.apply new Operation
