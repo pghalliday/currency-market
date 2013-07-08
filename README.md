@@ -29,13 +29,16 @@ On intialization
 var Engine = require('currency-market').Engine;
 var Amount = require('currency-market').Amount;
 
+var COMMISSION_RATE = new Amount('0.001');
+var COMMISSION_REFERENCE = '0.1%';
+
 var engine = new Engine({
   commission: {
     account: 'commission'
     calculate: function(params) {
       return {
-        amount: Amount.ONE,
-        reference: 'Flat 1'
+        amount: params.amount.multiply(COMMISSION_RATE),
+        reference: COMMISSION_REFERENCE
       };
     }
   },
