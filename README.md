@@ -485,7 +485,7 @@ var state = new State({
 
 #### `getBook` method
 
-The `getBook` method gives access to the order books keyed by bid and offer currency. Each book is an `Array` of orders sorted in the order in which they will be executed when matched
+The `getBook` method gives access to the order books keyed by bid and offer currency. Each book is an `Array` of orders sorted as they will be matched for execution
 
 ```Javascript
 var book = state.getBook({
