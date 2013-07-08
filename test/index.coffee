@@ -9,7 +9,7 @@ Delta = CurrencyMarket.Delta
 Amount = CurrencyMarket.Amount
 
 describe 'CurrencyMarket', ->
-  it.skip 'should be possible to construct an Engine, export the engine state to a State, apply an Operation and apply the resulting Delta to the State', ->
+  it 'should be possible to construct an Engine, export the engine state to a State, apply an Operation and apply the resulting Delta to the State', ->
     commission = 
       account: 'commission'
       calculate: (params) ->
@@ -52,6 +52,7 @@ describe 'CurrencyMarket', ->
 
     # simulate transmiting the engine as JSON
     state = new State
+      commission: commission
       json: JSON.stringify engine
 
     operation = new Operation
@@ -94,6 +95,7 @@ describe 'CurrencyMarket', ->
 
     # simulate transmitting the state as JSON
     state = new State
+      commission: commission
       json: JSON.stringify state
 
     # now check the end state

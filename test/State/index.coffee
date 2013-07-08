@@ -245,12 +245,16 @@ describe 'State', ->
   it 'should instantiate from an engine state', ->
     state = new State
       json: JSON.stringify @engine
+      commission:
+        account: 'commission'
     @checkState state
 
   describe 'JSON.stringify', ->
     it 'should be possible to instantiate an identical state from an exported JSON state', ->
       state1 = state = new State
         json: JSON.stringify @engine
+        commission:
+          account: 'commission'
       state2 = new State
         json: JSON.stringify state1
       @checkState state2
@@ -263,6 +267,8 @@ describe 'State', ->
         amount: '5000'
       state = state = new State
         json: JSON.stringify @engine
+        commission:
+          account: 'commission'
       state.getAccount('Peter').getBalance('EUR').funds.compareTo(new Amount '15000').should.equal 0
       state.apply delta
       state.getAccount('Peter').getBalance('EUR').funds.compareTo(new Amount '15000').should.equal 0
@@ -304,6 +310,8 @@ describe 'State', ->
       it 'should update the account balance accordingly', ->
         state = state = new State
           json: JSON.stringify @engine
+          commission:
+            account: 'commission'
         state.apply @deposit
           account: 'Peter'
           currency: 'EUR'
@@ -324,6 +332,8 @@ describe 'State', ->
       it 'should update the account balance accordingly', ->
         state = state = new State
           json: JSON.stringify @engine
+          commission:
+            account: 'commission'
         state.apply @withdraw
           account: 'Peter'
           currency: 'EUR'
@@ -344,27 +354,31 @@ describe 'State', ->
       it 'should update the state accordingly', ->
         state = state = new State
           json: JSON.stringify @engine
+          commission:
+            account: 'commission'
+
         # submit a bid somewhere in a book but not at the top
         state.apply @submitBid
           account: 'Paul'
           offerCurrency: 'BTC'
           bidCurrency: 'EUR'
-          price: '0.015'
+          price: '0.005'
           amount: '1000'
         order = state.getAccount('Paul').orders[8]
         balance = state.getAccount('Paul').getBalance('BTC')
-        balance.lockedFunds.compareTo(new Amount '75').should.equal 0
+        balance.lockedFunds.compareTo(new Amount '65').should.equal 0
         order.sequence.should.equal 8
         order.timestamp.should.equal 1371737390976 + 8
         order.account.should.equal 'Paul'
         order.offerCurrency.should.equal 'BTC'
         order.bidCurrency.should.equal 'EUR'
-        order.bidPrice.compareTo(new Amount '0.015').should.equal 0
+        order.bidPrice.compareTo(new Amount '0.005').should.equal 0
         order.bidAmount.compareTo(new Amount '1000').should.equal 0
         bookEURBTC = state.getBook
           bidCurrency: 'EUR'
           offerCurrency: 'BTC'
-        bookEURBTC[1].should.equal order
+        bookEURBTC[2].should.equal order
+
         # submit a bid at the top of it's book that will not match any orders from the opposing book
         state.apply @submitBid
           account: 'Paul'
@@ -374,7 +388,7 @@ describe 'State', ->
           amount: '500'
         order = state.getAccount('Paul').orders[9]
         balance = state.getAccount('Paul').getBalance('BTC')
-        balance.lockedFunds.compareTo(new Amount '87.5').should.equal 0
+        balance.lockedFunds.compareTo(new Amount '77.5').should.equal 0
         order.sequence.should.equal 9
         order.timestamp.should.equal 1371737390976 + 9
         order.account.should.equal 'Paul'
@@ -386,6 +400,7 @@ describe 'State', ->
           bidCurrency: 'EUR'
           offerCurrency: 'BTC'
         bookEURBTC[0].should.equal order
+
         # submit a bid at the top of it's book that will match 1 and a bit orders from the opposing book
         state.apply @submitBid
           account: 'Paul'
@@ -393,15 +408,77 @@ describe 'State', ->
           bidCurrency: 'EUR'
           price: '0.04'
           amount: '6000'
-        # TODO: check the state
+
+        # completed orders
+        expect(state.getAccount('Paul').orders[10]).to.not.be.ok
+        expect(state.getAccount('Peter').orders[5]).to.not.be.ok
+
+        # Paul's new balances
+        balance = state.getAccount('Paul').getBalance('BTC')
+        balance.funds.compareTo(new Amount '780').should.equal 0
+        balance.lockedFunds.compareTo(new Amount '77.5').should.equal 0
+        balance = state.getAccount('Paul').getBalance('EUR')
+        balance.funds.compareTo(new Amount '8498').should.equal 0
+        balance.lockedFunds.compareTo(new Amount '0').should.equal 0
+
+        # Peter's new balances
+        balance = state.getAccount('Peter').getBalance('BTC')
+        balance.funds.compareTo(new Amount '268').should.equal 0
+        balance.lockedFunds.compareTo(new Amount '0').should.equal 0
+        balance = state.getAccount('Peter').getBalance('EUR')
+        balance.funds.compareTo(new Amount '4000').should.equal 0
+        balance.lockedFunds.compareTo(new Amount '1000').should.equal 0
+
+        # The new commission balances
+        balance = state.getAccount('commission').getBalance('BTC')
+        balance.funds.compareTo(new Amount '2').should.equal 0
+        balance = state.getAccount('commission').getBalance('EUR')
+        balance.funds.compareTo(new Amount '2').should.equal 0
+
+        # The remainder of the order that was partially complete
+        order = state.getAccount('Peter').orders[4]
+        order.offerAmount.compareTo(new Amount '1000').should.equal 0
+
+        # the state of the books
+        bookEURBTC = state.getBook
+          bidCurrency: 'EUR'
+          offerCurrency: 'BTC'
+
+        bookEURBTC.should.have.length 4
+        bookEURBTC[0].should.equal state.getAccount('Paul').orders[9]
+
+        bookBTCEUR = state.getBook
+          bidCurrency: 'BTC'
+          offerCurrency: 'EUR'
+
+        bookBTCEUR.should.have.length 1
+        bookBTCEUR[0].should.equal order
 
     describe 'cancel delta', ->
-      it.skip 'should update the state accordingly', ->
+      it 'should update the state accordingly', ->
         state = state = new State
           json: JSON.stringify @engine
+          commission:
+            account: 'commission'
         state.apply @cancel
           account: 'Peter'
           sequence: 4
+        expect(state.getAccount('Peter').orders[4]).to.not.be.ok
+        balance = state.getAccount('Peter').getBalance('EUR')
+        balance.lockedFunds.compareTo(new Amount '2000').should.equal 0
+        bookBTCEUR = state.getBook
+          bidCurrency: 'BTC'
+          offerCurrency: 'EUR'
+        bookBTCEUR.should.have.length 1
+        bookBTCEUR[0].should.equal state.getAccount('Peter').orders[5]
         state.apply @cancel
           account: 'Paul'
           sequence: 6
+        expect(state.getAccount('Paul').orders[6]).to.not.be.ok
+        balance = state.getAccount('Paul').getBalance('BTC')
+        balance.lockedFunds.compareTo(new Amount '10').should.equal 0
+        bookEURBTC = state.getBook
+          bidCurrency: 'EUR'
+          offerCurrency: 'BTC'
+        bookEURBTC.should.have.length 1
+        bookEURBTC[0].should.equal state.getAccount('Paul').orders[7]
