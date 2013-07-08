@@ -444,10 +444,17 @@ var operation = new Operation({
 var State = require('currency-market').State;
 
 // instantiate a state
-var state = new State();
+var state = new State({
+  commission:
+    // Note that the commission acount name should match the commission
+    // acount name from the engine to which this state will be synchronised
+    account: 'commission'
+});
 
 // instantiate a state from JSON stringified engine
 var state = new State({
+  commission:
+    account: 'commission'
   json: JSON.stringify(engine)
 });
 ```
@@ -476,9 +483,89 @@ var state = new State({
 });
 ```
 
+#### `getBook` method
+
+The `getBook` method gives access to the order books keyed by bid and offer currency. Each book is an `Array` of orders sorted in the order in which they will be executed when matched
+
+```Javascript
+var book = state.getBook({
+  bidCurrency: 'BTC',
+  offerCurrency: 'EUR'
+});
+
+// Get the top of the order book
+var order = book[0];
+
+// All orders have the following fields
+//
+// The sequence number
+var sequence = order.sequence;
+// The timestamp in milliseconds since epoch
+var timestamp = order.timestamp;
+// The account ID associated with the order
+var account = order.account;
+// The offer currency
+var offerCurrency = order.offerCurrency;
+// The bid currency
+var bidCurrency = order.bidCurrency;
+
+// Bid orders have the following additional fields
+
+// The bid price as an `Amount` instance
+var bidPrice = order.bidPrice;
+// The bid amount as an `Amount` instance
+var bidAmount = order.bidAmount;
+
+// Offer orders have the following additional fields
+
+// The offer price as an `Amount` instance
+var offerPrice = order.offerPrice;
+// The offer amount as an `Amount` instance
+var offerAmount = order.offerAmount;
+```
+
+#### `getAccount` method
+
+The `getAccount` method gives access to the accounts as instances of `Account` by account ID
+
+```Javascript
+var account = state.getAccount('Peter');
+```
+
+##### `Account`
+
+The `Account` class gives access to the properties of an account
+
+###### `orders` property
+
+This is a collection of active orders keyed by sequence number (NB. it is an `Object` and not an `Array`)
+
+```Javascript
+var order = account.orders[5];
+```
+
+The orders are the same instances as those in the books retrieved with the `getBook` method
+
+###### `getBalance` method
+
+The `getBalance` method gives access to the balances of funds as instances of `Balance` associated with an account, keyed by currency
+
+```Javascript
+var balance = account.getBalance('EUR');
+```
+
+##### `Balance`
+
+The `Balance` class gives access to the levels of funds and locked funds (when orders are outstanding) as `Amount` instances
+
+```Javascript
+var funds = balance.funds;
+var lockedFunds = balance.lockedFunds;
+```
+
+
 ## Roadmap
 
-- Implement `State` as described above 
 - Instant orders
   - Market orders
     - zero priced offers that are rejected if they cannot be completely filled by the market
