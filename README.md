@@ -734,6 +734,18 @@ var lockedFunds = balance.lockedFunds;
 
 In lieu of a formal styleguide, take care to maintain the existing coding style. Add unit tests for any new or changed functionality.
 
+Run tests with
+
+```
+$ npm test
+```
+
+Run performance tests with
+
+```
+$ npm run-script perf
+```
+
 ## License
 Copyright &copy; 2013 Peter Halliday  
 Licensed under the MIT license.
