@@ -4,4 +4,13 @@ src/
 test/
 perf/
 lib-cov/
+thirdparty/
+cookbooks/
+Vagrantfile
+Berksfile
+Berksfile.lock
+coverage.html
 Gruntfile.coffee
+.vagrant
+.travis.yml
+lib/test/
