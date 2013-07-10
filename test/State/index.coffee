@@ -258,6 +258,9 @@ describe 'State', ->
       state2 = new State
         json: JSON.stringify state1
       @checkState state2
+      state3 = new State
+        exported: JSON.parse JSON.stringify state1
+      @checkState state3
 
   describe '#apply', ->
     it 'should ignore deltas with a sequence lower than expected as such a delta will have already been applied', ->

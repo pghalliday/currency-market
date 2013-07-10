@@ -41,20 +41,23 @@ module.exports = class State
     @books = {}
     @nextDeltaSequence = 0
     if params
+      exported = params.exported
       json = params.json
       commission = params.commission
       if json
-        params = JSON.parse json
-      @nextDeltaSequence = params.nextDeltaSequence
-      for id, account of params.accounts
-        @accounts[id] = new Account account
-      for bidCurrency, books of params.books
-        booksWithBidCurrency = @getBooks bidCurrency
-        for offerCurrency, book of books
-          booksWithBidCurrency[offerCurrency] = book
-          for order in book
-            convert order
-            @accounts[order.account].orders[order.sequence] = order
+        exported = JSON.parse json
+      if exported
+        params = exported
+        @nextDeltaSequence = params.nextDeltaSequence
+        for id, account of params.accounts
+          @accounts[id] = new Account account
+        for bidCurrency, books of params.books
+          booksWithBidCurrency = @getBooks bidCurrency
+          for offerCurrency, book of books
+            booksWithBidCurrency[offerCurrency] = book
+            for order in book
+              convert order
+              @accounts[order.account].orders[order.sequence] = order
       if commission
         @commissionAccount = @getAccount commission.account
 

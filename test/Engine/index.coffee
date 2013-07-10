@@ -942,6 +942,11 @@ describe 'Engine', ->
           account: 'commission'
           calculate: @calculateCommission
         json: JSON.stringify @engine
+      engine = new Engine
+        commission:
+          account: 'commission'
+          calculate: @calculateCommission
+        exported: JSON.parse JSON.stringify @engine
       engine.nextOperationSequence.should.equal @engine.nextOperationSequence
       engine.nextDeltaSequence.should.equal @engine.nextDeltaSequence
       engine.apply new Operation

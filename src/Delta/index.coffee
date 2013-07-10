@@ -6,8 +6,11 @@ Operation = require '../Operation'
 
 module.exports = class Delta
   constructor: (params) ->
+    exported = params.exported
     if params.json
-      params = JSON.parse params.json
+      exported = JSON.parse params.json
+    if exported
+      params = exported
       params.result = 
         exported: params.result
       params.operation = new Operation

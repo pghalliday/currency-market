@@ -295,6 +295,22 @@ var engine = new Engine({
   },
   json: json
 });
+
+// OR
+
+var json = JSON.stringify(engine);
+var engine = new Engine({
+  commission: {
+    account: 'commission',
+    calculate: function(params) {
+      return {
+        amount: amount.multiply(COMMISSION_RATE),
+        reference: COMMISSION_RATE + '%'
+      };
+    }
+  },
+  exported: JSON.parse(json)
+});
 ```
 
 ### `Delta`
@@ -329,6 +345,13 @@ Deltas can be converted to and from JSON
 var json = JSON.stringify(delta);
 var delta = new Delta({
   json: json
+});
+
+// OR
+
+var json = JSON.stringify(delta);
+var delta = new Delta({
+  exported: JSON.parse(json)
 });
 ```
 
@@ -573,6 +596,13 @@ var json = JSON.stringify(operation);
 var operation = new Operation({
   json: json
 });
+
+// OR
+
+var json = JSON.stringify(operation);
+var operation = new Operation({
+  exported: JSON.parse(json)
+});
 ```
 
 ### `State`
@@ -623,6 +653,13 @@ States can be converted to and from JSON
 var json = JSON.stringify(state);
 var state = new State({
   json: json
+});
+
+// OR
+
+var json = JSON.stringify(state);
+var state = new State({
+  exported: JSON.parse(json)
 });
 ```
 

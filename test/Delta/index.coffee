@@ -86,6 +86,12 @@ describe 'Delta', ->
       delta.operation.should.be.an.instanceOf Operation
       delta.result.should.be.an.instanceOf Deposit
       delta.result.funds.compareTo(new Amount '1500').should.equal 0
+      delta = new Delta
+        exported: JSON.parse JSON.stringify delta
+      delta.sequence.should.equal 0
+      delta.operation.should.be.an.instanceOf Operation
+      delta.result.should.be.an.instanceOf Deposit
+      delta.result.funds.compareTo(new Amount '1500').should.equal 0
 
   describe 'with operation of type withdraw', ->
     it 'should instantiate recording a supplied sequence number, operation and instantiate a Withdraw', ->
@@ -108,6 +114,12 @@ describe 'Delta', ->
       delta.result.funds.compareTo(new Amount '500').should.equal 0
       delta = new Delta
         json: JSON.stringify delta
+      delta.sequence.should.equal 0
+      delta.operation.should.be.an.instanceOf Operation
+      delta.result.should.be.an.instanceOf Withdraw
+      delta.result.funds.compareTo(new Amount '500').should.equal 0
+      delta = new Delta
+        exported: JSON.parse JSON.stringify delta
       delta.sequence.should.equal 0
       delta.operation.should.be.an.instanceOf Operation
       delta.result.should.be.an.instanceOf Withdraw
@@ -143,6 +155,13 @@ describe 'Delta', ->
       delta.result.should.be.an.instanceOf Submit
       delta.result.lockedFunds.compareTo(new Amount '1100').should.equal 0
       delta.result.trades.should.deep.equal []
+      delta = new Delta
+        exported: JSON.parse JSON.stringify delta
+      delta.sequence.should.equal 0
+      delta.operation.should.be.an.instanceOf Operation
+      delta.result.should.be.an.instanceOf Submit
+      delta.result.lockedFunds.compareTo(new Amount '1100').should.equal 0
+      delta.result.trades.should.deep.equal []
 
   describe 'with operation of type cancel', ->
     it 'should instantiate recording a supplied sequence number, operation and instantiate a Cancel', ->
@@ -164,6 +183,12 @@ describe 'Delta', ->
       delta.result.lockedFunds.compareTo(new Amount '1000').should.equal 0
       delta = new Delta
         json: JSON.stringify delta
+      delta.sequence.should.equal 0
+      delta.operation.should.be.an.instanceOf Operation
+      delta.result.should.be.an.instanceOf Cancel
+      delta.result.lockedFunds.compareTo(new Amount '1000').should.equal 0
+      delta = new Delta
+        exported: JSON.parse JSON.stringify delta
       delta.sequence.should.equal 0
       delta.operation.should.be.an.instanceOf Operation
       delta.result.should.be.an.instanceOf Cancel

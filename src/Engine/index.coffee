@@ -15,8 +15,11 @@ module.exports = class Engine
         @commission = 
           account: @getAccount params.commission.account
           calculate: params.commission.calculate
+      exported = params.exported
       if params.json
-        state = JSON.parse params.json
+        exported = JSON.parse params.json
+      if exported
+        state = exported
         for id, account of state.accounts
           accountObject = @getAccount id
           for currency, balance of account.balances
