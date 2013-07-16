@@ -745,6 +745,9 @@ var lockedFunds = balance.lockedFunds;
 
 ## Roadmap
 
+- Setting commission for an account/balance/globally should be an operation so that changes can be reflected in the history
+  - Commission types should be predefined and parameterized
+  - The commission account should be fixed?
 - Instant orders
   - Market orders
     - zero priced offers that are rejected if they cannot be completely filled by the market
