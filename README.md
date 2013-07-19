@@ -745,6 +745,13 @@ var lockedFunds = balance.lockedFunds;
 
 ## Roadmap
 
+- When applying a delta to a state we should get back a flag to say whether the delta was applied so that we know if the delta was old or not
+- The state should emit an event when a deposit is recorded so that it can also be recorded in more permanent storage
+- The state should record the last N deposits for each account so that these can be quickly queried without looking at permanent storage
+- The state should emit an event when a withdrawal is recorded so that it can also be recorded in more permanent storage
+- The state should record the last N withdrawals for each account so that these can be quickly queried without looking at permanent storage
+- The state should emit an event when a trade is recorded so that it can also be recorded in more permanent storage
+- The state should record the last N trades for each account so that these can be quickly queried without looking at permanent storage
 - Setting commission for an account/balance/globally should be an operation so that changes can be reflected in the history
   - Commission types should be predefined and parameterized
   - The commission account should be fixed?
