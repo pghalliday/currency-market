@@ -861,7 +861,7 @@ describe 'Engine', ->
         expect(@engine.getBook('EUR', 'BTC').next()).to.not.be.ok
         delta.sequence.should.equal 5
 
-      it 'should throw an error if the order cannot be found', ->
+      it 'should throw an error if the order is not active', ->
         expect =>
           @engine.apply new Operation
             reference: '550e8400-e29b-41d4-a716-446655440000'
@@ -870,7 +870,7 @@ describe 'Engine', ->
             timestamp: 1371737390976
             cancel:
               sequence: 0
-        .to.throw('Order cannot be found')
+        .to.throw('Order is not active')
 
   describe '#getAccount', ->
     it 'should return an Account object associated with the given ID', ->

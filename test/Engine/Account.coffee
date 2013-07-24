@@ -109,12 +109,12 @@ describe 'Account', ->
       expect(account.orders[0]).to.not.be.ok
 
   describe '#getOrder', ->
-    it 'should error if the order cannot be found', ->
+    it 'should error if the order is not active', ->
       account = new Account
         id: 'Peter'
       expect ->
         account.getOrder 0
-      .to.throw 'Order cannot be found'
+      .to.throw 'Order is not active'
 
     it 'should return the order with the given sequence number', ->
       book = new Book

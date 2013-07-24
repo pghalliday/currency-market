@@ -48,7 +48,7 @@ module.exports = class Account
   getOrder: (sequence) =>
     order = @orders[sequence]
     if !order
-      throw new Error 'Order cannot be found'
+      throw new Error 'Order is not active'
     else
       return order
 
